@@ -40,6 +40,7 @@ if (!class_exists('emUserImport')) {
         add_action('init', [$this, 'user_import_inits' ] );
         add_action('admin_menu', [$this, 'user_import_register_submenu_page' ] );
 		add_action( 'admin_enqueue_scripts', [$this, 'load_admin_styles' ]  );
+       // add_action('init', [$this, 'user_import_submission' ] );
     }
 
     public function user_import_inits() {
@@ -83,7 +84,7 @@ if (!class_exists('emUserImport')) {
 
     public function user_import_submission()
     {
-
+        include(ABSPATH . "wp-includes/pluggable.php"); 
         // WordPress environmet
         require( ABSPATH . '/wp-load.php' );
 
@@ -120,18 +121,12 @@ if (!class_exists('emUserImport')) {
             wp_die( 'Upload error.' );
         }
 
-        // update medatata, regenerate image sizes
-        require_once( ABSPATH . 'wp-admin/includes/image.php' );
-
-        wp_update_attachment_metadata(
-          $attachment_id,
-          wp_generate_attachment_metadata( $attachment_id, $upload[ 'file' ] )
-        );
-
         //$csvFile = fopen('Data.csv', 'r'); // location of file
         $csv =   $this->readCSV($upload[ 'url' ] ); 
         
+        $counter = 0;
         foreach ( $csv as $c ) {
+            if ($counter++ == 0) continue; // skip headers     
             $username = $c[0];
             $password = $c[1];
             $email_address = $c[2];  
