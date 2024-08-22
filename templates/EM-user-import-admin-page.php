@@ -1,7 +1,8 @@
+<h2>Import Users from CSV</h2>
 <form id="em-user-import-form" action="" method="post" enctype="multipart/form-data">
-
-    <input class="em-sv-btn"  name="emcsv"  type="file" accept=".csv" />
-    <input type="submit" value="Submit">
+<label>CSV file  <input class="em-sv-btn"  name="emcsv"  type="file" accept=".csv" /></label>
+  
+    <input type="submit" value="Import">
 
 </form>
 <?php 

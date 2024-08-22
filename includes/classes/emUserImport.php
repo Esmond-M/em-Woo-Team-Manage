@@ -74,19 +74,21 @@ if (!class_exists('emUserImport')) {
     }
 
     public function load_admin_styles(){
-        // global $pagenow;
-       // $rand = rand(1, 99999999999);
-
-       // wp_enqueue_style( 'edit_screen_css',  '/wp-content/plugins/em-user-import/admin/assets/css/em-options.css' , array(),  $rand );
+        global $pagenow;
+        $rand = rand(1, 99999999999);
+        if ( 'options-general.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
+            wp_enqueue_style( 'edit_screen_css',  '/wp-content/plugins/em-user-import/admin/assets/css/em-options.css' , array(),  $rand );
+        }
+      
        // wp_enqueue_script( 'EM-User-Import-scripts', '/wp-content/plugins/em-user-import/admin/assets/js/emUserImport.js', array('jquery'), $rand, true);
-    return;
+        return;
     }
 
     public function user_import_submission()
     {
         include(ABSPATH . "wp-includes/pluggable.php"); 
         // WordPress environmet
-        require( ABSPATH . '/wp-load.php' );
+        require( ABSPATH . 'wp-load.php' );
 
         // it allows us to use wp_handle_upload() function
         require_once( ABSPATH . 'wp-admin/includes/file.php' );
