@@ -37,11 +37,21 @@ if (!class_exists('emUserImport')) {
     */
     public function __construct()
     {
-
+        add_action('init', [$this, 'user_import_inits' ] );
         add_action('admin_menu', [$this, 'user_import_register_submenu_page' ] );
 		add_action( 'admin_enqueue_scripts', [$this, 'load_admin_styles' ]  );
     }
 
+    public function user_import_inits() {
+        add_role('team_leader', 'Team Leader', array(
+            'read' => true,
+            'create_posts' => false,
+            'edit_posts' => false,
+            'edit_others_posts' => false,
+            'publish_posts' => false,
+            'manage_categories' => false,
+            ));
+    }
     public function user_import_register_submenu_page() {
 
         //Add Custom Social Sharing Sub Menu
@@ -49,7 +59,7 @@ if (!class_exists('emUserImport')) {
         'options-general.php',
         'EM User Import ',
         'EM User Import',
-        "manage_options",
+        "read",
         'user-import-controls',
         [$this, 'user_import_page'], 
         1
