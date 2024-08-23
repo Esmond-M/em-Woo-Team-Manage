@@ -82,9 +82,11 @@ if (!class_exists('emUserImport')) {
 
     public function user_import_submission()
     {
-        include(ABSPATH . "wp-includes/pluggable.php"); 
-        // WordPress environmet
-        require( ABSPATH . 'wp-load.php' );
+        // It allows create user functions
+        require_once(ABSPATH . 'wp-includes/user.php'); 
+        
+        // WordPress environment
+        require_once( ABSPATH . 'wp-load.php' );
 
         // it allows us to use wp_handle_upload() function
         require_once( ABSPATH . 'wp-admin/includes/file.php' );
@@ -128,16 +130,31 @@ if (!class_exists('emUserImport')) {
             $username = $c[0];
             $email_address = $c[1];          
             $password = $c[2];
-
-            if ( ! username_exists( $username ) ) {
-                $user_id = wp_create_user( $username, $password, $email_address );
-                $user = WP_User( $user_id );
-                $user->set_role( 'administrator' );
-            }    
+            $user_data = array(
+                'user_login'    => $username,
+                'user_pass'     => $password,
+                'user_email'    => $email_address ,
+                'first_name'    => '',
+                'last_name'     => '',
+                'user_url'      => '',
+                'description'   => '',
+                'role'          => 'team_subordinate'
+            );
+            
+            $user_id = wp_insert_user( $user_data );
+            
+            if ( is_wp_error( $user_id ) ) {
+                // There was an error creating the user
+                echo $user_id->get_error_message();
+            } else {
+                // The user was successfully created
+                echo 'User created with ID: ' . $user_id . '<br>';
+            }
+              
         }  
 
         // send email of successful run
-     
+     /*
         $emailto = 'esmondmccain@gmail.com';
 
         // Email subject, "New {post_type_label}"
@@ -149,7 +166,8 @@ if (!class_exists('emUserImport')) {
         wp_mail( $emailto, $subject, $message );
 
         echo "file submitted" ;
-        
+        */
+        wp_delete_attachment( $attachment_id, true);   
         exit;
       
     }
