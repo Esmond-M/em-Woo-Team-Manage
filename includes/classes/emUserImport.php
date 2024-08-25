@@ -52,23 +52,34 @@ if (!class_exists('emUserImport')) {
     public function user_import_register_submenu_page() {
 
         //Add Custom Social Sharing Sub Menu
-        add_submenu_page(
-        'options-general.php',
-        'EM User Import ',
+        add_menu_page(
         'EM User Import',
-        "read",
-        'user-import-controls',
-        [$this, 'user_import_page'], 
-        1
+        'EM User Import',
+        'read',
+        "user-import-controls",
+        [$this, 'user_import_page'],
+        '',
+        2
         );
-
+        add_submenu_page(
+            'user-import-controls',
+            'Team leader Admin',
+            'Team leader Admin',
+            "read",
+            'team_leader_admin',
+            [$this, 'team_leader_admin_page'], 
+            1
+            );
     } // end of function
 
     public function user_import_page(){
-        require WP_PLUGIN_DIR . '/em-user-import/templates/EM-user-import-admin-page.php';
+        require WP_PLUGIN_DIR . '/em-user-import/templates/user-import-admin-page.php';
         return;
     }
-
+    public function team_leader_admin_page(){
+        require WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-admin-page.php';
+        return;
+    }
     public function load_admin_styles(){
         global $pagenow;
         $rand = rand(1, 99999999999);
