@@ -57,7 +57,7 @@ if (!class_exists('emUserImport')) {
         'EM User Import',
         'read',
         "user-import-controls",
-        [$this, 'user_import_page'],
+        [$this, 'team_leader_user_import_page'],
         '',
         2
         );
@@ -66,27 +66,45 @@ if (!class_exists('emUserImport')) {
             'Team leader Admin',
             'Team leader Admin',
             "read",
-            'team_leader_admin',
+            'team-leader-admin',
             [$this, 'team_leader_admin_page'], 
             1
             );
+        add_submenu_page(
+            'user-import-controls',
+            'Site Admin View',
+            'Site Admin View',
+            "activate_plugins",
+            'site-admin-team-leader-admin',
+            [$this, 'site_admin_team_leader_admin_page'], 
+            1
+            );            
     } // end of function
 
-    public function user_import_page(){
-        require WP_PLUGIN_DIR . '/em-user-import/templates/user-import-admin-page.php';
+    public function team_leader_user_import_page(){
+        require WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-user-import-page.php';
         return;
     }
     public function team_leader_admin_page(){
         require WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-admin-page.php';
         return;
     }
+    public function site_admin_team_leader_admin_page(){
+        require WP_PLUGIN_DIR . '/em-user-import/templates/site-admin-team-leader-page.php';
+        return;
+    }    
     public function load_admin_styles(){
         global $pagenow;
         $rand = rand(1, 99999999999);
-        if ( 'options-general.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
-            wp_enqueue_style( 'edit_screen_css',  '/wp-content/plugins/em-user-import/admin/assets/css/em-options.css' , array(),  $rand );
+        if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
+            wp_enqueue_style( 'team-leader-user-import',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
         }
-      
+        if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'team-leader-admin' ) {
+            wp_enqueue_style( 'team-leader-admin',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-admin.css' , array(),  $rand );
+        }
+        if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
+            wp_enqueue_style( 'site-admin-team-leader',  '/wp-content/plugins/em-user-import/admin/assets/css/site-admin-team-leader.css' , array(),  $rand );
+        }
        // wp_enqueue_script( 'EM-User-Import-scripts', '/wp-content/plugins/em-user-import/admin/assets/js/emUserImport.js', array('jquery'), $rand, true);
         return;
     }
