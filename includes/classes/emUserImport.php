@@ -45,7 +45,9 @@ if (!class_exists('emUserImport')) {
         add_action( 'edit_user_profile', [$this, 'profile_field_team_leader_email' ]  );
         add_action( 'personal_options_update', [$this, 'profile_save_team_leader_email' ]  );
         add_action( 'edit_user_profile_update', [$this, 'profile_save_team_leader_email' ]  );  
-    
+        add_action('wp_ajax_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission' ] );
+		add_action('wp_ajax_nopriv_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission' ]);
+
     }
 
 
@@ -74,7 +76,7 @@ if (!class_exists('emUserImport')) {
             'user-import-controls',
             'Site Admin View',
             'Site Admin View',
-            "activate_plugins",
+            "manage_options",
             'site-admin-team-leader-admin',
             [$this, 'site_admin_team_leader_admin_page'], 
             1
@@ -97,15 +99,20 @@ if (!class_exists('emUserImport')) {
         global $pagenow;
         $rand = rand(1, 99999999999);
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
-            wp_enqueue_style( 'team-leader-user-import',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
+            wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
         }
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'team-leader-admin' ) {
-            wp_enqueue_style( 'team-leader-admin',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-admin.css' , array(),  $rand );
+            wp_enqueue_style( 'team-leader-admin-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-admin.css' , array(),  $rand );
+            wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-user-import/admin/assets/js/teamLeaderAdmin.js', array('jquery'), $rand, true); 
+            wp_localize_script('team-leader-admin-script', 'team_Leader_Form_Submission', array(
+                'ajaxurl' => admin_url('admin-ajax.php') ,
+                'noposts' => __('No older posts found', 'em-theme') ,
+              ));                        
         }
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
-            wp_enqueue_style( 'site-admin-team-leader',  '/wp-content/plugins/em-user-import/admin/assets/css/site-admin-team-leader.css' , array(),  $rand );
+            wp_enqueue_style( 'site-admin-team-leader-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/site-admin-team-leader.css' , array(),  $rand );
         }
-       // wp_enqueue_script( 'EM-User-Import-scripts', '/wp-content/plugins/em-user-import/admin/assets/js/emUserImport.js', array('jquery'), $rand, true);
+       
         return;
     }
 
@@ -296,7 +303,35 @@ if (!class_exists('emUserImport')) {
         </tr>
       </table>
     <?php 
-    }   
+    }
+    public function team_Leader_Form_Submission() {
+        if ( ! isset( $_POST['team_Leader_Form_Submission_nonce_field'] ) || ! wp_verify_nonce( $_POST['team_Leader_Form_Submission_nonce_field'], 'team_Leader_Form_Submission' ) ) 
+        {
+    
+          exit;
+        } 
+        
+        else {
+        if(!empty($_POST['userID'])) {
+            foreach($_POST['userID'] as $check) {
+                echo $check; 
+                wp_delete_user( $check);          
+      
+            }
+          }
+          echo '<p class="newpost-success">Thank you for your submission!</p>';
+          exit;  
+        }
+        }  
+        
+        
 }
 
+
 }
+
+
+  
+
+
+

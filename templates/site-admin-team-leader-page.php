@@ -7,11 +7,13 @@ $teamLeaderUsers = get_users( array( 'role__in' => array( 'team_leader' ) ) );
 // Array of WP_User objects.
 ?>
     <table>
-  <tr>
+ <thead>      
+   <tr>
     <th>Team Leader email</th>
     <th>Team leader name</th>
     <th>Subordinates</th>
-  </tr>
+   </tr>
+  </thead>
   <?php
 foreach ( $teamLeaderUsers as $user ) {
 
