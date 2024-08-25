@@ -13,5 +13,5 @@
 
   $obj = new emUserImport;
 
-  $obj->user_import_submission();
+  $obj->site_admin_user_import_submission();
              

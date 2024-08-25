@@ -50,55 +50,13 @@ if (!class_exists('emUserImport')) {
 
     }
 
-
-    public function user_import_register_submenu_page() {
-
-        //Add Custom Social Sharing Sub Menu
-        add_menu_page(
-        'EM User Import',
-        'EM User Import',
-        'read',
-        "user-import-controls",
-        [$this, 'team_leader_user_import_page'],
-        '',
-        2
-        );
-        add_submenu_page(
-            'user-import-controls',
-            'Team leader Admin',
-            'Team leader Admin',
-            "read",
-            'team-leader-admin',
-            [$this, 'team_leader_admin_page'], 
-            1
-            );
-        add_submenu_page(
-            'user-import-controls',
-            'Site Admin View',
-            'Site Admin View',
-            "manage_options",
-            'site-admin-team-leader-admin',
-            [$this, 'site_admin_team_leader_admin_page'], 
-            1
-            );            
-    } // end of function
-
-    public function team_leader_user_import_page(){
-        require WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-user-import-page.php';
-        return;
-    }
-    public function team_leader_admin_page(){
-        require WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-admin-page.php';
-        return;
-    }
-    public function site_admin_team_leader_admin_page(){
-        require WP_PLUGIN_DIR . '/em-user-import/templates/site-admin-team-leader-page.php';
-        return;
-    }    
     public function load_admin_styles(){
         global $pagenow;
         $rand = rand(1, 99999999999);
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
+            wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
+        }
+        if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
             wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
         }
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'team-leader-admin' ) {
@@ -208,6 +166,99 @@ if (!class_exists('emUserImport')) {
       
     }
 
+    public function site_admin_user_import_submission()
+    {
+        // It allows create user functions
+        require_once(ABSPATH . 'wp-includes/user.php'); 
+        
+        // WordPress environment
+        require_once( ABSPATH . 'wp-load.php' );
+
+        // it allows us to use wp_handle_upload() function
+        require_once( ABSPATH . 'wp-admin/includes/file.php' );
+
+        // can add some kind of validation here
+        if( empty( $_FILES[ 'emcsv' ] ) ) {
+            wp_die();
+        }
+
+        $upload = wp_handle_upload( 
+            $_FILES[ 'emcsv' ], 
+            array( 'test_form' => false ) 
+        );
+
+        if( ! empty( $upload[ 'error' ] ) ) {
+            wp_die( $upload[ 'error' ] );
+        }
+
+        // it is time to add our uploaded image into WordPress media library
+        $attachment_id = wp_insert_attachment(
+          array(
+            'guid'           => $upload[ 'url' ],
+            'post_mime_type' => $upload[ 'type' ],
+            'post_title'     => basename( $upload[ 'file' ] ),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+          ),
+             $upload[ 'file' ]
+        );
+
+        if( is_wp_error( $attachment_id ) || ! $attachment_id ) {
+            wp_die( 'Upload error.' );
+        }
+
+        //$csvFile = fopen('Data.csv', 'r'); // location of file
+        $csv =   $this->readCSV($upload[ 'url' ] ); 
+        
+        $counter = 0;
+        foreach ( $csv as $c ) {
+            if ($counter++ == 0) continue; // skip headers     
+            $username = $c[0];
+            $email_address = $c[1];          
+            $password = $c[2];
+            $user_data = array(
+                'user_login'    => $username,
+                'user_pass'     => $password,
+                'user_email'    => $email_address ,
+                'first_name'    => '',
+                'last_name'     => '',
+                'user_url'      => '',
+                'description'   => '',
+                'role'          => 'team_subordinate',
+                'meta_input'   => array( 'teamLeaderEmail'  => 'jane.doe@localhost.localdomain.com')
+            );
+            
+            $user_id = wp_insert_user( $user_data );
+            add_user_meta( $userid, 'teamLeaderEmail','jane.doe@localhost.localdomain.com'); // add the meta
+            if ( is_wp_error( $user_id ) ) {
+                // There was an error creating the user
+                echo $user_id->get_error_message();
+            } else {
+                // The user was successfully created
+                echo 'User created with ID: ' . $user_id . '<br>';
+            }
+              
+        }  
+
+        // send email of successful run
+     /*
+        $emailto = 'esmondmccain@gmail.com';
+
+        // Email subject, "New {post_type_label}"
+        $subject = 'This code ran:  ' . ' ' . date("m-d-y");
+
+        // Email body
+        $message = 'It ran';
+
+        wp_mail( $emailto, $subject, $message );
+
+        echo "file submitted" ;
+        */
+        wp_delete_attachment( $attachment_id, true);   
+        exit;
+      
+    }
+
     public function readCSV($filename, $delimeter=',')
     {
         $handle = fopen($filename, "r"); 
@@ -221,6 +272,67 @@ if (!class_exists('emUserImport')) {
     
         fclose($handle);
     }
+
+    public function team_leader_user_import_page(){
+        require_once(WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-user-import-page.php'); 
+        return;
+    }
+
+    public function team_leader_admin_page(){
+        require_once(WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-admin-page.php');
+        return;
+    }
+
+    public function site_admin_team_leader_admin_page(){
+        require_once(WP_PLUGIN_DIR . '/em-user-import/templates/site-admin-team-leader-page.php') ;
+        return;
+    }
+
+    public function site_admin_user_import_submission_page() {
+        require_once(WP_PLUGIN_DIR . '/em-user-import/templates/site-admin-team-leader-import-page.php');
+        return;
+    }    
+
+    public function user_import_register_submenu_page() {
+
+        //Add Custom Social Sharing Sub Menu
+        add_menu_page(
+        'EM User Import',
+        'EM User Import',
+        'read',
+        "user-import-controls",
+        [$this, 'team_leader_user_import_page'],
+        '',
+        2
+        );
+        add_submenu_page(
+            'user-import-controls',
+            'Team leader Admin',
+            'Team leader Admin',
+            "read",
+            'team-leader-admin',
+            [$this, 'team_leader_admin_page'], 
+            1
+            );
+        add_submenu_page(
+            'user-import-controls',
+            'Site Admin View',
+            'Site Admin View',
+            "manage_options",
+            'site-admin-team-leader-admin',
+            [$this, 'site_admin_team_leader_admin_page'], 
+            1
+            );
+        add_submenu_page(
+            'user-import-controls',
+            'Site Admin View Import Subdordinates',
+            'Site Admin View Import Subdordinates',
+            "manage_options",
+            'site-admin-team-leader-admin',
+            [$this, 'site_admin_team_leader_admin_page'], 
+            1
+        );                 
+    } 
 
     public function user_import_inits() {
         add_role('team_leader', 'Team Leader', array(
@@ -241,8 +353,7 @@ if (!class_exists('emUserImport')) {
             'manage_categories' => false,
         ));            
     }
-    
- 
+     
     public function profile_field_team_leader_email_disable() {
 
         global $pagenow;
@@ -278,6 +389,7 @@ if (!class_exists('emUserImport')) {
         </script>
     <?php
     }
+
     public function profile_save_team_leader_email( $user_id ) {
       if ( empty( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'update-user_' . $user_id ) ) {
         return;
@@ -304,6 +416,7 @@ if (!class_exists('emUserImport')) {
       </table>
     <?php 
     }
+
     public function team_Leader_Form_Submission() {
         if ( ! isset( $_POST['team_Leader_Form_Submission_nonce_field'] ) || ! wp_verify_nonce( $_POST['team_Leader_Form_Submission_nonce_field'], 'team_Leader_Form_Submission' ) ) 
         {
@@ -311,18 +424,38 @@ if (!class_exists('emUserImport')) {
           exit;
         } 
         
-        else {
-        if(!empty($_POST['userID'])) {
-            foreach($_POST['userID'] as $check) {
-                echo $check; 
-                wp_delete_user( $check);          
-      
-            }
-          }
-          echo '<p class="newpost-success">Thank you for your submission!</p>';
-          exit;  
+        else
+        {
+            if(!empty($_POST['userID'])) {
+                echo $_POST['teamLeaderSelectOption'] ;
+
+                if(!empty($_POST['teamLeaderSelectOption']) && $_POST['teamLeaderSelectOption'] == 'delete') {
+                    foreach($_POST['userID'] as$id) {
+                        echo $id; 
+                        wp_delete_user( $id);          
+                        echo '<p class="newpost-success">Users deleted</p>';
+                        exit;           
+                    }
+                }
+
+                if(!empty($_POST['teamLeaderSelectOption']) && $_POST['teamLeaderSelectOption'] == 'resend') {
+
+                    foreach($_POST['userID'] as $id) {
+                        $user = get_user_by('id',$id);
+                        retrieve_password( $user->user_login );        
+            
+                    }
+
+                    echo '<p class="newpost-success">Passwords sent</p>';
+                    exit;  
+                }  
+ 
+            echo '<p class="newpost-success">Errro please reload page</p>';
+            exit; 
+           } 
+  
         }
-        }  
+    }  
         
         
 }

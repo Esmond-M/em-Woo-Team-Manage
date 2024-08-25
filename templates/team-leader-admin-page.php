@@ -16,14 +16,21 @@ $teamLeaderUsers = get_users( $teamLeaderArgs );
     <table>
   <tr>
     <th>Number of Subordinates</th>
+    <th>Action</th>
   </tr>
   <?php
     $number_of_users = count($teamLeaderUsers);
  ?>
   <tr>
     <td><?php echo '<span>' . esc_html( $number_of_users) . '</span>'; ?></td>
-  </tr>  
-
+    <td>
+      <select name="teamLeaderSelectOption" form="team-leader-form">
+        <option value="delete">Delete</option>
+        <option value="resend">Send Password Reset Link</option>
+      </select>
+    </td>  
+  </tr>
+    
     <?php
 ?>
 </table> 
