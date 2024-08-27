@@ -1,10 +1,40 @@
 <h2>Team leader admin view</h2>
 
 <?php 
+
+/** 
+ * If user has is a Website admin allow emulation
+*/
 if ( current_user_can( 'manage_options' ) ) {
-    wp_die('<div class="site-admin-msg">This page is not useful for admins</div>');
+  $teamLeaderArgs = array(  
+    'role__in' => array( 'team_leader' ),  
+);
+$teamLeaderUsers = get_users( $teamLeaderArgs );
+?>
+<form id="emulate-team-leader-form" method="POST" action="">
+<select name="teamLeaderSelectOption" form="emulate-team-leader-form">
+
+  <?php
+foreach ( $teamLeaderUsers as $user ) {
+  ?>
+  <option value="<?php echo $user->user_email; ?>"><?php echo $user->user_login; ?></option>
+<?php  
+}
+?>
+    </select>
+    <input type="hidden" name="action" value="emulate_Team_Leader_Form_Submission" />
+    <input type="submit" value="submit">    
+</form>
+
+<?php
+
 } 
-$teamLeaderArgs = array(  
+
+/** 
+ * If user has Team Leader role
+*/
+if ( !current_user_can( 'manage_options' ) ) {
+  $teamLeaderArgs = array(  
     'role__in' => array( 'team_subordinate' ),
     'meta_key'     => 'teamLeaderEmail',
     'meta_value'   => $user->user_email,    
@@ -66,3 +96,5 @@ foreach ( $teamLeaderUsers as $user ) {
 </form> 
 
 <?php
+} 
+

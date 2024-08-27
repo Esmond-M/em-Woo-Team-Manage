@@ -38,3 +38,8 @@ table {
       margin: auto;
       animation: spin 2s linear infinite;
   }
+  .emulation-title{
+    font-size: 30px;
+    text-align: center;
+    
+  }

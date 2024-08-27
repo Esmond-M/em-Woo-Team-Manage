@@ -47,6 +47,8 @@ if (!class_exists('emUserImport')) {
         add_action( 'edit_user_profile_update', [$this, 'profile_save_team_leader_email' ]  );  
         add_action('wp_ajax_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission' ] );
 		add_action('wp_ajax_nopriv_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission' ]);
+        add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission' ] );
+		add_action('wp_ajax_nopriv_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission' ]);
 
     }
 
@@ -65,7 +67,11 @@ if (!class_exists('emUserImport')) {
             wp_localize_script('team-leader-admin-script', 'team_Leader_Form_Submission', array(
                 'ajaxurl' => admin_url('admin-ajax.php') ,
                 'noposts' => __('No older posts found', 'em-theme') ,
-              ));                        
+              ));
+            wp_localize_script('team-leader-admin-script', 'emulate_Team_Leader_Form_Submission', array(
+            'ajaxurl' => admin_url('admin-ajax.php') ,
+            'noposts' => __('No older posts found', 'em-theme') ,
+            ));                                      
         }
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
             wp_enqueue_style( 'site-admin-team-leader-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/site-admin-team-leader.css' , array(),  $rand );
@@ -457,7 +463,108 @@ if (!class_exists('emUserImport')) {
         }
     }  
         
+    public function emulate_Team_Leader_Form_Submission() {
+        $_POST['teamLeaderSelectOption'];
+        $teamLeaderArgs = array(  
+            'role__in' => array( 'team_subordinate' ),
+            'meta_key'     => 'teamLeaderEmail',
+            'meta_value'   =>  $_POST['teamLeaderSelectOption'],    
+        );
+        $teamLeaderUsers = get_users( $teamLeaderArgs );
+        // Array of WP_User objects.
+        ?>
+        <h2 class="emulation-title">Emulating user: <?php echo $_POST['teamLeaderSelectOption'];?></h2>
+        <form id="team-leader-form" method="POST" action="">
+            <table>
+          <tr>
+            <th>Number of Subordinates</th>
+            <th>Action</th>
+          </tr>
+          <?php
+            $number_of_users = count($teamLeaderUsers);
+         ?>
+          <tr>
+            <td><?php echo '<span>' . esc_html( $number_of_users) . '</span>'; ?></td>
+            <td>
+              <select name="teamLeaderSelectOption" form="team-leader-form">
+                <option value="delete">Delete</option>
+                <option value="resend">Send Password Reset Link</option>
+              </select>
+            </td>  
+          </tr>
+            
+            <?php
+        ?>
+        </table> 
+            <table>
+          <tr>
+            <th>Subordinate email</th>
+            <th>Subordinate name</th>
+            <th>Resend password</th>
+            <th>Remove user</th>
+          </tr>
+          <?php
+        foreach ( $teamLeaderUsers as $user ) {
         
+            $number_of_users = count($teamLeaderUsers);
+         ?>
+        
+          <tr>
+            <td><?php echo '<span>' . esc_html( $user->user_email ) . '</span>'; ?></td>
+            <td><?php echo '<span>' . esc_html( $user->display_name ) . '</span>'; ?></td>
+            <td><?php echo '<span>TBD</span>'; ?></td>
+            <td><input type="checkbox" name="userID[]" value="<?php echo $user->ID;  ?>"/></td>
+          </tr>
+        
+          
+            
+            <?php
+        }
+        ?>
+        </table>
+        <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
+        <input type="hidden" name="action" value="team_Leader_Form_Submission" />
+        <input type="submit" value="submit">
+        </form> 
+    <!-- Have to localize this to run -->
+        <script>
+        jQuery( "#team-leader-form" ).submit(function( event ) {
+        event.preventDefault();
+        jQuery("#team-leader-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
+        jQuery('#team-leader-form').append('<div class="awc-ajax-loader"></div>'); // initial loader icon for all users request
+
+        // Serialize the data in the form
+        var serializedData = jQuery('#team-leader-form' ).serialize()
+            jQuery.ajax({
+                type: "POST",
+                url: team_Leader_Form_Submission.ajaxurl,
+                data: serializedData,
+                success: function(responseText){ 
+                setTimeout( // timeout function to transition from loader icon to content less abruptly
+                        function() {
+                                jQuery(".awc-ajax-loader").remove();     
+                        },
+                        0
+                    );
+                    setTimeout(function () {
+                        window.location.href= ''; // the redirect goes here
+
+                    },3000); // 5 seconds
+
+
+            },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    jQuery(".awc-ajax-loader").remove();
+                    jQuery("#team-leader-form").append('<div id="em-connect-error">Connection Error</div>');
+                    console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
+                }
+
+            });// ajax end
+        
+        });    
+        </script>    
+        <?php
+    }     
 }
 
 
