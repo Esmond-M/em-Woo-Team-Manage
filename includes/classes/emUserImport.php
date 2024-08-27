@@ -46,9 +46,9 @@ if (!class_exists('emUserImport')) {
         add_action( 'personal_options_update', [$this, 'profile_save_team_leader_email' ]  );
         add_action( 'edit_user_profile_update', [$this, 'profile_save_team_leader_email' ]  );  
         add_action('wp_ajax_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission' ] );
-		add_action('wp_ajax_nopriv_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission' ]);
         add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission' ] );
-		add_action('wp_ajax_nopriv_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission' ]);
+        add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this, 'emulate_Team_subordinate_Form_Submission' ] );
+        add_action('wp_ajax_user_import_submission', [$this, 'user_import_submission' ] );
 
     }
 
@@ -57,6 +57,16 @@ if (!class_exists('emUserImport')) {
         $rand = rand(1, 99999999999);
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
             wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
+            wp_enqueue_script( 'team-leader-subordinate-import-script', '/wp-content/plugins/em-user-import/admin/assets/js/teamSubordinateImport.js', array('jquery'), $rand, true); 
+            wp_localize_script('team-leader-subordinate-import-script', 'emulate_Team_subordinate_Form_Submission', array(
+                'ajaxurl' => admin_url('admin-ajax.php') ,
+                'noposts' => __('No older posts found', 'em-theme') ,
+              )); 
+            wp_localize_script('team-leader-subordinate-import-script', 'user_import_submission', array(
+            'ajaxurl' => admin_url('admin-ajax.php') ,
+            'noposts' => __('No older posts found', 'em-theme') ,
+            ));
+                               
         }
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
             wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
@@ -64,6 +74,7 @@ if (!class_exists('emUserImport')) {
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'team-leader-admin' ) {
             wp_enqueue_style( 'team-leader-admin-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-admin.css' , array(),  $rand );
             wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-user-import/admin/assets/js/teamLeaderAdmin.js', array('jquery'), $rand, true); 
+            wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-user-import/admin/assets/js/teamSubordinateImport.js', array('jquery'), $rand, true); 
             wp_localize_script('team-leader-admin-script', 'team_Leader_Form_Submission', array(
                 'ajaxurl' => admin_url('admin-ajax.php') ,
                 'noposts' => __('No older posts found', 'em-theme') ,
@@ -92,12 +103,12 @@ if (!class_exists('emUserImport')) {
         require_once( ABSPATH . 'wp-admin/includes/file.php' );
 
         // can add some kind of validation here
-        if( empty( $_FILES[ 'emcsv' ] ) ) {
+        if( empty( $_FILES[ 'csvUpload' ] ) ) {
             wp_die();
         }
 
         $upload = wp_handle_upload( 
-            $_FILES[ 'emcsv' ], 
+            $_FILES[ 'csvUpload' ], 
             array( 'test_form' => false ) 
         );
 
@@ -148,100 +159,8 @@ if (!class_exists('emUserImport')) {
                 echo $user_id->get_error_message();
             } else {
                 // The user was successfully created
-                echo 'User created with ID: ' . $user_id . '<br>';
-            }
-              
-        }  
-
-        // send email of successful run
-     /*
-        $emailto = 'esmondmccain@gmail.com';
-
-        // Email subject, "New {post_type_label}"
-        $subject = 'This code ran:  ' . ' ' . date("m-d-y");
-
-        // Email body
-        $message = 'It ran';
-
-        wp_mail( $emailto, $subject, $message );
-
-        echo "file submitted" ;
-        */
-        wp_delete_attachment( $attachment_id, true);   
-        exit;
-      
-    }
-
-    public function site_admin_user_import_submission()
-    {
-        // It allows create user functions
-        require_once(ABSPATH . 'wp-includes/user.php'); 
-        
-        // WordPress environment
-        require_once( ABSPATH . 'wp-load.php' );
-
-        // it allows us to use wp_handle_upload() function
-        require_once( ABSPATH . 'wp-admin/includes/file.php' );
-
-        // can add some kind of validation here
-        if( empty( $_FILES[ 'emcsv' ] ) ) {
-            wp_die();
-        }
-
-        $upload = wp_handle_upload( 
-            $_FILES[ 'emcsv' ], 
-            array( 'test_form' => false ) 
-        );
-
-        if( ! empty( $upload[ 'error' ] ) ) {
-            wp_die( $upload[ 'error' ] );
-        }
-
-        // it is time to add our uploaded image into WordPress media library
-        $attachment_id = wp_insert_attachment(
-          array(
-            'guid'           => $upload[ 'url' ],
-            'post_mime_type' => $upload[ 'type' ],
-            'post_title'     => basename( $upload[ 'file' ] ),
-            'post_content'   => '',
-            'post_status'    => 'inherit',
-          ),
-             $upload[ 'file' ]
-        );
-
-        if( is_wp_error( $attachment_id ) || ! $attachment_id ) {
-            wp_die( 'Upload error.' );
-        }
-
-        //$csvFile = fopen('Data.csv', 'r'); // location of file
-        $csv =   $this->readCSV($upload[ 'url' ] ); 
-        
-        $counter = 0;
-        foreach ( $csv as $c ) {
-            if ($counter++ == 0) continue; // skip headers     
-            $username = $c[0];
-            $email_address = $c[1];          
-            $password = $c[2];
-            $user_data = array(
-                'user_login'    => $username,
-                'user_pass'     => $password,
-                'user_email'    => $email_address ,
-                'first_name'    => '',
-                'last_name'     => '',
-                'user_url'      => '',
-                'description'   => '',
-                'role'          => 'team_subordinate',
-                'meta_input'   => array( 'teamLeaderEmail'  => 'jane.doe@localhost.localdomain.com')
-            );
-            
-            $user_id = wp_insert_user( $user_data );
-            add_user_meta( $userid, 'teamLeaderEmail','jane.doe@localhost.localdomain.com'); // add the meta
-            if ( is_wp_error( $user_id ) ) {
-                // There was an error creating the user
-                echo $user_id->get_error_message();
-            } else {
-                // The user was successfully created
-                echo 'User created with ID: ' . $user_id . '<br>';
+                add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']);
+                echo '<p>User created with ID: ' . $user_id . '</p>';
             }
               
         }  
@@ -294,11 +213,6 @@ if (!class_exists('emUserImport')) {
         return;
     }
 
-    public function site_admin_user_import_submission_page() {
-        require_once(WP_PLUGIN_DIR . '/em-user-import/templates/site-admin-team-leader-import-page.php');
-        return;
-    }    
-
     public function user_import_register_submenu_page() {
 
         //Add Custom Social Sharing Sub Menu
@@ -328,16 +242,7 @@ if (!class_exists('emUserImport')) {
             'site-admin-team-leader-admin',
             [$this, 'site_admin_team_leader_admin_page'], 
             1
-            );
-        add_submenu_page(
-            'user-import-controls',
-            'Site Admin View Import Subdordinates',
-            'Site Admin View Import Subdordinates',
-            "manage_options",
-            'site-admin-team-leader-admin',
-            [$this, 'site_admin_team_leader_admin_page'], 
-            1
-        );                 
+            );                
     } 
 
     public function user_import_inits() {
@@ -385,7 +290,7 @@ if (!class_exists('emUserImport')) {
     ?>
         <script>
             jQuery(document).ready( function($) {
-                var fields_to_disable = ['teamLeaderEmail'];
+                var fields_to_disable = ['teamID'];
                 for(i=0; i<fields_to_disable.length; i++) {
                     if ( $('#'+ fields_to_disable[i]).length ) {
                         $('#'+ fields_to_disable[i]).attr("disabled", "disabled");
@@ -405,18 +310,33 @@ if (!class_exists('emUserImport')) {
         return;
       }
     
-      update_user_meta( $user_id, 'teamLeaderEmail', $_POST['teamLeaderEmail'] );
+      update_user_meta( $user_id, 'teamID', $_POST['teamID'] );
     }
     
     public function profile_field_team_leader_email( $user ) {
-      $saved_teamLeaderEmail = get_user_meta( $user->ID, 'teamLeaderEmail', true ); ?>
-      <h3><?php _e('Team Leader Email'); ?></h3>
+      $saved_teamID = get_user_meta( $user->ID, 'teamID', true ); ?>
+      <h3><?php _e('Team Info'); ?></h3>
     
       <table class="form-table">
         <tr>
-          <th><label for="teamLeaderEmail"><?php _e('Email'); ?></label></th>
+          <th><label for="teamID"><?php _e('User Team ID'); ?></label></th>
           <td>
-            <input type="email" name="teamLeaderEmail" id="teamLeaderEmail" value="<?php echo esc_attr($saved_teamLeaderEmail); ?>" />
+          <select name="teamID">
+          <option value="" <?php selected($saved_teamID,'') ?> ></option>
+<?php
+
+    $teamLeaderArgs = array(  
+      'role__in' => array( 'team_leader' ),  
+  );
+  $teamLeaderUsers = get_users( $teamLeaderArgs );
+foreach ( $teamLeaderUsers as $user ) {
+?>
+<option value="<?php echo $user->ID; ?>" <?php selected($saved_teamID,$user->ID) ?> ><?php echo $user->ID; ?></option>
+<?php  
+}
+?>
+  </select>
+           
           </td>
         </tr>
       </table>
@@ -464,10 +384,10 @@ if (!class_exists('emUserImport')) {
     }  
         
     public function emulate_Team_Leader_Form_Submission() {
-        $_POST['teamLeaderSelectOption'];
+        
         $teamLeaderArgs = array(  
             'role__in' => array( 'team_subordinate' ),
-            'meta_key'     => 'teamLeaderEmail',
+            'meta_key'     => 'teamID',
             'meta_value'   =>  $_POST['teamLeaderSelectOption'],    
         );
         $teamLeaderUsers = get_users( $teamLeaderArgs );
@@ -564,6 +484,55 @@ if (!class_exists('emUserImport')) {
         });    
         </script>    
         <?php
+    }
+
+    public function emulate_Team_subordinate_Form_Submission() {
+     
+        ?>
+        <form id="em-user-import-form" action="" method="post" enctype="multipart/form-data">
+        <label>CSV file  <input id="csvUpload" type="file" name="csvUpload"  type="file" accept=".csv" /></label> 
+        <input name="teamLeaderID"  type="hidden" value="<?php echo $_POST['teamLeaderSelectOption'];?>"/>
+            <input type="submit" value="Import">
+        
+        </form>
+        <script>
+            jQuery( "#em-user-import-form" ).submit(function( event ) {
+                event.preventDefault();
+                jQuery("#em-user-import-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
+                jQuery('#em-user-import-form').append('<div class="awc-ajax-loader"></div>'); // initial loader icon for all user's request
+
+                    var fd = new FormData(jQuery('#em-user-import-form')[0]);
+                    fd.append( "csvUpload", jQuery('#csvUpload')[0].files[0]);
+                    fd.append( "action", 'user_import_submission');  
+                        jQuery.ajax({
+                            type: "POST",
+                            url:ajaxurl,   
+                            dataType: "html",       
+                            data: fd,
+                            processData: false, // important
+                            contentType: false, // important  
+                            success: function(data,responseText){ 
+                                var jQuerydata = jQuery(data);
+                                jQuery(".awc-ajax-loader").remove();
+                                jQuery('#em-user-import-form').after(jQuerydata); // initial loader icon for all users request
+                                jQuery("#em-user-import-form").remove();
+                                //console.log(serializedData);    
+                                //console.log(data);      
+                
+                            },
+                            error: function(data,jqXHR, textStatus, errorThrown) {
+                                jQuery(".awc-ajax-loader").remove();
+                                jQuery('#em-user-import-form').after(data); // initial loader icon for all users request
+                                jQuery("#em-user-import-form").append('<div id="em-connect-error">Connection Error</div>');
+                                console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
+                            }
+                
+                        });// ajax end
+                
+            });            
+        </script>
+        <?php 
+      //  $this->user_import_submission();
     }     
 }
 
