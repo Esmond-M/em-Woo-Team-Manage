@@ -1,4 +1,4 @@
-<h2>Team leader admin view</h2>
+<h2>View Subordinates</h2>
 
 <?php 
 

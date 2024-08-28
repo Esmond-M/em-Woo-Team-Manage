@@ -156,7 +156,7 @@ if (!class_exists('emUserImport')) {
             
             if ( is_wp_error( $user_id ) ) {
                 // There was an error creating the user
-                echo $user_id->get_error_message();
+                echo '<p>' . $user_id->get_error_message() . '</p>';
             } else {
                 // The user was successfully created
                 add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']);
@@ -217,18 +217,27 @@ if (!class_exists('emUserImport')) {
 
         //Add Custom Social Sharing Sub Menu
         add_menu_page(
-        'EM User Import',
-        'EM User Import',
+        'Add Subordinates',
+        'Team Manage',
         'read',
         "user-import-controls",
-        [$this, 'team_leader_user_import_page'],
+        '',
         '',
         2
         );
         add_submenu_page(
             'user-import-controls',
-            'Team leader Admin',
-            'Team leader Admin',
+            'Add Subordinates',
+            'Add Subordinates',
+            "read",
+            'user-import-controls',
+            [$this, 'team_leader_user_import_page'], 
+            3
+            );
+        add_submenu_page(
+            'user-import-controls',
+            'View Subordinates',
+            'View Subordinates',
             "read",
             'team-leader-admin',
             [$this, 'team_leader_admin_page'], 
@@ -241,7 +250,7 @@ if (!class_exists('emUserImport')) {
             "manage_options",
             'site-admin-team-leader-admin',
             [$this, 'site_admin_team_leader_admin_page'], 
-            1
+            2
             );                
     } 
 
@@ -264,6 +273,7 @@ if (!class_exists('emUserImport')) {
             'manage_categories' => false,
         ));            
     }
+
      
     public function profile_field_team_ID_disable() {
 
@@ -530,7 +540,7 @@ foreach ( $teamLeaderUsers as $user ) {
             });            
         </script>
         <?php 
-      //  $this->user_import_submission();
+
     }     
 }
 
