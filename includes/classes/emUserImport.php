@@ -134,19 +134,24 @@ if (!class_exists('emUserImport')) {
 
         //$csvFile = fopen('Data.csv', 'r'); // location of file
         $csv =   $this->readCSV($upload[ 'url' ] ); 
-        
-        $counter = 0;
+
+        $csvLoopCounter = 0;
+        $csvCounter = 0;
+        $successfullUserCreationCounter = 0;
         foreach ( $csv as $c ) {
-            if ($counter++ == 0) continue; // skip headers     
-            $username = $c[0];
-            $email_address = $c[1];          
-            $password = $c[2];
+      
+            if ($csvCounter++ == 0) continue; // skip headers     
+            
+            $email_address = $c[0];
+            $firstName = $c[1];          
+            $LastName = $c[2];
+            $password= wp_generate_password();
             $user_data = array(
-                'user_login'    => $username,
+                'user_login'    => $email_address,
                 'user_pass'     => $password,
                 'user_email'    => $email_address ,
-                'first_name'    => '',
-                'last_name'     => '',
+                'first_name'    => $firstName,
+                'last_name'     => $LastName,
                 'user_url'      => '',
                 'description'   => '',
                 'role'          => 'team_subordinate'
@@ -155,14 +160,25 @@ if (!class_exists('emUserImport')) {
             $user_id = wp_insert_user( $user_data );
             
             if ( is_wp_error( $user_id ) ) {
-                // There was an error creating the user
-                echo '<p>' . $user_id->get_error_message() . '</p>';
-            } else {
-                // The user was successfully created
-                add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']);
-                echo '<p>User created with ID: ' . $user_id . '</p>';
+               
+                echo '<p>' . $firstName . ' '.  $LastName .' did not import please check info</p>';
             }
-              
+            
+            else
+            {
+                
+                 // The user was successfully created
+                add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']);
+                $successfullUserCreationCounter = $successfullUserCreationCounter + 1;
+         
+                // then it is last iteration        
+                if( $csvLoopCounter == count( $c  ) - 2) {
+                    echo '<p>Number of succesful subordinates imported: ' .$successfullUserCreationCounter . '</p>';
+                    
+                  }
+            }
+            $csvLoopCounter = $csvLoopCounter + 1;
+                    
         }  
 
         // send email of successful run
@@ -366,7 +382,7 @@ foreach ( $teamLeaderUsers as $user ) {
                 echo $_POST['teamLeaderSelectOption'] ;
 
                 if(!empty($_POST['teamLeaderSelectOption']) && $_POST['teamLeaderSelectOption'] == 'delete') {
-                    foreach($_POST['userID'] as$id) {
+                    foreach($_POST['userID'] as $id) {
                         echo $id; 
                         wp_delete_user( $id);          
                         echo '<p class="newpost-success">Users deleted</p>';
