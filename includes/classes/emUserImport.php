@@ -379,14 +379,14 @@ foreach ( $teamLeaderUsers as $user ) {
         else
         {
             if(!empty($_POST['userID'])) {
-                echo $_POST['teamLeaderSelectOption'] ;
+               
 
                 if(!empty($_POST['teamLeaderSelectOption']) && $_POST['teamLeaderSelectOption'] == 'delete') {
                     foreach($_POST['userID'] as $id) {
-                        echo $id; 
+                     
                         wp_delete_user( $id);          
                         echo '<p class="newpost-success">Users deleted</p>';
-                        exit;           
+                         
                     }
                 }
 
@@ -399,14 +399,13 @@ foreach ( $teamLeaderUsers as $user ) {
                     }
 
                     echo '<p class="newpost-success">Passwords sent</p>';
-                    exit;  
+                 
                 }  
- 
-            echo '<p class="newpost-success">Errro please reload page</p>';
-            exit; 
+
            } 
   
         }
+        exit; 
     }  
         
     public function emulate_Team_Leader_Form_Submission() {
@@ -493,7 +492,7 @@ foreach ( $teamLeaderUsers as $user ) {
                     setTimeout(function () {
                         window.location.href= ''; // the redirect goes here
 
-                    },3000); // 5 seconds
+                    },3000); 
 
 
             },
@@ -540,7 +539,7 @@ foreach ( $teamLeaderUsers as $user ) {
                                 jQuery(".user-import-ajax-loader").remove();
                                 jQuery('#em-user-import-form').after(jQuerydata); // initial loader icon for all users request
                                 jQuery("#em-user-import-form").remove();
-                                //console.log(serializedData);    
+                                console.log(serializedData);    
                                 //console.log(data);      
                 
                             },
