@@ -420,8 +420,7 @@ foreach ( $teamLeaderUsers as $user ) {
           <tr>
             <th>Subordinate email</th>
             <th>Subordinate name</th>
-            <th>Resend password</th>
-            <th>Remove user</th>
+            <th>Select Subordinate</th>
           </tr>
           <?php
         foreach ( $teamLeaderUsers as $user ) {
@@ -432,7 +431,6 @@ foreach ( $teamLeaderUsers as $user ) {
           <tr>
             <td><?php echo '<span>' . esc_html( $user->user_email ) . '</span>'; ?></td>
             <td><?php echo '<span>' . esc_html( $user->display_name ) . '</span>'; ?></td>
-            <td><?php echo '<span>TBD</span>'; ?></td>
             <td><input type="checkbox" name="userID[]" value="<?php echo $user->ID;  ?>"/></td>
           </tr>
         
@@ -451,7 +449,7 @@ foreach ( $teamLeaderUsers as $user ) {
         jQuery( "#team-leader-form" ).submit(function( event ) {
         event.preventDefault();
         jQuery("#team-leader-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-        jQuery('#team-leader-form').append('<div class="awc-ajax-loader"></div>'); // initial loader icon for all users request
+        jQuery('#team-leader-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all users request
 
         // Serialize the data in the form
         var serializedData = jQuery('#team-leader-form' ).serialize()
@@ -462,7 +460,7 @@ foreach ( $teamLeaderUsers as $user ) {
                 success: function(responseText){ 
                 setTimeout( // timeout function to transition from loader icon to content less abruptly
                         function() {
-                                jQuery(".awc-ajax-loader").remove();     
+                                jQuery(".user-import-ajax-loader").remove();     
                         },
                         0
                     );
@@ -474,7 +472,7 @@ foreach ( $teamLeaderUsers as $user ) {
 
             },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    jQuery(".awc-ajax-loader").remove();
+                    jQuery(".user-import-ajax-loader").remove();
                     jQuery("#team-leader-form").append('<div id="em-connect-error">Connection Error</div>');
                     console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
                 }
@@ -499,7 +497,7 @@ foreach ( $teamLeaderUsers as $user ) {
             jQuery( "#em-user-import-form" ).submit(function( event ) {
                 event.preventDefault();
                 jQuery("#em-user-import-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-                jQuery('#em-user-import-form').append('<div class="awc-ajax-loader"></div>'); // initial loader icon for all user's request
+                jQuery('#em-user-import-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all user's request
 
                     var fd = new FormData(jQuery('#em-user-import-form')[0]);
                     fd.append( "csvUpload", jQuery('#csvUpload')[0].files[0]);
@@ -513,7 +511,7 @@ foreach ( $teamLeaderUsers as $user ) {
                             contentType: false, // important  
                             success: function(data,responseText){ 
                                 var jQuerydata = jQuery(data);
-                                jQuery(".awc-ajax-loader").remove();
+                                jQuery(".user-import-ajax-loader").remove();
                                 jQuery('#em-user-import-form').after(jQuerydata); // initial loader icon for all users request
                                 jQuery("#em-user-import-form").remove();
                                 //console.log(serializedData);    
@@ -521,7 +519,7 @@ foreach ( $teamLeaderUsers as $user ) {
                 
                             },
                             error: function(data,jqXHR, textStatus, errorThrown) {
-                                jQuery(".awc-ajax-loader").remove();
+                                jQuery(".user-import-ajax-loader").remove();
                                 jQuery('#em-user-import-form').after(data); // initial loader icon for all users request
                                 jQuery("#em-user-import-form").append('<div id="em-connect-error">Connection Error</div>');
                                 console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);

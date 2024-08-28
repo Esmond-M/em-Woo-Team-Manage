@@ -17,7 +17,7 @@ $teamLeaderUsers = get_users( $teamLeaderArgs );
   <?php
 foreach ( $teamLeaderUsers as $user ) {
   ?>
-  <option value="<?php echo $user->user_email; ?>"><?php echo $user->user_login; ?></option>
+  <option value="<?php echo $user->ID; ?>"><?php echo $user->user_login; ?></option>
 <?php  
 }
 ?>
@@ -36,8 +36,8 @@ foreach ( $teamLeaderUsers as $user ) {
 if ( !current_user_can( 'manage_options' ) ) {
   $teamLeaderArgs = array(  
     'role__in' => array( 'team_subordinate' ),
-    'meta_key'     => 'teamLeaderEmail',
-    'meta_value'   => $user->user_email,    
+    'meta_key'     => 'teamID',
+    'meta_value'   => $user->ID,    
 );
 $teamLeaderUsers = get_users( $teamLeaderArgs );
 // Array of WP_User objects.
@@ -68,8 +68,7 @@ $teamLeaderUsers = get_users( $teamLeaderArgs );
   <tr>
     <th>Subordinate email</th>
     <th>Subordinate name</th>
-    <th>Resend password</th>
-    <th>Remove user</th>
+    <th>Select Subordinate</th>
   </tr>
   <?php
 foreach ( $teamLeaderUsers as $user ) {
@@ -80,7 +79,6 @@ foreach ( $teamLeaderUsers as $user ) {
   <tr>
     <td><?php echo '<span>' . esc_html( $user->user_email ) . '</span>'; ?></td>
     <td><?php echo '<span>' . esc_html( $user->display_name ) . '</span>'; ?></td>
-    <td><?php echo '<span>TBD</span>'; ?></td>
     <td><input type="checkbox" name="userID[]" value="<?php echo $user->ID;  ?>"/></td>
   </tr>
 

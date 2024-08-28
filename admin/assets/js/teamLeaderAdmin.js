@@ -1,7 +1,7 @@
 jQuery( "#team-leader-form" ).submit(function( event ) {
     event.preventDefault();
     jQuery("#team-leader-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-    jQuery('#team-leader-form').append('<div class="awc-ajax-loader"></div>'); // initial loader icon for all user's request
+    jQuery('#team-leader-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all user's request
 
     // Serialize the data in the form
     var serializedData = jQuery('#team-leader-form' ).serialize()
@@ -12,7 +12,7 @@ jQuery( "#team-leader-form" ).submit(function( event ) {
             success: function(responseText){ 
                setTimeout( // timeout function to transition from loader icon to content less abruptly
                     function() {
-                            jQuery(".awc-ajax-loader").remove();
+                            jQuery(".user-import-ajax-loader").remove();
                             console.log(serializedData);
                             console.log(responseText );        
                     },
@@ -26,7 +26,7 @@ jQuery( "#team-leader-form" ).submit(function( event ) {
 
           },
             error: function(jqXHR, textStatus, errorThrown) {
-                jQuery(".awc-ajax-loader").remove();
+                jQuery(".user-import-ajax-loader").remove();
                 jQuery("#team-leader-form").append('<div id="em-connect-error">Connection Error</div>');
                 console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
             }
@@ -38,7 +38,7 @@ jQuery( "#team-leader-form" ).submit(function( event ) {
 jQuery( "#emulate-team-leader-form" ).submit(function( event ) {
     event.preventDefault();
     jQuery("#emulate-team-leader-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-    jQuery('#emulate-team-leader-form').append('<div class="awc-ajax-loader"></div>'); // initial loader icon for all user's request
+    jQuery('#emulate-team-leader-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all user's request
 
     // Serialize the data in the form
     var serializedData = jQuery('#emulate-team-leader-form' ).serialize()
@@ -50,7 +50,7 @@ jQuery( "#emulate-team-leader-form" ).submit(function( event ) {
                 var jQuerydata = jQuery(data);
                setTimeout( // timeout function to transition from loader icon to content less abruptly
                     function() {
-                            jQuery(".awc-ajax-loader").remove();
+                            jQuery(".user-import-ajax-loader").remove();
                             jQuery('#emulate-team-leader-form').after(jQuerydata); // initial loader icon for all users request
                             jQuery("#emulate-team-leader-form").remove();
                             //console.log(serializedData);    
@@ -61,7 +61,7 @@ jQuery( "#emulate-team-leader-form" ).submit(function( event ) {
 
           },
             error: function(jqXHR, textStatus, errorThrown) {
-                jQuery(".awc-ajax-loader").remove();
+                jQuery(".user-import-ajax-loader").remove();
                 jQuery("#emulate-team-leader-form").append('<div id="em-connect-error">Connection Error</div>');
                 console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
             }

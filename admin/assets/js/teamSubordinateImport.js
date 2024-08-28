@@ -1,7 +1,7 @@
 jQuery( "#emulate-team-leader-form" ).submit(function( event ) {
     event.preventDefault();
     jQuery("#emulate-team-leader-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-    jQuery('#emulate-team-leader-form').append('<div class="awc-ajax-loader"></div>'); // initial loader icon for all user's request
+    jQuery('#emulate-team-leader-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all user's request
 
     // Serialize the data in the form
     var serializedData = jQuery('#emulate-team-leader-form' ).serialize()
@@ -17,7 +17,7 @@ jQuery( "#emulate-team-leader-form" ).submit(function( event ) {
                 var jQuerydata = jQuery(data);
                setTimeout( // timeout function to transition from loader icon to content less abruptly
                     function() {
-                            jQuery(".awc-ajax-loader").remove();
+                            jQuery(".user-import-ajax-loader").remove();
                             jQuery('#emulate-team-leader-form').after(jQuerydata); // initial loader icon for all users request
                             jQuery("#emulate-team-leader-form").remove();
                             //console.log(serializedData);    
@@ -28,7 +28,7 @@ jQuery( "#emulate-team-leader-form" ).submit(function( event ) {
 
           },
             error: function(jqXHR, textStatus, errorThrown) {
-                jQuery(".awc-ajax-loader").remove();
+                jQuery(".user-import-ajax-loader").remove();
                 jQuery("#emulate-team-leader-form").append(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
                 console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
             }
@@ -40,7 +40,7 @@ jQuery( "#emulate-team-leader-form" ).submit(function( event ) {
 jQuery( "#em-user-import-form" ).submit(function( event ) {
     event.preventDefault();
     jQuery("#em-user-import-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-    jQuery('#em-user-import-form').append('<div class="awc-ajax-loader"></div>'); // initial loader icon for all user's request
+    jQuery('#em-user-import-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all user's request
 
         var fd = new FormData(jQuery('#em-user-import-form')[0]);
         fd.append( "csvUpload", jQuery('#csvUpload')[0].files[0]);
@@ -54,7 +54,7 @@ jQuery( "#em-user-import-form" ).submit(function( event ) {
                    contentType: false, // important  
                    success: function(data,responseText){ 
                     var jQuerydata = jQuery(data);
-                    jQuery(".awc-ajax-loader").remove();
+                    jQuery(".user-import-ajax-loader").remove();
                     jQuery('#em-user-import-form').after(jQuerydata); // initial loader icon for all users request
                     jQuery("#em-user-import-form").remove();
                     //console.log(serializedData);    
@@ -62,7 +62,7 @@ jQuery( "#em-user-import-form" ).submit(function( event ) {
        
                  },
                    error: function(data,jqXHR, textStatus, errorThrown) {
-                       jQuery(".awc-ajax-loader").remove();
+                       jQuery(".user-import-ajax-loader").remove();
                        jQuery('#em-user-import-form').after(data); // initial loader icon for all users request
                        jQuery("#em-user-import-form").append('<div id="em-connect-error">Connection Error</div>');
                        console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);

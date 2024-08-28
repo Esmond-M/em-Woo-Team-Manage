@@ -8,7 +8,7 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-.awc-ajax-loader {
+.user-import-ajax-loader {
     border: 16px solid #FF0909;
     border-radius: 50%;
     border-top: 16px solid #0062FF;

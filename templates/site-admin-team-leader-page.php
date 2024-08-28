@@ -1,17 +1,49 @@
-<h2>Import Subordinates from CSV</h2>
-<form id="em-user-import-form" action="" method="post" enctype="multipart/form-data">
-<label>CSV file  <input class="em-sv-btn"  name="emcsv"  type="file" accept=".csv" /></label>
-  
-    <input type="submit" value="Import">
+<h2>Site Admin view</h2>
+<?php
 
-</form>
-<?php 
+  $teamLeaderArgs = array(  
+    'role__in' => array( 'team_leader' ),   
+);
+$teamLeaderUsers = get_users( $teamLeaderArgs );
 
-  require_once(WP_PLUGIN_DIR . '/em-user-import/includes/classes/emUserImport.php');
+?>
+    <table>
+  <tr>
+    <th>Number of Team Leaders: <?php echo $number_of_users = count($teamLeaderUsers); ?></th>
+  </tr>   
 
-  use emUserImport\emUserImport;
+</table> 
+    <table>
+  <tr>
+    <th>Team Leader email</th>
+    <th>Team Leader name</th>
+    <th>Subordinates</th>
+  </tr>
+  <?php
+foreach ( $teamLeaderUsers as $TeamLeaderUserInfo ) {
 
-  $obj = new emUserImport;
+    $number_of_users = count($teamLeaderUsers);
+ ?>
 
-  $obj->user_import_submission();
-             
+  <tr>
+    <td><?php echo '<span>' . esc_html( $TeamLeaderUserInfo->user_email ) . '</span>'; ?></td>
+    <td><?php echo '<span>' . esc_html( $TeamLeaderUserInfo->display_name ) . '</span>'; ?></td>
+    <td>
+    <?php
+      $teamSubordinateArgs = array(  
+        'role__in' => array( 'team_subordinate' ),   
+        'meta_key'     => 'teamID',
+        'meta_value'   => $TeamLeaderUserInfo->ID,       
+    );
+    $teamSubordinate = get_users( $teamSubordinateArgs );
+    ?>  
+    <?php echo $number_of_users = count($teamSubordinate); ?></td>
+  </tr>
+
+    <?php
+}
+?>
+</table>
+
+<?php
+
