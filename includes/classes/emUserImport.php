@@ -40,9 +40,9 @@ if (!class_exists('emUserImport')) {
         add_action('init', [$this, 'user_import_inits' ] );
         add_action('admin_menu', [$this, 'user_import_register_submenu_page' ] );
 		add_action( 'admin_enqueue_scripts', [$this, 'load_admin_styles' ]  );
-        add_action('admin_init', [$this, 'profile_field_team_leader_email_disable' ] );  
-        add_action( 'show_user_profile', [$this, 'profile_field_team_leader_email' ]  );
-        add_action( 'edit_user_profile', [$this, 'profile_field_team_leader_email' ]  );
+        add_action('admin_init', [$this, 'profile_field_team_ID_disable' ] );  
+        add_action( 'show_user_profile', [$this, 'profile_field_team_ID' ]  );
+        add_action( 'edit_user_profile', [$this, 'profile_field_team_ID' ]  );
         add_action( 'personal_options_update', [$this, 'profile_save_team_leader_email' ]  );
         add_action( 'edit_user_profile_update', [$this, 'profile_save_team_leader_email' ]  );  
         add_action('wp_ajax_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission' ] );
@@ -265,7 +265,7 @@ if (!class_exists('emUserImport')) {
         ));            
     }
      
-    public function profile_field_team_leader_email_disable() {
+    public function profile_field_team_ID_disable() {
 
         global $pagenow;
 
@@ -279,14 +279,14 @@ if (!class_exists('emUserImport')) {
             return;
         }
 
-        add_action( 'admin_footer', [$this,  'profile_field_team_leader_email_disable_js' ] );
+        add_action( 'admin_footer', [$this,  'profile_field_team_ID_disable_js' ] );
 
     }
   
     /**
      * Disables selected fields in WP Admin user profile (profile.php, user-edit.php)
      */
-    public function profile_field_team_leader_email_disable_js() {
+    public function profile_field_team_ID_disable_js() {
     ?>
         <script>
             jQuery(document).ready( function($) {
@@ -313,7 +313,7 @@ if (!class_exists('emUserImport')) {
       update_user_meta( $user_id, 'teamID', $_POST['teamID'] );
     }
     
-    public function profile_field_team_leader_email( $user ) {
+    public function profile_field_team_ID( $user ) {
       $saved_teamID = get_user_meta( $user->ID, 'teamID', true ); ?>
       <h3><?php _e('Team Info'); ?></h3>
     
