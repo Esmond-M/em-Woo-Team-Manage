@@ -264,8 +264,8 @@ if (!class_exists('emUserImport')) {
             {
                 
                  // The user was successfully created
-                add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']);
-                wp_new_user_notification($user_id, null , "both");
+                add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']); //Give team Id
+                wp_new_user_notification($user_id, null , "both"); // Send account email notification
                 $successfullUserCreationCounter = $successfullUserCreationCounter + 1;
 
                 // then it is last iteration        
@@ -384,7 +384,21 @@ if (!class_exists('emUserImport')) {
             'edit_others_posts' => false,
             'publish_posts' => false,
             'manage_categories' => false,
-        ));            
+        ));
+
+        $user = wp_get_current_user();
+        // check if woocommerce is active
+        if ( in_array(  'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ){
+
+            if ( in_array( 'team_leader', (array) $user->roles ) ) {
+                add_filter( 'woocommerce_prevent_admin_access', '__return_false' );
+                add_filter( 'woocommerce_disable_admin_bar', '__return_false' );
+            }            
+        }
+
+
+
+
     }
 
      
