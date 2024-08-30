@@ -39,7 +39,7 @@ if (!class_exists('emUserImport')) {
     {
         add_action('init', [$this, 'user_import_inits' ] );
         add_action('admin_menu', [$this, 'user_import_register_submenu_page' ] );
-		add_action( 'admin_enqueue_scripts', [$this, 'load_admin_styles' ]  );
+		add_action( 'admin_enqueue_scripts', [$this, 'load_Admin_Styles' ]  );
         add_action('admin_init', [$this, 'profile_field_team_ID_disable' ] );  
         add_action( 'show_user_profile', [$this, 'profile_field_team_ID' ]  );
         add_action( 'edit_user_profile', [$this, 'profile_field_team_ID' ]  );
@@ -49,10 +49,106 @@ if (!class_exists('emUserImport')) {
         add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission' ] );
         add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this, 'emulate_Team_subordinate_Form_Submission' ] );
         add_action('wp_ajax_user_import_submission', [$this, 'user_import_submission' ] );
+        add_action( 'woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1 );
 
     }
 
-    public function load_admin_styles(){
+    public function create_Team_Leader_After_Payment( $order_id ) {
+        // If user is logged in, do nothing because they already have an account
+        if( is_user_logged_in() ) return;
+
+        // Get the newly created order
+        $order = wc_get_order( $order_id );
+
+        // Get the billing email address
+        $order_email = $order->billing_email;
+
+        // Check if there are any users with the billing email as user or email
+        $email = email_exists( $order_email );
+        $user = username_exists( $order_email );
+
+        // Get the order status (see if the customer has paid)
+        $order_status = $order->get_status();
+
+        // Check if the user exists and if the order status is processing or completed (paid)
+        if( $user == false && $email == false && $order->has_status( 'processing' ) || $user == false && $email == false && $order->has_status( 'completed' ) ) {
+            // Check on category ( multiple categories can be entered, separated by a comma )
+
+            // Random password with 12 chars
+            $random_password = wp_generate_password();
+
+            // Firstname
+            $first_name = $order->get_billing_first_name();
+
+            // Lastname
+            $last_name = $order->get_billing_last_name();
+
+            // Role
+            $role = 'team_leader';
+
+            // Create new user with email as username, newly created password and user role
+            $user_id = wp_insert_user(
+                array(
+                    'user_email' => $order_email,
+                    'user_login' => $order_email,
+                    'user_pass'  => $random_password,
+                    'first_name' => $first_name,
+                    'last_name'  => $last_name,
+                    'role'       => $role,
+                )
+            );
+            //$user_id->add_role( 'team_leader' );
+            /* (Optional) WC guest customer identification
+
+
+            $emailto = 'esmondmccain@gmail.com';
+
+            // Email subject, "New {post_type_label}"
+            $subject = 'User ID: ' . $user_id . '';
+    
+            // Email body
+            $message = 'It ran';
+    
+            wp_mail( $emailto, $subject, $message );*/
+
+            //$userInfo = get_user_by('id',$user_id);
+            //retrieve_password( $userInfo->user_login );
+            wp_new_user_notification($user_id, null , "both");
+            update_user_meta( $user_id, 'guest', 'yes' );
+
+            // User's billing data
+            update_user_meta( $user_id, 'billing_address_1', $order->billing_address_1 );
+            update_user_meta( $user_id, 'billing_address_2', $order->billing_address_2 );
+            update_user_meta( $user_id, 'billing_city', $order->billing_city );
+            update_user_meta( $user_id, 'billing_company', $order->billing_company );
+            update_user_meta( $user_id, 'billing_country', $order->billing_country );
+			update_user_meta( $user_id, 'billing_state', $order->billing_state );
+            update_user_meta( $user_id, 'billing_email', $order->billing_email );
+            update_user_meta( $user_id, 'billing_first_name', $order->billing_first_name );
+            update_user_meta( $user_id, 'billing_last_name', $order->billing_last_name );
+            update_user_meta( $user_id, 'billing_phone', $order->billing_phone );
+            update_user_meta( $user_id, 'billing_postcode', $order->billing_postcode );
+
+            // User's shipping data
+            update_user_meta( $user_id, 'shipping_address_1', $order->shipping_address_1 );
+            update_user_meta( $user_id, 'shipping_address_2', $order->shipping_address_2 );
+            update_user_meta( $user_id, 'shipping_city', $order->shipping_city );
+            update_user_meta( $user_id, 'shipping_company', $order->shipping_company );
+			update_user_meta( $user_id, 'shipping_state', $order->shipping_state );
+            update_user_meta( $user_id, 'shipping_country', $order->shipping_country );
+            update_user_meta( $user_id, 'shipping_first_name', $order->shipping_first_name );
+            update_user_meta( $user_id, 'shipping_last_name', $order->shipping_last_name );
+            update_user_meta( $user_id, 'shipping_method', $order->shipping_method );
+            update_user_meta( $user_id, 'shipping_postcode', $order->shipping_postcode );
+
+            // Link past orders to this newly created customer
+            wc_update_new_customer_past_orders( $user_id );
+
+        }
+    }
+
+
+    public function load_Admin_Styles(){
         global $pagenow;
         $rand = rand(1, 99999999999);
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
@@ -169,8 +265,9 @@ if (!class_exists('emUserImport')) {
                 
                  // The user was successfully created
                 add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']);
+                wp_new_user_notification($user_id, null , "both");
                 $successfullUserCreationCounter = $successfullUserCreationCounter + 1;
-         
+
                 // then it is last iteration        
                 if( $csvLoopCounter == count( $c  ) - 2) {
                     echo '<p>Number of succesful subordinates imported: ' .$successfullUserCreationCounter . '</p>';
