@@ -9,20 +9,11 @@ jQuery( "#team-leader-form" ).submit(function( event ) {
             type: "POST",
             url: team_Leader_Form_Submission.ajaxurl,
             data: serializedData,
-            success: function(responseText){ 
-               setTimeout( // timeout function to transition from loader icon to content less abruptly
-                    function() {
-                            jQuery(".user-import-ajax-loader").remove();
-                            console.log(serializedData);
-                            console.log(responseText );        
-                    },
-                    0
-                );
-				setTimeout(function () {
-					window.location.href= ''; // the redirect goes here
-
-				},3000); // 5 seconds
-
+            success: function(data,responseText){ 
+                var jQuerydata = jQuery(data);
+                jQuery(".user-import-ajax-loader").remove();
+                jQuery('#team-leader-form').after(jQuerydata); 
+                jQuery("#team-leader-form").remove(); 
 
           },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -31,7 +22,7 @@ jQuery( "#team-leader-form" ).submit(function( event ) {
                 console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
             }
 
-        });// ajax end
+        });
       
 });
 
@@ -48,17 +39,9 @@ jQuery( "#emulate-team-leader-form" ).submit(function( event ) {
             data: serializedData,
             success: function(data,responseText){ 
                 var jQuerydata = jQuery(data);
-               setTimeout( // timeout function to transition from loader icon to content less abruptly
-                    function() {
-                            jQuery(".user-import-ajax-loader").remove();
-                            jQuery('#emulate-team-leader-form').after(jQuerydata); // initial loader icon for all users request
-                            jQuery("#emulate-team-leader-form").remove();
-                            //console.log(serializedData);    
-                           console.log(responseText);      
-                    },
-                    0
-                );
-
+                jQuery(".user-import-ajax-loader").remove();
+                jQuery('.emulation-form').after(jQuerydata); // initial loader icon for all users request
+                jQuery(".emulation-form").remove();
           },
             error: function(jqXHR, textStatus, errorThrown) {
                 jQuery(".user-import-ajax-loader").remove();
