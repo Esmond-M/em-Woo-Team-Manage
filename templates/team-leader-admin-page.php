@@ -1,4 +1,4 @@
-<h2>View Subordinates</h2>
+
 
 <?php 
 
@@ -11,6 +11,8 @@ if ( current_user_can( 'manage_options' ) ) {
 );
 $teamLeaderUsers = get_users( $teamLeaderArgs );
 ?>
+<div class="emulation-form">
+<h2>Emulate User to View Subordinates</h2>
 <form id="emulate-team-leader-form" method="POST" action="">
 <select name="teamLeaderSelectOption" form="emulate-team-leader-form">
 
@@ -42,6 +44,7 @@ if ( !current_user_can( 'manage_options' ) ) {
 $teamLeaderUsers = get_users( $teamLeaderArgs );
 // Array of WP_User objects.
 ?>
+<h2>View Subordinates</h2>
 <form id="team-leader-form" method="POST" action="">
     <table>
   <tr>

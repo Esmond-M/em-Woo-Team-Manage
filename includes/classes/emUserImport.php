@@ -279,14 +279,15 @@ if (!class_exists('emUserImport')) {
         
         else
         {
-            if(!empty($_POST['userID'])) {
+            if(!empty($_POST['userID'])) {?>
                
-
+                <div class="user-deletion-password-contain">
+                <?php
                 if(!empty($_POST['teamLeaderSelectOption']) && $_POST['teamLeaderSelectOption'] == 'delete') {
                     foreach($_POST['userID'] as $id) {
-                     
+                        $user = get_user_by('id',$id);
                         wp_delete_user( $id);          
-                        echo '<p class="newpost-success">Users deleted</p>';
+                        echo '<p class="newpost-success">User: '. $user->user_login .' deleted</p>';
                          
                     }
                 }
@@ -295,14 +296,18 @@ if (!class_exists('emUserImport')) {
 
                     foreach($_POST['userID'] as $id) {
                         $user = get_user_by('id',$id);
-                        retrieve_password( $user->user_login );        
+                        retrieve_password( $user->user_login );    
+                        echo '<p class="newpost-success">User: '. $user->user_login .' password sent</p>';    
             
                     }
 
                     echo '<p class="newpost-success">Passwords sent</p>';
                  
-                }  
-
+                }?>
+                <button class="refresh-btn" onClick="window.location.reload();">Refresh Page</button>
+                </div>
+                <?php  
+ 
            } 
   
         }
@@ -310,7 +315,7 @@ if (!class_exists('emUserImport')) {
     }  
         
     public function emulate_Team_Leader_Form_Submission() {
-        
+        $teamLeader_obj = get_user_by('id', $_POST['teamLeaderSelectOption']);
         $teamLeaderArgs = array(  
             'role__in' => array( 'team_subordinate' ),
             'meta_key'     => 'teamID',
@@ -319,6 +324,8 @@ if (!class_exists('emUserImport')) {
         $teamLeaderUsers = get_users( $teamLeaderArgs );
         // Array of WP_User objects.
         ?>
+        <p style="color:red;"><strong>Emulating: <?php echo $teamLeader_obj->user_login?></strong></p>
+          <h2>View Subordinates</h2>
         <h2 class="emulation-title">Emulating user: <?php echo $_POST['teamLeaderSelectOption'];?></h2>
         <form id="team-leader-form" method="POST" action="">
             <table>
@@ -381,21 +388,14 @@ if (!class_exists('emUserImport')) {
         var serializedData = jQuery('#team-leader-form' ).serialize()
             jQuery.ajax({
                 type: "POST",
+                //datatype:'html';
                 url: team_Leader_Form_Submission.ajaxurl,
                 data: serializedData,
-                success: function(responseText){ 
-                setTimeout( // timeout function to transition from loader icon to content less abruptly
-                        function() {
-                                jQuery(".user-import-ajax-loader").remove();     
-                        },
-                        0
-                    );
-                    setTimeout(function () {
-                        window.location.href= ''; // the redirect goes here
-
-                    },3000); 
-
-
+                success: function(data,responseText){ 
+                    var jQuerydata = jQuery(data);
+                    jQuery(".user-import-ajax-loader").remove(); 
+                    jQuery(' #team-leader-form').after(jQuerydata); // initial loader icon for all users request
+                    jQuery(" #team-leader-form").remove();    
             },
                 error: function(jqXHR, textStatus, errorThrown) {
                     jQuery(".user-import-ajax-loader").remove();
@@ -403,7 +403,7 @@ if (!class_exists('emUserImport')) {
                     console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
                 }
 
-            });// ajax end
+            });
         
         });    
         </script>    
@@ -411,21 +411,39 @@ if (!class_exists('emUserImport')) {
     }
 
     public function emulate_Team_subordinate_Form_Submission() {
-     
+        $teamLeader_obj = get_user_by('id', $_POST['teamLeaderSelectOption']);
+        $siteURL = get_site_url();
         ?>
-        <form id="em-user-import-form" action="" method="post" enctype="multipart/form-data">
-        <label>CSV file  <input id="csvUpload" type="file" name="csvUpload"  type="file" accept=".csv" /></label> 
+        <p style="color:red;"><strong>Emulating: <?php echo $teamLeader_obj->user_login?></strong></p>
+          <h2>Import Users from CSV</h2>
+        <form id="subordinate-import-form" action="" method="post" enctype="multipart/form-data">
+        <label>CSV file limit 5MB   <input id="csvUpload" type="file" name="csvUpload"  type="file" accept=".csv" /></label> 
         <input name="teamLeaderID"  type="hidden" value="<?php echo $_POST['teamLeaderSelectOption'];?>"/>
             <input type="submit" value="Import">
         
         </form>
-        <script>
-            jQuery( "#em-user-import-form" ).submit(function( event ) {
-                event.preventDefault();
-                jQuery("#em-user-import-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-                jQuery('#em-user-import-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all user's request
 
-                    var fd = new FormData(jQuery('#em-user-import-form')[0]);
+        <div class="instructional-container">
+
+        <p>Import up to 50 users at once. CSV requires first row fields be email_address,first_name,last_name. Those are the three pieces of info needed for each user.</p>
+          <img alt="user import example"title="user import example" src="<?php echo $siteURL .  '/wp-content/plugins/em-user-import/admin/assets/img/user-import-screenshot.png';?>" />
+       
+        </div>
+       <script>
+           var uploadField = document.getElementById("csvUpload");
+
+            uploadField.onchange = function() {
+                if(this.files[0].size > 5242880){
+                alert("File is too big!");
+                this.value = "";
+                };
+            };
+            jQuery( "#subordinate-import-form" ).submit(function( event ) {
+                event.preventDefault();
+                jQuery("#subordinate-import-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
+                jQuery('#subordinate-import-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all user's request
+
+                    var fd = new FormData(jQuery('#subordinate-import-form')[0]);
                     fd.append( "csvUpload", jQuery('#csvUpload')[0].files[0]);
                     fd.append( "action", 'user_import_submission');  
                         jQuery.ajax({
@@ -433,21 +451,20 @@ if (!class_exists('emUserImport')) {
                             url:ajaxurl,   
                             dataType: "html",       
                             data: fd,
-                            processData: false, // important
-                            contentType: false, // important  
+                            processData: false,
+                            contentType: false,  
                             success: function(data,responseText){ 
                                 var jQuerydata = jQuery(data);
                                 jQuery(".user-import-ajax-loader").remove();
-                                jQuery('#em-user-import-form').after(jQuerydata); // initial loader icon for all users request
-                                jQuery("#em-user-import-form").remove();
-                                console.log(serializedData);    
-                                //console.log(data);      
-                
+                                jQuery('#subordinate-import-form').after(jQuerydata); 
+                                jQuery("#subordinate-import-form").remove();
+                                jQuery(".instructional-container").remove();
+                                
                             },
                             error: function(data,jqXHR, textStatus, errorThrown) {
                                 jQuery(".user-import-ajax-loader").remove();
-                                jQuery('#em-user-import-form').after(data); // initial loader icon for all users request
-                                jQuery("#em-user-import-form").append('<div id="em-connect-error">Connection Error</div>');
+                                jQuery('#subordinate-import-form').after(data);
+                                jQuery("#subordinate-import-form").append('<div id="em-connect-error">Connection Error</div>');
                                 console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
                             }
                 
@@ -470,21 +487,29 @@ if (!class_exists('emUserImport')) {
         // it allows us to use wp_handle_upload() function
         require_once( ABSPATH . 'wp-admin/includes/file.php' );
 
-        // can add some kind of validation here
-        if( empty( $_FILES[ 'csvUpload' ] ) ) {
-            wp_die();
-        }
 
+        ?>
+        <div class="user-upload-results-contain">
+        <?php
+        // check if file submitted
+        if( empty( $_FILES[ 'csvUpload' ] ) ) {
+            wp_die('File does not exist.');
+        }
+            // check if file is too large 5MB
+        $file_size = $_FILES['csvUpload']['size'];
+        if ((  $file_size > 5242880)){      
+   
+            wp_die('<p>File too large. File must be less than 5 megabytes.</p>'); ; 
+        }
         $upload = wp_handle_upload( 
-            $_FILES[ 'csvUpload' ], 
-            array( 'test_form' => false ) 
+            $_FILES[ 'csvUpload' ]
         );
 
         if( ! empty( $upload[ 'error' ] ) ) {
             wp_die( $upload[ 'error' ] );
         }
 
-        // it is time to add our uploaded image into WordPress media library
+        //  add uploaded file into WordPress media library
         $attachment_id = wp_insert_attachment(
           array(
             'guid'           => $upload[ 'url' ],
@@ -504,11 +529,12 @@ if (!class_exists('emUserImport')) {
         $csv =   $this->readCSV($upload[ 'url' ] ); 
 
         $csvLoopCounter = 0;
-        $csvCounter = 0;
+        $csvRowCounter = 0; // used to skip first row
         $successfullUserCreationCounter = 0;
+        $errorUserCreationCounter = 0;
         foreach ( $csv as $c ) {
-      
-            if ($csvCounter++ == 0) continue; // skip headers     
+            
+            if ($csvRowCounter++ == 0) continue; // skip headers     
             
             $email_address = $c[0];
             $firstName = $c[1];          
@@ -528,8 +554,9 @@ if (!class_exists('emUserImport')) {
             $user_id = wp_insert_user( $user_data );
             
             if ( is_wp_error( $user_id ) ) {
-               
-                echo '<p>' . $firstName . ' '.  $LastName .' did not import please check info</p>';
+                // $user_id->get_error_message()
+                $errorUserCreationCounter = $errorUserCreationCounter + 1;
+                echo '<p style="color:red;">'. $errorUserCreationCounter . '. ' . $firstName . ' '.  $LastName .' did not import. Error Message: ' . $user_id->get_error_message() . '. Please check info from CSV that was uploaded.</p>';
             }
             
             else
@@ -540,30 +567,25 @@ if (!class_exists('emUserImport')) {
                 wp_new_user_notification($user_id, null , "both"); // Send account email notification
                 $successfullUserCreationCounter = $successfullUserCreationCounter + 1;
 
-                // then it is last iteration        
-                if( $csvLoopCounter == count( $c  ) - 2) {
-                    echo '<p>Number of succesful subordinates imported: ' .$successfullUserCreationCounter . '</p>';
-                    
-                  }
+
             }
+            // then it is last iteration        
+            if( $csvLoopCounter == count( $c  ) - 2) {
+                echo '<p style="color:green;">Number of succesful subordinates imported: ' .$successfullUserCreationCounter . '</p>';
+                
+                }
+
             $csvLoopCounter = $csvLoopCounter + 1;
-                    
+
+            if($csvLoopCounter >= 50){ // only import up to 50 users
+                echo '<p style="color:red;">Only first 50 user can be imported from CSV file.</p>';
+               break;
+          
+            }       
         }  
-
-        // send email of successful run
-     /*
-        $emailto = 'esmondmccain@gmail.com';
-
-        // Email subject, "New {post_type_label}"
-        $subject = 'This code ran:  ' . ' ' . date("m-d-y");
-
-        // Email body
-        $message = 'It ran';
-
-        wp_mail( $emailto, $subject, $message );
-
-        echo "file submitted" ;
-        */
+        ?>
+        </div>
+        <?php
         wp_delete_attachment( $attachment_id, true);   
         exit;
       
@@ -613,22 +635,7 @@ if (!class_exists('emUserImport')) {
                     'role'       => $role,
                 )
             );
-            //$user_id->add_role( 'team_leader' );
-            /* (Optional) WC guest customer identification
 
-
-            $emailto = 'esmondmccain@gmail.com';
-
-            // Email subject, "New {post_type_label}"
-            $subject = 'User ID: ' . $user_id . '';
-    
-            // Email body
-            $message = 'It ran';
-    
-            wp_mail( $emailto, $subject, $message );*/
-
-            //$userInfo = get_user_by('id',$user_id);
-            //retrieve_password( $userInfo->user_login );
             wp_new_user_notification($user_id, null , "both");
             update_user_meta( $user_id, 'guest', 'yes' );
 
