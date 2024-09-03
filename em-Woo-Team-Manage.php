@@ -12,19 +12,19 @@
 * @return
 */
 declare(strict_types=1);
-namespace emUserImport;
+namespace emWooTeamManage;
 /**
- * Plugin Name:       EM User Import
- * Description:       Import user information
+ * Plugin Name:       EM WooTeamManage
+ * Description:       This plugin adds a team management page for WooCommerce customers to import other users and manage those users.
  * Requires at least: 6.1
  * Requires PHP:      7.0
  * Version:           0.1.0
  * Author:            Esmond Mccain
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       em-block-posts-grid
+ * Text Domain:       em-Woo-Team-Manage
  *
- * @package EmBlockPostsGrid
+ * @package emWooTeamManage
  */
 
 defined('ABSPATH') or die();
@@ -36,7 +36,7 @@ defined('ABSPATH') or die();
  *
  * @return array
  */
-function emUserImportConstants($constant_name, $value)
+function emWooTeamManageConstants($constant_name, $value)
 {
     $constant_name_prefix = 'EM_User_Import_Constants_';
     $constant_name = $constant_name_prefix . $constant_name;
@@ -44,13 +44,13 @@ function emUserImportConstants($constant_name, $value)
         define($constant_name, $value);
 }
 
-emUserImportConstants('DIR', dirname(plugin_basename(__FILE__)));
-emUserImportConstants('BASE', plugin_basename(__FILE__));
-emUserImportConstants('URL', plugin_dir_url(__FILE__));
-emUserImportConstants('PATH', plugin_dir_path(__FILE__));
-emUserImportConstants('SLUG', dirname(plugin_basename(__FILE__)));
+emWooTeamManageConstants('DIR', dirname(plugin_basename(__FILE__)));
+emWooTeamManageConstants('BASE', plugin_basename(__FILE__));
+emWooTeamManageConstants('URL', plugin_dir_url(__FILE__));
+emWooTeamManageConstants('PATH', plugin_dir_path(__FILE__));
+emWooTeamManageConstants('SLUG', dirname(plugin_basename(__FILE__)));
 require  EM_User_Import_Constants_PATH
-    . 'includes/classes/emUserImport.php';
-use emUserImport\emUserImport;
+    . 'includes/classes/emWooTeamManage.php';
+use emWooTeamManage\emWooTeamManage;
 
-new emUserImport;
+new emWooTeamManage;

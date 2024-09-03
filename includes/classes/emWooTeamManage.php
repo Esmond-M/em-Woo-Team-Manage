@@ -13,9 +13,9 @@
 */
 
 declare(strict_types=1);
-namespace emUserImport;
+namespace emWooTeamManage;
 
-if (!class_exists('emUserImport')) {
+if (!class_exists('emWooTeamManage')) {
 /**
 * Declaring class
 
@@ -27,7 +27,7 @@ if (!class_exists('emUserImport')) {
 * @return
 */
 
-    class emUserImport
+    class emWooTeamManage
 {
     //begin class
 
