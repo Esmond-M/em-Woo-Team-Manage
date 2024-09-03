@@ -1,0 +1,117 @@
+.site-admin-msg {
+    font-size: 30px;
+    color: red;
+}
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+/* Safari */
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}  
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.user-import-ajax-loader {
+    border: 16px solid #FF0909;
+    border-radius: 50%;
+    border-top: 16px solid #0062FF;
+    width: 60px!important;
+    height: 60px!important;
+    -webkit-animation: spin 2s linear infinite;
+    display: block;
+    margin: auto;
+    animation: spin 2s linear infinite;
+}
+.emulation-title{
+    font-size: 30px;
+    text-align: center;
+}
+#team-leader-form input[type="submit"]{
+    background: #2271b1;
+    border-color: black;
+    border-width: 2px;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: capitalize;
+    cursor: pointer;
+    margin: 20px 0 0 0;
+  }
+#team-leader-form input[type="submit"]:hover{
+    background: red;
+}
+#emulate-team-leader-form {
+    text-align: center;
+}
+.emulation-form{
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+}
+.emulation-form h2{
+    text-align: center;
+}
+.emulation-form input[type="submit"]{
+    background: #2271b1;
+    border-color: black;
+    border-width: 2px;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: capitalize;
+    cursor: pointer;
+}
+.emulation-form input[type="submit"]:hover{
+    background: red;
+}
+.user-deletion-password-contain {
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+}
+.user-deletion-password-contain p  {
+    text-decoration:underline;
+    margin:0 0 5px 0;
+}
+.refresh-btn{
+  background: #2271b1;
+  border-color: black;
+  border-width: 2px;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: none;
+  text-transform: capitalize;
+  cursor: pointer;
+  margin: 20px 0 0 0;
+}
+.refresh-btn:hover{
+  background: red;
+}
+.wp-die-message p {
+    background: white;
+    padding: 20px 20px 10px 20px;
+    max-width: 500px;
+    margin: auto;
+    font-size: 20px;
+    text-align: center;
+    font-weight: 600;
+    color: black;
+    text-decoration: underline;
+}
