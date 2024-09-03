@@ -1,13 +1,12 @@
-Project: [https://github.com/Esmond-M/em-block-posts-grid](https://github.com/Esmond-M/em-block-posts-grid)<br>
+Project: [https://github.com/Esmond-M/em-user-import](https://github.com/Esmond-M/em-user-import)<br>
 Author: [esmondmccain.com](https://esmondmccain.com/)
 
 ## Features
-This plugin adds a GutenBerg block labeled "EM Posts Grid" to the widgets section of the block editor. This custom block will display lastest posts in various formats.
-## Installation
+This plugin adds a team management page for WooCommerce customers to import other users. I mainly build this plugin as a template for clients that want to purchase content that will be restricted or limited by being purchased. Users usually want to buy content for their employees or students. This plugin allows one main person for example a "team leader" or teacher to manage multiple users.
+ ## Installation
 
-1. Download the latest version from [https://github.com/Esmond-M/em-block-posts-grid/blob/main/em-block-posts-grid.zip](https://github.com/Esmond-M/em-block-posts-grid/blob/main/em-block-posts-grid.zip)
-![Alt text](/docs/download-button.png "download button")
-2. Upload `em-block-posts-grid` zip to the `/wp-content/plugins/` directory
+1. Download the latest version from [https://github.com/Esmond-M/em-user-import/archive/refs/heads/main.zip](https://github.com/Esmond-M/em-user-import/archive/refs/heads/main.zip)
+2. Upload `em-user-import` zip to the `/wp-content/plugins/` directory
 3. Extract zip folder
 4. Activate the plugin through the 'Plugins' menu in WordPress
 
