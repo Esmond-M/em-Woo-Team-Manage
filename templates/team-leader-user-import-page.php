@@ -1,10 +1,12 @@
-
 <?php
 if ( current_user_can( 'manage_options' ) ) {
   $teamLeaderArgs = array(  
     'role__in' => array( 'team_leader' ),  
 );
 $teamLeaderUsers = get_users( $teamLeaderArgs );
+if( count($teamLeaderUsers) == 0){
+  wp_die('<p>No Team leader user to emulate</p>');
+}
 ?>
 <div class="emulation-form">
 <h2>Emulate User for CSV import</h2>

@@ -55,6 +55,31 @@ tr:nth-child(even) {
 #team-leader-form input[type="submit"]:hover{
     background: red;
 }
+#emulate-team-leader-form {
+    text-align: center;
+}
+.emulation-form{
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+}
+.emulation-form h2{
+    text-align: center;
+}
+.emulation-form input[type="submit"]{
+    background: #2271b1;
+    border-color: black;
+    border-width: 2px;
+    color: #fff;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: capitalize;
+    cursor: pointer;
+}
+.emulation-form input[type="submit"]:hover{
+    background: red;
+}
 .user-deletion-password-contain {
     max-width: 500px;
     margin: auto;
@@ -78,4 +103,15 @@ tr:nth-child(even) {
 }
 .refresh-btn:hover{
   background: red;
+}
+.wp-die-message p {
+    background: white;
+    padding: 20px 20px 10px 20px;
+    max-width: 500px;
+    margin: auto;
+    font-size: 20px;
+    text-align: center;
+    font-weight: 600;
+    color: black;
+    text-decoration: underline;
 }
