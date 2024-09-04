@@ -2,7 +2,7 @@
 
 /**
 * Main plugin file.
-* PHP version 7.3
+* PHP version 7.4
 
 * @category Wordpress_Plugin
 * @package  Esmond-M
@@ -126,17 +126,17 @@ if (!class_exists('emWooTeamManage')) {
     } 
 
     public function team_leader_user_import_page(){
-        require_once(WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-user-import-page.php'); 
+        require_once(dirname(__DIR__, 2) . '/templates/team-leader-user-import-page.php'); 
         return;
     }
 
     public function team_leader_admin_page(){
-        require_once(WP_PLUGIN_DIR . '/em-user-import/templates/team-leader-admin-page.php');
+        require_once(dirname(__DIR__, 2) . '/templates/team-leader-admin-page.php');
         return;
     }
 
     public function site_admin_team_leader_admin_page(){
-        require_once(WP_PLUGIN_DIR . '/em-user-import/templates/site-admin-team-leader-page.php') ;
+        require_once(dirname(__DIR__, 2) . '/templates/site-admin-team-leader-page.php') ;
         return;
     }
 
