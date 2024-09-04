@@ -2,7 +2,7 @@
 
 /**
 * Main plugin file.
-* PHP version 7.3
+* PHP version 7.4.33
 
 * @category Wordpress_Plugin
 * @package  Esmond-M
@@ -17,7 +17,7 @@ namespace emWooTeamManage;
  * Plugin Name:       EM WooTeamManage
  * Description:       This plugin adds a team management page for WooCommerce customers to import other users and manage those users.
  * Requires at least: 6.1
- * Requires PHP:      7.0
+ * Requires PHP:      7.4.33
  * Version:           0.1.0
  * Author:            Esmond Mccain
  * License:           GPL-2.0-or-later
@@ -38,7 +38,7 @@ defined('ABSPATH') or die();
  */
 function emWooTeamManageConstants($constant_name, $value)
 {
-    $constant_name_prefix = 'EM_User_Import_Constants_';
+    $constant_name_prefix = 'EM_Woo_Team_Manage_Constants_';
     $constant_name = $constant_name_prefix . $constant_name;
     if (!defined($constant_name))
         define($constant_name, $value);
@@ -49,7 +49,7 @@ emWooTeamManageConstants('BASE', plugin_basename(__FILE__));
 emWooTeamManageConstants('URL', plugin_dir_url(__FILE__));
 emWooTeamManageConstants('PATH', plugin_dir_path(__FILE__));
 emWooTeamManageConstants('SLUG', dirname(plugin_basename(__FILE__)));
-require  EM_User_Import_Constants_PATH
+require  EM_Woo_Team_Manage_Constants_PATH
     . 'includes/classes/emWooTeamManage.php';
 use emWooTeamManage\emWooTeamManage;
 
