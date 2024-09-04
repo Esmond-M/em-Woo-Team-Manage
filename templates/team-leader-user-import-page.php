@@ -43,7 +43,7 @@ if ( !current_user_can( 'manage_options' ) ) {
   <div class="instructional-container">
 
 <p>Import up to 50 users at once. CSV requires first row fields be email_address,first_name,last_name. Those are the three pieces of info needed for each user.</p>
-<img alt="user import example"title="user import example" src="<?php echo $siteURL .  '/wp-content/plugins/em-user-import/admin/assets/img/user-import-screenshot.png';?>" />
+<img alt="user import example"title="user import example" src="<?php echo $siteURL .  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png';?>" />
 
 </div>
   <script>
