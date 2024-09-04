@@ -144,8 +144,8 @@ if (!class_exists('emWooTeamManage')) {
         global $pagenow;
         $rand = rand(1, 99999999999);
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
-            wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
-            wp_enqueue_script( 'team-leader-subordinate-import-script', '/wp-content/plugins/em-user-import/admin/assets/js/teamSubordinateImport.js', array('jquery'), $rand, true); 
+            wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
+            wp_enqueue_script( 'team-leader-subordinate-import-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamSubordinateImport.js', array('jquery'), $rand, true); 
             wp_localize_script('team-leader-subordinate-import-script', 'emulate_Team_subordinate_Form_Submission', array(
                 'ajaxurl' => admin_url('admin-ajax.php') ,
                 'noposts' => __('No older posts found', 'em-theme') ,
@@ -157,12 +157,12 @@ if (!class_exists('emWooTeamManage')) {
                                
         }
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
-            wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
+            wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
         }
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'team-leader-admin' ) {
-            wp_enqueue_style( 'team-leader-admin-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/team-leader-admin.css' , array(),  $rand );
-            wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-user-import/admin/assets/js/teamLeaderAdmin.js', array('jquery'), $rand, true); 
-            wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-user-import/admin/assets/js/teamSubordinateImport.js', array('jquery'), $rand, true); 
+            wp_enqueue_style( 'team-leader-admin-styles',  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-admin.css' , array(),  $rand );
+            wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamLeaderAdmin.js', array('jquery'), $rand, true); 
+            wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamSubordinateImport.js', array('jquery'), $rand, true); 
             wp_localize_script('team-leader-admin-script', 'team_Leader_Form_Submission', array(
                 'ajaxurl' => admin_url('admin-ajax.php') ,
                 'noposts' => __('No older posts found', 'em-theme') ,
@@ -173,7 +173,7 @@ if (!class_exists('emWooTeamManage')) {
             ));                                      
         }
         if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
-            wp_enqueue_style( 'site-admin-team-leader-styles',  '/wp-content/plugins/em-user-import/admin/assets/css/site-admin-team-leader.css' , array(),  $rand );
+            wp_enqueue_style( 'site-admin-team-leader-styles',  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/site-admin-team-leader.css' , array(),  $rand );
         }
        
         return;
@@ -426,7 +426,7 @@ if (!class_exists('emWooTeamManage')) {
         <div class="instructional-container">
 
         <p>Import up to 50 users at once. CSV requires first row fields be email_address,first_name,last_name. Those are the three pieces of info needed for each user.</p>
-          <img alt="user import example"title="user import example" src="<?php echo $siteURL .  '/wp-content/plugins/em-user-import/admin/assets/img/user-import-screenshot.png';?>" />
+          <img alt="user import example"title="user import example" src="<?php echo $siteURL .  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png';?>" />
        
         </div>
        <script>
