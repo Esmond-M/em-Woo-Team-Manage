@@ -63,7 +63,7 @@ jQuery(document).ready(function($) {
           
     });
 
-    // For emulation. Element will not be intitially there for site admin so check after ajax request for user to emulate.
+    // For emulation. Element will not be intitially there for site admin so check after ajax request.
     jQuery( document ).on( "ajaxComplete", function() {
         console.log(jQuery('#subordinate-import-form').length );
         if(jQuery('#subordinate-import-form').length == 1){
