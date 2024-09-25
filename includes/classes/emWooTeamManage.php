@@ -502,7 +502,8 @@ if (!class_exists('emWooTeamManage')) {
             wp_die('<p>File too large. File must be less than 5 megabytes.</p>'); ; 
         }
         $upload = wp_handle_upload( 
-            $_FILES[ 'csvUpload' ]
+            $_FILES[ 'csvUpload' ],
+            array( 'test_form' => false ) 
         );
 
         if( ! empty( $upload[ 'error' ] ) ) {
@@ -564,7 +565,7 @@ if (!class_exists('emWooTeamManage')) {
                 
                  // The user was successfully created
                 add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']); //Give team Id
-                wp_new_user_notification($user_id, null , "both"); // Send account email notification
+               // wp_new_user_notification($user_id, null , "both"); // Send account email notification
                 $successfullUserCreationCounter = $successfullUserCreationCounter + 1;
 
 
