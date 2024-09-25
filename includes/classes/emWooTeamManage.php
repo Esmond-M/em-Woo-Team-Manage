@@ -376,37 +376,7 @@ if (!class_exists('emWooTeamManage')) {
         <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
         <input type="hidden" name="action" value="team_Leader_Form_Submission" />
         <input type="submit" value="submit">
-        </form> 
-    <!-- Have to localize this to run -->
-        <script>
-        jQuery( "#team-leader-form" ).submit(function( event ) {
-        event.preventDefault();
-        jQuery("#team-leader-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-        jQuery('#team-leader-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all users request
-
-        // Serialize the data in the form
-        var serializedData = jQuery('#team-leader-form' ).serialize()
-            jQuery.ajax({
-                type: "POST",
-                //datatype:'html';
-                url: team_Leader_Form_Submission.ajaxurl,
-                data: serializedData,
-                success: function(data,responseText){ 
-                    var jQuerydata = jQuery(data);
-                    jQuery(".user-import-ajax-loader").remove(); 
-                    jQuery(' #team-leader-form').after(jQuerydata); // initial loader icon for all users request
-                    jQuery(" #team-leader-form").remove();    
-            },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    jQuery(".user-import-ajax-loader").remove();
-                    jQuery("#team-leader-form").append('<div id="em-connect-error">Connection Error</div>');
-                    console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
-                }
-
-            });
-        
-        });    
-        </script>    
+        </form>   
         <?php
     }
 
@@ -429,51 +399,7 @@ if (!class_exists('emWooTeamManage')) {
           <img alt="user import example"title="user import example" src="<?php echo $siteURL .  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png';?>" />
        
         </div>
-       <script>
-           var uploadField = document.getElementById("csvUpload");
-
-            uploadField.onchange = function() {
-                if(this.files[0].size > 5242880){
-                alert("File is too big!");
-                this.value = "";
-                };
-            };
-            jQuery( "#subordinate-import-form" ).submit(function( event ) {
-                event.preventDefault();
-                jQuery("#subordinate-import-form input[type='submit']").prop( "disabled", true ); // disable all form buttons
-                jQuery('#subordinate-import-form').append('<div class="user-import-ajax-loader"></div>'); // initial loader icon for all user's request
-
-                    var fd = new FormData(jQuery('#subordinate-import-form')[0]);
-                    fd.append( "csvUpload", jQuery('#csvUpload')[0].files[0]);
-                    fd.append( "action", 'user_import_submission');  
-                        jQuery.ajax({
-                            type: "POST",
-                            url:ajaxurl,   
-                            dataType: "html",       
-                            data: fd,
-                            processData: false,
-                            contentType: false,  
-                            success: function(data,responseText){ 
-                                var jQuerydata = jQuery(data);
-                                jQuery(".user-import-ajax-loader").remove();
-                                jQuery('#subordinate-import-form').after(jQuerydata); 
-                                jQuery("#subordinate-import-form").remove();
-                                jQuery(".instructional-container").remove();
-                                
-                            },
-                            error: function(data,jqXHR, textStatus, errorThrown) {
-                                jQuery(".user-import-ajax-loader").remove();
-                                jQuery('#subordinate-import-form').after(data);
-                                jQuery("#subordinate-import-form").append('<div id="em-connect-error">Connection Error</div>');
-                                console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
-                            }
-                
-                        });// ajax end
-                
-            });            
-        </script>
         <?php 
-
     }
 
     public function user_import_submission()
