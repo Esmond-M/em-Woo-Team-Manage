@@ -1,30 +1,37 @@
 /* Safari */
 @-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
 }
-
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 .user-import-ajax-loader {
-    border: 16px solid #FF0909;
-    border-radius: 50%;
-    border-top: 16px solid #0062FF;
-    width: 60px!important;
-    height: 60px!important;
-    -webkit-animation: spin 2s linear infinite;
-    display: block;
-    margin: auto;
-    animation: spin 2s linear infinite;
+  border: 16px solid #FF0909;
+  border-radius: 50%;
+  border-top: 16px solid #0062FF;
+  width: 60px !important;
+  height: 60px !important;
+  -webkit-animation: spin 2s linear infinite;
+  display: block;
+  margin: auto;
+  animation: spin 2s linear infinite;
 }
 
 #subordinate-import-form {
   background: white;
   padding: 20px 20px 10px 20px;
 }
-#subordinate-import-form input[type="submit"]{
+#subordinate-import-form input[type=submit] {
   background: #2271b1;
   border-color: black;
   border-width: 2px;
@@ -33,24 +40,25 @@
   text-shadow: none;
   text-transform: capitalize;
   cursor: pointer;
-  
 }
-#subordinate-import-form input[type="submit"]:hover{
+#subordinate-import-form input[type=submit]:hover {
   background: red;
 }
+
 #emulate-team-leader-form {
   text-align: center;
 }
-.emulation-form{
+
+.emulation-form {
   max-width: 500px;
   margin: auto;
   background: white;
   padding: 20px;
 }
-.emulation-form h2{
+.emulation-form h2 {
   text-align: center;
 }
-.emulation-form input[type="submit"]{
+.emulation-form input[type=submit] {
   background: #2271b1;
   border-color: black;
   border-width: 2px;
@@ -60,17 +68,20 @@
   text-transform: capitalize;
   cursor: pointer;
 }
-.emulation-form input[type="submit"]:hover{
+.emulation-form input[type=submit]:hover {
   background: red;
 }
-.instructional-container{
+
+.instructional-container {
   background: white;
   padding: 10px 20px 20px 20px;
 }
-.user-upload-results-contain{
+
+.user-upload-results-contain {
   background: white;
   padding: 20px 20px 10px 20px;
 }
+
 .wp-die-message p {
   background: white;
   padding: 20px 20px 10px 20px;
