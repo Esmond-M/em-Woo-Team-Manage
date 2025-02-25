@@ -1,0 +1,43 @@
+{
+	"name": "em-Woo-Team-Manage",
+	"version": "0.1.0",
+	"description": "This plugin adds a team management page for WooCommerce customers to import other users and manage those users.",
+	"author": "Esmond Mccain",
+	"license": "GPL-2.0-or-later",
+	"keywords": [
+		"WordPress",
+		"Plugin",
+        "WooCommmerce"
+	],
+	"files": [
+		"/admin",
+		"/includes",
+		"/templates",
+		"/page-templates",
+		"em-Woo-Team-Manage.php"
+	],
+	"devDependencies": {
+		"@wordpress/scripts": "^27.9.0"
+	},
+	"dependencies": {
+		"sass": "^1.84.0"
+	},
+	"scripts": {
+        "build": "wp-scripts build",
+        "check-engines": "wp-scripts check-engines",
+        "check-licenses": "wp-scripts check-licenses",
+        "format": "wp-scripts format",
+        "lint:css": "wp-scripts lint-style",
+        "lint:js": "wp-scripts lint-js",
+        "lint:md:docs": "wp-scripts lint-md-docs",
+        "lint:pkg-json": "wp-scripts lint-pkg-json",
+        "packages-update": "wp-scripts packages-update",
+        "plugin-zip": "wp-scripts plugin-zip",
+        "start": "wp-scripts start",
+        "test:e2e": "wp-scripts test-e2e",
+        "test:unit": "wp-scripts test-unit-js",
+        "watch:siteadmin": "sass --watch admin/assets/sass/site-admin-team-leader.scss admin/assets/css/site-admin-team-leader.css --no-source-map",        
+        "watch:admin": "sass --watch admin/assets/sass/team-leader-admin.scss admin/assets/css/team-leader-admin.css --no-source-map",
+        "watch:userimport": "sass --watch admin/assets/sass/team-leader-user-import.scss admin/assets/css/team-leader-user-import.css --no-source-map"
+	}
+}
