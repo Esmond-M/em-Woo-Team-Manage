@@ -18,6 +18,7 @@ namespace emWooTeamManage;
  * Description:       This plugin adds a team management page for WooCommerce customers to import other users and manage those users.
  * Requires at least: 6.1
  * Requires PHP:      7.4.33
+ * Requires Plugins: woocommerce
  * Version:           0.1.0
  * Author:            Esmond Mccain
  * License:           GPL-2.0-or-later
