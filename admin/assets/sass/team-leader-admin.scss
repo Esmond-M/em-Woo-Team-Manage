@@ -1,9 +1,23 @@
+@mixin submitBtn{
+    display: block;
+    font-size: 16x;
+    border: none;
+    color: white;
+    background-color: #008CBA;
+    padding: 15px 32px;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: capitalize;
+    cursor: pointer;
+    padding:10px;  
+ }
 .site-admin-msg {
     font-size: 30px;
     color: red;
 }
 table {
     font-family: arial, sans-serif;
+    font-size: 18px;
     border-collapse: collapse;
     width: 100%;
 }
@@ -43,15 +57,8 @@ tr:nth-child(even) {
 }
 #team-leader-form {
     input[type="submit"] {
-        background: #2271b1;
-        border-color: black;
-        border-width: 2px;
-        color: #fff;
-        text-decoration: none;
-        text-shadow: none;
-        text-transform: capitalize;
-        cursor: pointer;
-        margin: 20px 0 0 0;
+        @include submitBtn();
+        margin: 10px 0 0 0;
     }
     input[type="submit"]:hover{
         background: red;
@@ -62,23 +69,33 @@ tr:nth-child(even) {
     text-align: center;
 }
 .emulation-form{
-    max-width: 500px;
-    margin: auto;
+    max-width: 850px;
+    margin: 150px auto;
     background: white;
     padding: 20px;
     h2{
         text-align: center;
     }
-    input[type="submit"]{
-        background: #2271b1;
-        border-color: black;
-        border-width: 2px;
-        color: #fff;
-        text-decoration: none;
-        text-shadow: none;
-        text-transform: capitalize;
+    select{
+        font-size: 20px;
+        line-height: 2;
+        color: #2c3338;
+        border-color: #8c8f94;
+        box-shadow: none;
+        border-radius: 3px;
+        padding: 0 24px 0 8px;
+        min-height: 30px;
+        width: 100%;
+        min-width: 200px;
+        text-align: center;
+        -webkit-appearance: none;
         cursor: pointer;
-    }
+        vertical-align: middle;
+      } 
+      input[type="submit"]{
+        @include submitBtn();
+        margin:10px auto 10px auto;
+      }
     input[type="submit"]:hover{
         background: red;
     }        
