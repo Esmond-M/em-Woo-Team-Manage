@@ -2,7 +2,7 @@
 
 
 declare(strict_types=1);
-namespace emWooTeamManage;
+namespace emWooTeamManage\init_plugin\Classes;
 
 if (!class_exists('emWooTeamManage')) {
 /**
@@ -583,7 +583,7 @@ if (!class_exists('emWooTeamManage')) {
 
 }
 
-
+new emWooTeamManage;
   
 
 

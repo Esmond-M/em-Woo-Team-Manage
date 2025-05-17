@@ -11,8 +11,7 @@
 * @link     esmondmccain.com
 * @return
 */
-declare(strict_types=1);
-namespace emWooTeamManage;
+
 /**
  * Plugin Name:       EM WooTeamManage
  * Description:       This plugin adds a team management page for WooCommerce customers to import other users and manage those users.
@@ -28,30 +27,50 @@ namespace emWooTeamManage;
  * @package emWooTeamManage
  */
 
-defined('ABSPATH') or die();
-/**
- * Define global constants
+declare(strict_types=1);
+namespace emWooTeamManage\init_plugin;
 
- * @param $constant_name
- * @param $value
- *
- * @return array
- */
-function emWooTeamManageConstants($constant_name, $value)
-{
-    $constant_name_prefix = 'EM_Woo_Team_Manage_Constants_';
-    $constant_name = $constant_name_prefix . $constant_name;
-    if (!defined($constant_name))
-        define($constant_name, $value);
+use emWooTeamManage\init_plugin\Classes\emWooTeamManage;
+
+defined('ABSPATH') or die();
+
+final class emWooTeamManageInit {
+
+    const VERSION = '0.1.0';
+    const PHP_MINIMUM_VERSION = '7.4.33';
+
+    private static $_instance = null;
+
+    public function __construct() {
+    
+       add_action( 'init', [ $this, 'i18n' ] );        
+       add_action( 'plugins_loaded', [ $this, 'init_class' ] );
+ 
+    }
+
+    public function i18n() {
+        load_plugin_textdomain( 'emWooTeamManage' );
+    }
+
+    public function init_class() {
+        require_once __DIR__ . '/includes/classes/emWooTeamManage.php';
+   
+     
+    }
+
+
+
+    public static function get_instance() {
+
+        if ( null == self::$_instance ) {
+            self::$_instance = new Self();
+        }
+
+        return self::$_instance;
+
+    }
+
 }
 
-emWooTeamManageConstants('DIR', dirname(plugin_basename(__FILE__)));
-emWooTeamManageConstants('BASE', plugin_basename(__FILE__));
-emWooTeamManageConstants('URL', plugin_dir_url(__FILE__));
-emWooTeamManageConstants('PATH', plugin_dir_path(__FILE__));
-emWooTeamManageConstants('SLUG', dirname(plugin_basename(__FILE__)));
-require  EM_Woo_Team_Manage_Constants_PATH
-    . 'includes/classes/emWooTeamManage.php';
-use emWooTeamManage\emWooTeamManage;
 
-new emWooTeamManage;
+emWooTeamManageInit::get_instance();
