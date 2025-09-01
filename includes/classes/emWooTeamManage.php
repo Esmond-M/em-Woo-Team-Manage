@@ -9,39 +9,42 @@ if (!class_exists('emWooTeamManage')) {
 * Declaring class
 */
 
-    class emWooTeamManage
+class emWooTeamManage
 {
-    //begin class
-
-
     /**
-    *  Declaring constructor
-    */
+     * Declaring constructor
+     */
     public function __construct()
     {
-    // Initialization hooks
-    add_action('init', [$this, 'user_import_inits']);
-    add_action('admin_init', [$this, 'profile_field_team_ID_disable']);
+        // Initialization hooks
+        add_action('init', [$this, 'user_import_inits']);
+        add_action('admin_init', [$this, 'profile_field_team_ID_disable']);
 
-    // Admin menu and styles
-    add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
-    add_action('admin_enqueue_scripts', [$this, 'load_Admin_Styles']);
+        // Admin menu and styles
+        add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
+        add_action('admin_enqueue_scripts', [$this, 'load_Admin_Styles']);
 
-    // User profile fields and saving
-    add_action('show_user_profile', [$this, 'profile_field_team_ID']);
-    add_action('edit_user_profile', [$this, 'profile_field_team_ID']);
-    add_action('personal_options_update', [$this, 'profile_save_team_leader_email']);
-    add_action('edit_user_profile_update', [$this, 'profile_save_team_leader_email']);
+        // User profile fields and saving
+        add_action('show_user_profile', [$this, 'profile_field_team_ID']);
+        add_action('edit_user_profile', [$this, 'profile_field_team_ID']);
+        add_action('personal_options_update', [$this, 'profile_save_team_leader_email']);
+        add_action('edit_user_profile_update', [$this, 'profile_save_team_leader_email']);
 
-    // AJAX handlers
-    add_action('wp_ajax_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission']);
-    add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission']);
-    add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this, 'emulate_Team_subordinate_Form_Submission']);
-    add_action('wp_ajax_user_import_submission', [$this, 'user_import_submission']);
+        // AJAX handlers
+        add_action('wp_ajax_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission']);
+        add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission']);
+        add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this, 'emulate_Team_subordinate_Form_Submission']);
+        add_action('wp_ajax_user_import_submission', [$this, 'user_import_submission']);
 
-    // WooCommerce hook
-    add_action('woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1);
+        // WooCommerce hook
+        add_action('woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1);
+    }
 
+    /**
+     * Helper to require template files
+     */
+    private function require_template($template) {
+        require_once(dirname(__DIR__, 2) . "/templates/{$template}");
     }
 
     public function user_import_inits() {
@@ -94,7 +97,7 @@ if (!class_exists('emWooTeamManage')) {
                 'menu_title'  => 'Add Subordinates',
                 'capability'  => 'read',
                 'menu_slug'   => 'user-import-controls',
-                'callback'    => [$this, 'team_leader_user_import_page'],
+                'template'    => 'team-leader-user-import-page.php',
                 'position'    => 3
             ],
             [
@@ -103,7 +106,7 @@ if (!class_exists('emWooTeamManage')) {
                 'menu_title'  => 'View Subordinates',
                 'capability'  => 'read',
                 'menu_slug'   => 'team-leader-admin',
-                'callback'    => [$this, 'team_leader_admin_page'],
+                'template'    => 'team-leader-admin-page.php',
                 'position'    => 1
             ],
             [
@@ -112,12 +115,12 @@ if (!class_exists('emWooTeamManage')) {
                 'menu_title'  => 'Site Admin View',
                 'capability'  => 'manage_options',
                 'menu_slug'   => 'site-admin-team-leader-admin',
-                'callback'    => [$this, 'site_admin_team_leader_admin_page'],
+                'template'    => 'site-admin-team-leader-page.php',
                 'position'    => 2
             ],
         ];
 
-        // Add submenus
+        // Add submenus with a generic callback
         foreach ($submenus as $submenu) {
             add_submenu_page(
                 $submenu['parent_slug'],
@@ -125,63 +128,78 @@ if (!class_exists('emWooTeamManage')) {
                 $submenu['menu_title'],
                 $submenu['capability'],
                 $submenu['menu_slug'],
-                $submenu['callback'],
+                function() use ($submenu) { $this->require_template($submenu['template']); },
                 $submenu['position']
             );
         }
     }
 
-    public function team_leader_user_import_page(){
-        require_once(dirname(__DIR__, 2) . '/templates/team-leader-user-import-page.php'); 
-        return;
-    }
-
-    public function team_leader_admin_page(){
-        require_once(dirname(__DIR__, 2) . '/templates/team-leader-admin-page.php');
-        return;
-    }
-
-    public function site_admin_team_leader_admin_page(){
-        require_once(dirname(__DIR__, 2) . '/templates/site-admin-team-leader-page.php') ;
-        return;
-    }
 
     public function load_Admin_Styles(){
         global $pagenow;
         $rand = rand(1, 99999999999);
-        if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'user-import-controls' ) {
-            wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
-            wp_enqueue_script( 'team-leader-subordinate-import-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamSubordinateImport.js', array('jquery'), $rand, true); 
-            wp_localize_script('team-leader-subordinate-import-script', 'emulate_Team_subordinate_Form_Submission', array(
-                'ajaxurl' => admin_url('admin-ajax.php') ,
-                'noposts' => __('No older posts found', 'em-theme') ,
-              )); 
-            wp_localize_script('team-leader-subordinate-import-script', 'user_import_submission', array(
-            'ajaxurl' => admin_url('admin-ajax.php') ,
-            'noposts' => __('No older posts found', 'em-theme') ,
-            ));
-                               
+        $page = isset($_GET['page']) ? $_GET['page'] : '';
+
+        $config = [
+            'user-import-controls' => [
+                'styles' => [
+                    ['team-leader-user-import-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css'],
+                ],
+                'scripts' => [
+                    ['team-leader-subordinate-import-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamSubordinateImport.js'],
+                ],
+                'localize' => [
+                    ['team-leader-subordinate-import-script', 'emulate_Team_subordinate_Form_Submission', [
+                        'ajaxurl' => admin_url('admin-ajax.php')
+                    ]],
+                    ['team-leader-subordinate-import-script', 'user_import_submission', [
+                        'ajaxurl' => admin_url('admin-ajax.php')
+                    ]],
+                ],
+            ],
+            'site-admin-team-leader-admin' => [
+                'styles' => [
+                    ['team-leader-user-import-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css'],
+                    ['site-admin-team-leader-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/site-admin-team-leader.css'],
+                ],
+            ],
+            'team-leader-admin' => [
+                'styles' => [
+                    ['team-leader-admin-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-admin.css'],
+                ],
+                'scripts' => [
+                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamLeaderAdmin.js'],
+                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamSubordinateImport.js'],
+                ],
+                'localize' => [
+                    ['team-leader-admin-script', 'team_Leader_Form_Submission', [
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                    ]],
+                    ['team-leader-admin-script', 'emulate_Team_Leader_Form_Submission', [
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                    ]],
+                ],
+            ],
+        ];
+
+        if ($pagenow === 'admin.php' && isset($config[$page])) {
+            $entry = $config[$page];
+            if (!empty($entry['styles'])) {
+                foreach ($entry['styles'] as $style) {
+                    wp_enqueue_style($style[0], $style[1], array(), $rand);
+                }
+            }
+            if (!empty($entry['scripts'])) {
+                foreach ($entry['scripts'] as $script) {
+                    wp_enqueue_script($script[0], $script[1], array('jquery'), $rand, true);
+                }
+            }
+            if (!empty($entry['localize'])) {
+                foreach ($entry['localize'] as $loc) {
+                    wp_localize_script($loc[0], $loc[1], $loc[2]);
+                }
+            }
         }
-        if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
-            wp_enqueue_style( 'team-leader-user-import-styles',  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css' , array(),  $rand );
-        }
-        if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'team-leader-admin' ) {
-            wp_enqueue_style( 'team-leader-admin-styles',  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-admin.css' , array(),  $rand );
-            wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamLeaderAdmin.js', array('jquery'), $rand, true); 
-            wp_enqueue_script( 'team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamSubordinateImport.js', array('jquery'), $rand, true); 
-            wp_localize_script('team-leader-admin-script', 'team_Leader_Form_Submission', array(
-                'ajaxurl' => admin_url('admin-ajax.php') ,
-                'noposts' => __('No older posts found', 'em-theme') ,
-              ));
-            wp_localize_script('team-leader-admin-script', 'emulate_Team_Leader_Form_Submission', array(
-            'ajaxurl' => admin_url('admin-ajax.php') ,
-            'noposts' => __('No older posts found', 'em-theme') ,
-            ));                                      
-        }
-        if ( 'admin.php' === $pagenow &&  isset($_GET['page']) &&  $_GET['page']=== 'site-admin-team-leader-admin' ) {
-            wp_enqueue_style( 'site-admin-team-leader-styles',  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/site-admin-team-leader.css' , array(),  $rand );
-        }
-       
         return;
     }
 
