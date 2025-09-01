@@ -221,18 +221,15 @@ class emWooTeamManage
 
         global $pagenow;
 
-        // apply only to user profile or user edit pages
-        if ($pagenow!=='profile.php' && $pagenow!=='user-edit.php') {
+        // Only apply on user profile or user edit pages, and not for administrators
+        if (
+            ($pagenow !== 'profile.php' && $pagenow !== 'user-edit.php') ||
+            current_user_can('administrator')
+        ) {
             return;
         }
 
-        // do not change anything for the administrator
-        if (current_user_can('administrator')) {
-            return;
-        }
-
-        add_action( 'admin_footer', [$this,  'profile_field_team_ID_disable_js' ] );
-
+        add_action('admin_footer', [$this, 'profile_field_team_ID_disable_js']);
     }
   
     /**
