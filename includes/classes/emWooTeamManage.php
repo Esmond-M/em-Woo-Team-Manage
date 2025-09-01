@@ -1,17 +1,24 @@
 <?php
-
-
 declare(strict_types=1);
 namespace emWooTeamManage\init_plugin\Classes;
 
 /**
-* Declaring class
-*/
+ * Main plugin class for EM Woo Team Manage.
+ * 
+ * Handles:
+ * - Custom user roles for team leaders and subordinates
+ * - Admin menu and page registration
+ * - Enqueuing admin styles and scripts
+ * - User profile field management for team assignment
+ * - AJAX handlers for team management actions (import, emulation, deletion, password reset)
+ * - CSV import of subordinate users
+ * - WooCommerce integration for automatic team leader creation after payment
+ */
 
 class emWooTeamManage
 {
     /**
-     * Declaring constructor
+     * Constructor: Registers hooks for plugin initialization, admin, AJAX, and WooCommerce integration.
      */
     public function __construct()
     {
@@ -40,12 +47,15 @@ class emWooTeamManage
     }
 
     /**
-     * Helper to require template files
+     * Helper to require template files from the templates directory.
      */
     private function require_template($template) {
         require_once(dirname(__DIR__, 2) . "/templates/{$template}");
     }
 
+    /**
+     * Registers custom user roles and WooCommerce admin access for team leaders.
+     */
     public function user_import_inits() {
         // Common capabilities for custom roles
         $role_caps = array(
@@ -75,6 +85,9 @@ class emWooTeamManage
         }
     }
 
+    /**
+     * Registers admin menu and submenu pages for team management.
+     */
     public function user_import_register_submenu_page() {
 
         // Main menu page
@@ -134,6 +147,9 @@ class emWooTeamManage
     }
 
 
+    /**
+     * Enqueues admin styles and scripts for plugin pages.
+     */
     public function load_Admin_Styles(){
         global $pagenow;
         $rand = rand(1, 99999999999);
@@ -202,6 +218,9 @@ class emWooTeamManage
         return;
     }
 
+    /**
+     * Reads a CSV file and yields each row as an array.
+     */
     public function readCSV($filename, $delimeter=',')
     {
         $handle = fopen($filename, "r");
@@ -216,6 +235,9 @@ class emWooTeamManage
         fclose($handle);
     }
 
+    /**
+     * Disables the teamID field on user profile pages for non-admins.
+     */
     public function profile_field_team_ID_disable() {
 
         global $pagenow;
@@ -232,7 +254,7 @@ class emWooTeamManage
     }
 
     /**
-     * Disables selected fields in WP Admin user profile (profile.php, user-edit.php)
+     * Outputs JS to disable selected fields in WP Admin user profile.
      */
     public function profile_field_team_ID_disable_js() {
     ?>
@@ -249,6 +271,9 @@ class emWooTeamManage
     <?php
     }
 
+    /**
+     * Saves the teamID field from the user profile, with nonce and capability checks.
+     */
     public function profile_save_team_leader_email( $user_id ) {
         // Verify nonce and capability before saving
         if (
@@ -264,6 +289,9 @@ class emWooTeamManage
         update_user_meta($user_id, 'teamID', $teamID);
     }
 
+    /**
+     * Displays the teamID field in the user profile edit screen.
+     */
     public function profile_field_team_ID( $user ) {
         $saved_teamID = get_user_meta($user->ID, 'teamID', true);
         ?>
@@ -295,6 +323,9 @@ class emWooTeamManage
         <?php
     }
 
+    /**
+     * Handles AJAX submission for team leader actions (delete/resend password).
+     */
     public function team_Leader_Form_Submission() {
         // Verify nonce for security
         if (
@@ -337,6 +368,9 @@ class emWooTeamManage
         exit;
     }
 
+    /**
+     * Handles AJAX emulation of a team leader, displaying their subordinates.
+     */
     public function emulate_Team_Leader_Form_Submission() {
     // Sanitize input
     $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
@@ -391,6 +425,9 @@ class emWooTeamManage
     <?php
     }
 
+    /**
+     * Handles AJAX emulation for importing subordinates via CSV for a team leader.
+     */
     public function emulate_Team_subordinate_Form_Submission() {
         // Sanitize and validate input
         $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
@@ -428,6 +465,9 @@ class emWooTeamManage
         <?php
     }
 
+    /**
+     * Handles AJAX CSV import of subordinate users for a team leader.
+     */
     public function user_import_submission()
     {
         // Load required WordPress files
@@ -532,6 +572,9 @@ class emWooTeamManage
         exit;
     }
 
+    /**
+     * Creates a team leader user after WooCommerce payment if not already registered.
+     */
     public function create_Team_Leader_After_Payment( $order_id ) {
         // If user is logged in, do nothing because they already have an account
         if ( is_user_logged_in() ) return;
