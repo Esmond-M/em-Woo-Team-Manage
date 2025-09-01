@@ -4,7 +4,6 @@
 declare(strict_types=1);
 namespace emWooTeamManage\init_plugin\Classes;
 
-if (!class_exists('emWooTeamManage')) {
 /**
 * Declaring class
 */
@@ -205,18 +204,18 @@ class emWooTeamManage
 
     public function readCSV($filename, $delimeter=',')
     {
-        $handle = fopen($filename, "r"); 
+        $handle = fopen($filename, "r");
         if ($handle === false) {
             return false;
         }
-    
+
         while (($data = fgetcsv($handle, 1000, $delimeter)) !== false) {
            yield $data;
         }
-    
+
         fclose($handle);
     }
-     
+
     public function profile_field_team_ID_disable() {
 
         global $pagenow;
@@ -231,7 +230,7 @@ class emWooTeamManage
 
         add_action('admin_footer', [$this, 'profile_field_team_ID_disable_js']);
     }
-  
+
     /**
      * Disables selected fields in WP Admin user profile (profile.php, user-edit.php)
      */
@@ -336,8 +335,8 @@ class emWooTeamManage
             <?php
         }
         exit;
-    }  
-            
+    }
+
     public function emulate_Team_Leader_Form_Submission() {
     // Sanitize input
     $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
@@ -432,7 +431,7 @@ class emWooTeamManage
     public function user_import_submission()
     {
         // Load required WordPress files
-        
+
         // It allows create user functions
         require_once(ABSPATH . 'wp-includes/user.php');
 
@@ -610,10 +609,7 @@ class emWooTeamManage
             wc_update_new_customer_past_orders( $user_id );
 
         }
-    }     
-}
-
-
+    }
 }
 
 new emWooTeamManage;
