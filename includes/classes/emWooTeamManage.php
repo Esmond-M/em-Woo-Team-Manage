@@ -393,25 +393,40 @@ class emWooTeamManage
     }
 
     public function emulate_Team_subordinate_Form_Submission() {
-        $teamLeader_obj = get_user_by('id', $_POST['teamLeaderSelectOption']);
-        $siteURL = get_site_url();
+        // Sanitize and validate input
+        $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
+        $teamLeader_obj = get_user_by('id', $team_leader_id);
+        $siteURL = esc_url(get_site_url());
+
         ?>
-        <p style="color:red;"><strong>Emulating: <?php echo $teamLeader_obj->user_login?></strong></p>
-          <h2>Import Users from CSV</h2>
+        <p style="color:red;">
+            <strong>
+                Emulating: <?php echo esc_html($teamLeader_obj ? $teamLeader_obj->user_login : 'Unknown'); ?>
+            </strong>
+        </p>
+        <h2>Import Users from CSV</h2>
         <form id="subordinate-import-form" action="" method="post" enctype="multipart/form-data">
-        <label>CSV file limit 5MB   <input id="csvUpload" type="file" name="csvUpload"  type="file" accept=".csv" /></label> 
-        <input name="teamLeaderID"  type="hidden" value="<?php echo $_POST['teamLeaderSelectOption'];?>"/>
+            <label>
+                CSV file limit 5MB
+                <input id="csvUpload" type="file" name="csvUpload" accept=".csv" />
+            </label>
+            <input name="teamLeaderID" type="hidden" value="<?php echo esc_attr($team_leader_id); ?>" />
             <input type="submit" value="Import">
-        
         </form>
 
         <div class="instructional-container">
-
-        <p>Import up to 50 users at once. CSV requires first row fields be email_address,first_name,last_name. Those are the three pieces of info needed for each user.</p>
-          <img alt="user import example"title="user import example" src="<?php echo $siteURL .  '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png';?>" />
-       
+            <p>
+                Import up to 50 users at once. CSV requires first row fields be <strong>email_address, first_name, last_name</strong>.
+                Those are the three pieces of info needed for each user.
+            </p>
+            <img
+                alt="user import example"
+                title="user import example"
+                src="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png'; ?>"
+                style="max-width:100%;height:auto;"
+            />
         </div>
-        <?php 
+        <?php
     }
 
     public function user_import_submission()
