@@ -75,44 +75,61 @@ if (!class_exists('emWooTeamManage')) {
 
     public function user_import_register_submenu_page() {
 
-        //Add Custom Social Sharing Sub Menu
+        // Main menu page
         add_menu_page(
-        'Add Subordinates',
-        'Team Manage',
-        'read',
-        "user-import-controls",
-        '',
-        '',
-        2
-        );
-        add_submenu_page(
-            'user-import-controls',
             'Add Subordinates',
-            'Add Subordinates',
-            "read",
+            'Team Manage',
+            'read',
             'user-import-controls',
-            [$this, 'team_leader_user_import_page'], 
-            3
-            );
-        add_submenu_page(
-            'user-import-controls',
-            'View Subordinates',
-            'View Subordinates',
-            "read",
-            'team-leader-admin',
-            [$this, 'team_leader_admin_page'], 
-            1
-            );
-        add_submenu_page(
-            'user-import-controls',
-            'Site Admin View',
-            'Site Admin View',
-            "manage_options",
-            'site-admin-team-leader-admin',
-            [$this, 'site_admin_team_leader_admin_page'], 
+            '',
+            '',
             2
-            );                
-    } 
+        );
+
+        // Submenu pages configuration
+        $submenus = [
+            [
+                'parent_slug' => 'user-import-controls',
+                'page_title'  => 'Add Subordinates',
+                'menu_title'  => 'Add Subordinates',
+                'capability'  => 'read',
+                'menu_slug'   => 'user-import-controls',
+                'callback'    => [$this, 'team_leader_user_import_page'],
+                'position'    => 3
+            ],
+            [
+                'parent_slug' => 'user-import-controls',
+                'page_title'  => 'View Subordinates',
+                'menu_title'  => 'View Subordinates',
+                'capability'  => 'read',
+                'menu_slug'   => 'team-leader-admin',
+                'callback'    => [$this, 'team_leader_admin_page'],
+                'position'    => 1
+            ],
+            [
+                'parent_slug' => 'user-import-controls',
+                'page_title'  => 'Site Admin View',
+                'menu_title'  => 'Site Admin View',
+                'capability'  => 'manage_options',
+                'menu_slug'   => 'site-admin-team-leader-admin',
+                'callback'    => [$this, 'site_admin_team_leader_admin_page'],
+                'position'    => 2
+            ],
+        ];
+
+        // Add submenus
+        foreach ($submenus as $submenu) {
+            add_submenu_page(
+                $submenu['parent_slug'],
+                $submenu['page_title'],
+                $submenu['menu_title'],
+                $submenu['capability'],
+                $submenu['menu_slug'],
+                $submenu['callback'],
+                $submenu['position']
+            );
+        }
+    }
 
     public function team_leader_user_import_page(){
         require_once(dirname(__DIR__, 2) . '/templates/team-leader-user-import-page.php'); 
