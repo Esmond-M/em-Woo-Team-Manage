@@ -1,7 +1,7 @@
 # EM WooTeamManage Plugin
 
-A WordPress plugin for WooCommerce that enables customers to manage their own teams.  
-Import users, assign roles, and control team access directly from the WooCommerce account area.
+A WordPress plugin for WooCommerce that enables site admins and team leaders to manage teams through custom admin pages.
+Import users, assign roles, emulate team leaders, and control team access directly from dedicated admin interfaces.
 
 **Project:** [GitHub Repository](https://github.com/Esmond-M/em-Woo-Team-Manage)  
 **Author:** [esmondmccain.com](https://esmondmccain.com/)
