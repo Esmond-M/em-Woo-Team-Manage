@@ -45,34 +45,32 @@ if (!class_exists('emWooTeamManage')) {
     }
 
     public function user_import_inits() {
-        add_role('team_leader', 'Team Leader', array(
+        // Common capabilities for custom roles
+        $role_caps = array(
             'read' => true,
             'create_posts' => false,
             'edit_posts' => false,
             'edit_others_posts' => false,
             'publish_posts' => false,
             'manage_categories' => false,
-        ));
+        );
 
-        add_role('team_subordinate', 'Team Subordinate', array(
-            'read' => true,
-            'create_posts' => false,
-            'edit_posts' => false,
-            'edit_others_posts' => false,
-            'publish_posts' => false,
-            'manage_categories' => false,
-        ));
-
-        $user = wp_get_current_user();
-        // check if woocommerce is active
-        if ( in_array(  'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ){
-
-            if ( in_array( 'team_leader', (array) $user->roles ) ) {
-                add_filter( 'woocommerce_prevent_admin_access', '__return_false' );
-                add_filter( 'woocommerce_disable_admin_bar', '__return_false' );
-            }            
+        // Add custom roles if not already present
+        if (!get_role('team_leader')) {
+            add_role('team_leader', 'Team Leader', $role_caps);
+        }
+        if (!get_role('team_subordinate')) {
+            add_role('team_subordinate', 'Team Subordinate', $role_caps);
         }
 
+        // Check if WooCommerce is active and user is a team leader
+        if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+            $user = wp_get_current_user();
+            if (in_array('team_leader', (array) $user->roles)) {
+                add_filter('woocommerce_prevent_admin_access', '__return_false');
+                add_filter('woocommerce_disable_admin_bar', '__return_false');
+            }
+        }
     }
 
     public function user_import_register_submenu_page() {
