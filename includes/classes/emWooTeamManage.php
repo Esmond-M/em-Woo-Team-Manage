@@ -395,7 +395,6 @@ if (!class_exists('emWooTeamManage')) {
         // it allows us to use wp_handle_upload() function
         require_once( ABSPATH . 'wp-admin/includes/file.php' );
 
-
         ?>
         <div class="user-upload-results-contain">
         <?php
@@ -403,11 +402,10 @@ if (!class_exists('emWooTeamManage')) {
         if( empty( $_FILES[ 'csvUpload' ] ) ) {
             wp_die('<p style="color:red;">File does not exist.</p>');
         }
-            // check if file is too large 5MB
+        // check if file is too large 5MB
         $file_size = $_FILES['csvUpload']['size'];
         if ((  $file_size > 5242880)){      
-   
-            wp_die('<p>File too large. File must be less than 5 megabytes.</p>'); ; 
+            wp_die('<p>File too large. File must be less than 5 megabytes.</p>'); 
         }
         $upload = wp_handle_upload( 
             $_FILES[ 'csvUpload' ],
@@ -434,15 +432,14 @@ if (!class_exists('emWooTeamManage')) {
             wp_die( '<p style="color:red;">Upload error.</p>' );
         }
 
-        //$csvFile = fopen('Data.csv', 'r'); // location of file
-        $csv =   $this->readCSV($upload[ 'url' ] ); 
+        // Use local file path for reading CSV to avoid SSL errors
+        $csv = $this->readCSV($upload['file']); 
 
         $csvLoopCounter = 0;
         $csvRowCounter = 0; // used to skip first row
         $successfullUserCreationCounter = 0;
         $errorUserCreationCounter = 0;
         foreach ( $csv as $c ) {
-            
             if ($csvRowCounter++ == 0) continue; // skip headers     
             
             $email_address = $c[0];
@@ -463,33 +460,25 @@ if (!class_exists('emWooTeamManage')) {
             $user_id = wp_insert_user( $user_data );
             
             if ( is_wp_error( $user_id ) ) {
-                // $user_id->get_error_message()
-                $errorUserCreationCounter = $errorUserCreationCounter + 1;
+                $errorUserCreationCounter++;
                 echo '<p style="color:red;">'. $errorUserCreationCounter . '. ' . $firstName . ' '.  $LastName .' did not import. Error Message: ' . $user_id->get_error_message() . '. Please check info from CSV that was uploaded.</p>';
-            }
-            
-            else
-            {
-                
-                 // The user was successfully created
+            } else {
+                // The user was successfully created
                 add_user_meta($user_id, 'teamID', $_POST['teamLeaderID']); //Give team Id
                 wp_new_user_notification($user_id, null , "both"); // Send account email notification
-                $successfullUserCreationCounter = $successfullUserCreationCounter + 1;
-
-
+                $successfullUserCreationCounter++;
             }
-            // then it is last iteration        
+
+            // Show success message at last iteration
             if( $csvLoopCounter == count( $c  ) - 2) {
                 echo '<p style="color:green;">Number of succesful subordinates imported: ' .$successfullUserCreationCounter . '</p>';
-                
-                }
+            }
 
-            $csvLoopCounter = $csvLoopCounter + 1;
+            $csvLoopCounter++;
 
             if($csvLoopCounter >= 50){ // only import up to 50 users
                 echo '<p style="color:red;">Only first 50 user can be imported from CSV file.</p>';
-               break;
-          
+                break;
             }       
         }  
         ?>
@@ -497,7 +486,6 @@ if (!class_exists('emWooTeamManage')) {
         <?php
         wp_delete_attachment( $attachment_id, true);   
         exit;
-      
     }
 
     public function create_Team_Leader_After_Payment( $order_id ) {
@@ -584,7 +572,7 @@ if (!class_exists('emWooTeamManage')) {
 }
 
 new emWooTeamManage;
-  
+
 
 
 
