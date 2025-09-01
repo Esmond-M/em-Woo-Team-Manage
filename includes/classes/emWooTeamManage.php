@@ -237,16 +237,16 @@ class emWooTeamManage
      */
     public function profile_field_team_ID_disable_js() {
     ?>
-        <script>
-            jQuery(document).ready( function($) {
-                var fields_to_disable = ['teamID'];
-                for(i=0; i<fields_to_disable.length; i++) {
-                    if ( $('#'+ fields_to_disable[i]).length ) {
-                        $('#'+ fields_to_disable[i]).attr("disabled", "disabled");
-                    }
-                }
-            });
-        </script>
+    <script>
+    jQuery(function($) {
+        ['teamID'].forEach(function(field) {
+            var $el = $('#' + field);
+            if ($el.length) {
+                $el.prop('disabled', true);
+            }
+        });
+    });
+    </script>
     <?php
     }
 
