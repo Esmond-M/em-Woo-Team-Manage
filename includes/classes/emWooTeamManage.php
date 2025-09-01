@@ -19,19 +19,28 @@ if (!class_exists('emWooTeamManage')) {
     */
     public function __construct()
     {
-        add_action('init', [$this, 'user_import_inits' ] );
-        add_action('admin_menu', [$this, 'user_import_register_submenu_page' ] );
-        add_action( 'admin_enqueue_scripts', [$this, 'load_Admin_Styles' ]  );
-        add_action('admin_init', [$this, 'profile_field_team_ID_disable' ] );  
-        add_action( 'show_user_profile', [$this, 'profile_field_team_ID' ]  );
-        add_action( 'edit_user_profile', [$this, 'profile_field_team_ID' ]  );
-        add_action( 'personal_options_update', [$this, 'profile_save_team_leader_email' ]  );
-        add_action( 'edit_user_profile_update', [$this, 'profile_save_team_leader_email' ]  );  
-        add_action('wp_ajax_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission' ] );
-        add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission' ] );
-        add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this, 'emulate_Team_subordinate_Form_Submission' ] );
-        add_action('wp_ajax_user_import_submission', [$this, 'user_import_submission' ] );
-        add_action( 'woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1 );
+    // Initialization hooks
+    add_action('init', [$this, 'user_import_inits']);
+    add_action('admin_init', [$this, 'profile_field_team_ID_disable']);
+
+    // Admin menu and styles
+    add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
+    add_action('admin_enqueue_scripts', [$this, 'load_Admin_Styles']);
+
+    // User profile fields and saving
+    add_action('show_user_profile', [$this, 'profile_field_team_ID']);
+    add_action('edit_user_profile', [$this, 'profile_field_team_ID']);
+    add_action('personal_options_update', [$this, 'profile_save_team_leader_email']);
+    add_action('edit_user_profile_update', [$this, 'profile_save_team_leader_email']);
+
+    // AJAX handlers
+    add_action('wp_ajax_team_Leader_Form_Submission', [$this, 'team_Leader_Form_Submission']);
+    add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this, 'emulate_Team_Leader_Form_Submission']);
+    add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this, 'emulate_Team_subordinate_Form_Submission']);
+    add_action('wp_ajax_user_import_submission', [$this, 'user_import_submission']);
+
+    // WooCommerce hook
+    add_action('woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1);
 
     }
 
