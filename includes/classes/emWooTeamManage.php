@@ -534,80 +534,75 @@ class emWooTeamManage
 
     public function create_Team_Leader_After_Payment( $order_id ) {
         // If user is logged in, do nothing because they already have an account
-        if( is_user_logged_in() ) return;
+        if ( is_user_logged_in() ) return;
 
         // Get the newly created order
         $order = wc_get_order( $order_id );
+        if ( ! $order ) return;
 
         // Get the billing email address
-        $order_email = $order->billing_email;
+        $order_email = $order->get_billing_email();
 
         // Check if there are any users with the billing email as user or email
-        $email = email_exists( $order_email );
-        $user = username_exists( $order_email );
+        $email_exists = email_exists( $order_email );
+        $user_exists = username_exists( $order_email );
 
         // Get the order status (see if the customer has paid)
         $order_status = $order->get_status();
 
-        // Check if the user exists and if the order status is processing or completed (paid)
-        if( $user == false && $email == false && $order->has_status( 'processing' ) || $user == false && $email == false && $order->has_status( 'completed' ) ) {
-            // Check on category ( multiple categories can be entered, separated by a comma )
+        // Only create user if not exists and order is paid
+        if (
+            ! $user_exists && 
+            ! $email_exists && 
+            ( $order->has_status( 'processing' ) || $order->has_status( 'completed' ) )
+        ) {
+            // Generate random password
+            $random_password = wp_generate_password( 12 );
 
-            // Random password with 12 chars
-            $random_password = wp_generate_password();
-
-            // Firstname
+            // Get billing and shipping data
             $first_name = $order->get_billing_first_name();
+            $last_name  = $order->get_billing_last_name();
+            $role       = 'team_leader';
 
-            // Lastname
-            $last_name = $order->get_billing_last_name();
+            // Create new user with email as username, password, and role
+            $user_id = wp_insert_user( array(
+                'user_email' => $order_email,
+                'user_login' => $order_email,
+                'user_pass'  => $random_password,
+                'first_name' => $first_name,
+                'last_name'  => $last_name,
+                'role'       => $role,
+            ) );
 
-            // Role
-            $role = 'team_leader';
+            if ( ! is_wp_error( $user_id ) ) {
+                wp_new_user_notification( $user_id, null, "both" );
+                update_user_meta( $user_id, 'guest', 'yes' );
 
-            // Create new user with email as username, newly created password and user role
-            $user_id = wp_insert_user(
-                array(
-                    'user_email' => $order_email,
-                    'user_login' => $order_email,
-                    'user_pass'  => $random_password,
-                    'first_name' => $first_name,
-                    'last_name'  => $last_name,
-                    'role'       => $role,
-                )
-            );
+                // User's billing data
+                $billing_fields = [
+                    'billing_address_1', 'billing_address_2', 'billing_city', 'billing_company',
+                    'billing_country', 'billing_state', 'billing_email', 'billing_first_name',
+                    'billing_last_name', 'billing_phone', 'billing_postcode'
+                ];
+                foreach ( $billing_fields as $field ) {
+                    update_user_meta( $user_id, $field, $order->{"get_$field"}() );
+                }
 
-            wp_new_user_notification($user_id, null , "both");
-            update_user_meta( $user_id, 'guest', 'yes' );
+                // User's shipping data
+                $shipping_fields = [
+                    'shipping_address_1', 'shipping_address_2', 'shipping_city', 'shipping_company',
+                    'shipping_state', 'shipping_country', 'shipping_first_name', 'shipping_last_name',
+                    'shipping_method', 'shipping_postcode'
+                ];
+                foreach ( $shipping_fields as $field ) {
+                    // Some shipping fields may not have a getter, fallback to meta if needed
+                    $value = method_exists( $order, "get_$field" ) ? $order->{"get_$field"}() : $order->$field;
+                    update_user_meta( $user_id, $field, $value );
+                }
 
-            // User's billing data
-            update_user_meta( $user_id, 'billing_address_1', $order->billing_address_1 );
-            update_user_meta( $user_id, 'billing_address_2', $order->billing_address_2 );
-            update_user_meta( $user_id, 'billing_city', $order->billing_city );
-            update_user_meta( $user_id, 'billing_company', $order->billing_company );
-            update_user_meta( $user_id, 'billing_country', $order->billing_country );
-            update_user_meta( $user_id, 'billing_state', $order->billing_state );
-            update_user_meta( $user_id, 'billing_email', $order->billing_email );
-            update_user_meta( $user_id, 'billing_first_name', $order->billing_first_name );
-            update_user_meta( $user_id, 'billing_last_name', $order->billing_last_name );
-            update_user_meta( $user_id, 'billing_phone', $order->billing_phone );
-            update_user_meta( $user_id, 'billing_postcode', $order->billing_postcode );
-
-            // User's shipping data
-            update_user_meta( $user_id, 'shipping_address_1', $order->shipping_address_1 );
-            update_user_meta( $user_id, 'shipping_address_2', $order->shipping_address_2 );
-            update_user_meta( $user_id, 'shipping_city', $order->shipping_city );
-            update_user_meta( $user_id, 'shipping_company', $order->shipping_company );
-            update_user_meta( $user_id, 'shipping_state', $order->shipping_state );
-            update_user_meta( $user_id, 'shipping_country', $order->shipping_country );
-            update_user_meta( $user_id, 'shipping_first_name', $order->shipping_first_name );
-            update_user_meta( $user_id, 'shipping_last_name', $order->shipping_last_name );
-            update_user_meta( $user_id, 'shipping_method', $order->shipping_method );
-            update_user_meta( $user_id, 'shipping_postcode', $order->shipping_postcode );
-
-            // Link past orders to this newly created customer
-            wc_update_new_customer_past_orders( $user_id );
-
+                // Link past orders to this newly created customer
+                wc_update_new_customer_past_orders( $user_id );
+            }
         }
     }
 }
