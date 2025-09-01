@@ -1,5 +1,9 @@
-
-
+<?php
+/**
+ * Allows site admins to emulate team leaders and view their subordinates.
+ * Allows team leaders to view and manage their own subordinates (delete or resend password).
+ */
+?>
 <?php 
 
 /** 
@@ -101,5 +105,5 @@ foreach ( $teamLeaderUsers as $user ) {
 </form> 
 
 <?php
-} 
+}
 

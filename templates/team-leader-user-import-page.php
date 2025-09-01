@@ -1,4 +1,11 @@
 <?php
+/**
+ * Allows site admins to emulate team leaders for CSV import.
+ * Allows team leaders to import subordinate users via CSV.
+ * Shows instructional info and validates file size.
+ */
+?>
+<?php
 if ( current_user_can( 'manage_options' ) ) {
   $teamLeaderArgs = array(  
     'role__in' => array( 'team_leader' ),  
@@ -59,4 +66,3 @@ if ( !current_user_can( 'manage_options' ) ) {
   
 }
 
-             
