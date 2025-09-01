@@ -339,69 +339,57 @@ class emWooTeamManage
     }  
             
     public function emulate_Team_Leader_Form_Submission() {
-        $teamLeader_obj = get_user_by('id', $_POST['teamLeaderSelectOption']);
-        $teamLeaderArgs = array(  
-            'role__in' => array( 'team_subordinate' ),
-            'meta_key'     => 'teamID',
-            'meta_value'   =>  $_POST['teamLeaderSelectOption'],    
-        );
-        $teamLeaderUsers = get_users( $teamLeaderArgs );
-        // Array of WP_User objects.
-        ?>
-        <p style="color:red;"><strong>Emulating: <?php echo $teamLeader_obj->user_login?></strong></p>
-          <h2>View Subordinates</h2>
-        <h2 class="emulation-title">Emulating user: <?php echo $_POST['teamLeaderSelectOption'];?></h2>
-        <form id="team-leader-form" method="POST" action="">
-            <table>
-          <tr>
-            <th>Number of Subordinates</th>
-            <th>Action</th>
-          </tr>
-          <?php
-            $number_of_users = count($teamLeaderUsers);
-         ?>
-          <tr>
-            <td><?php echo '<span>' . esc_html( $number_of_users) . '</span>'; ?></td>
-            <td>
-              <select name="teamLeaderSelectOption" form="team-leader-form">
-                <option value="delete">Delete</option>
-                <option value="resend">Send Password Reset Link</option>
-              </select>
-            </td>  
-          </tr>
-            
-            <?php
-        ?>
-        </table> 
-            <table>
-          <tr>
-            <th>Subordinate email</th>
-            <th>Subordinate name</th>
-            <th>Select Subordinate</th>
-          </tr>
-          <?php
-        foreach ( $teamLeaderUsers as $user ) {
-        
-            $number_of_users = count($teamLeaderUsers);
-         ?>
-        
-          <tr>
-            <td><?php echo '<span>' . esc_html( $user->user_email ) . '</span>'; ?></td>
-            <td><?php echo '<span>' . esc_html( $user->display_name ) . '</span>'; ?></td>
-            <td><input type="checkbox" name="userID[]" value="<?php echo $user->ID;  ?>"/></td>
-          </tr>
-        
-          
-            
-            <?php
-        }
-        ?>
+    // Sanitize input
+    $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
+    $teamLeader_obj = get_user_by('id', $team_leader_id);
+
+    // Get subordinates for this team leader
+    $teamLeaderArgs = [
+        'role__in'   => ['team_subordinate'],
+        'meta_key'   => 'teamID',
+        'meta_value' => $team_leader_id,
+    ];
+    $teamLeaderUsers = get_users($teamLeaderArgs);
+    $number_of_users = count($teamLeaderUsers);
+    ?>
+    <p style="color:red;"><strong>Emulating: <?php echo esc_html($teamLeader_obj ? $teamLeader_obj->user_login : 'Unknown'); ?></strong></p>
+    <h2>View Subordinates</h2>
+    <h2 class="emulation-title">Emulating user: <?php echo esc_html($team_leader_id); ?></h2>
+    <form id="team-leader-form" method="POST" action="">
+        <table>
+            <tr>
+                <th>Number of Subordinates</th>
+                <th>Action</th>
+            </tr>
+            <tr>
+                <td><span><?php echo esc_html($number_of_users); ?></span></td>
+                <td>
+                    <select name="teamLeaderSelectOption" form="team-leader-form">
+                        <option value="delete">Delete</option>
+                        <option value="resend">Send Password Reset Link</option>
+                    </select>
+                </td>
+            </tr>
         </table>
-        <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
+        <table>
+            <tr>
+                <th>Subordinate email</th>
+                <th>Subordinate name</th>
+                <th>Select Subordinate</th>
+            </tr>
+            <?php foreach ($teamLeaderUsers as $user): ?>
+                <tr>
+                    <td><span><?php echo esc_html($user->user_email); ?></span></td>
+                    <td><span><?php echo esc_html($user->display_name); ?></span></td>
+                    <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr($user->ID); ?>" /></td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+        <?php wp_nonce_field('team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field'); ?>
         <input type="hidden" name="action" value="team_Leader_Form_Submission" />
-        <input type="submit" value="submit">
-        </form>   
-        <?php
+        <input type="submit" value="Submit">
+    </form>
+    <?php
     }
 
     public function emulate_Team_subordinate_Form_Submission() {
