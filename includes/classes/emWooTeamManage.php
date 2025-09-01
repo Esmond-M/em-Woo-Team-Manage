@@ -297,49 +297,47 @@ class emWooTeamManage
     }
 
     public function team_Leader_Form_Submission() {
-        if ( ! isset( $_POST['team_Leader_Form_Submission_nonce_field'] ) || ! wp_verify_nonce( $_POST['team_Leader_Form_Submission_nonce_field'], 'team_Leader_Form_Submission' ) ) 
-        {
-    
-          exit;
-        } 
-        
-        else
-        {
-            if(!empty($_POST['userID'])) {?>
-               
-                <div class="user-deletion-password-contain">
-                <?php
-                if(!empty($_POST['teamLeaderSelectOption']) && $_POST['teamLeaderSelectOption'] == 'delete') {
-                    foreach($_POST['userID'] as $id) {
-                        $user = get_user_by('id',$id);
-                        wp_delete_user( $id);          
-                        echo '<p class="newpost-success">User: '. $user->user_login .' deleted</p>';
-                         
-                    }
+        // Verify nonce for security
+        if (
+            empty($_POST['team_Leader_Form_Submission_nonce_field']) ||
+            !wp_verify_nonce($_POST['team_Leader_Form_Submission_nonce_field'], 'team_Leader_Form_Submission')
+        ) {
+            exit;
+        }
+
+        // Check if user IDs are provided
+        if (!empty($_POST['userID'])) {
+            ?>
+            <div class="user-deletion-password-contain">
+            <?php
+            $action = isset($_POST['teamLeaderSelectOption']) ? sanitize_text_field($_POST['teamLeaderSelectOption']) : '';
+            foreach ($_POST['userID'] as $id) {
+                $user = get_user_by('id', $id);
+                if (!$user) {
+                    echo '<p class="newpost-error">User ID ' . esc_html($id) . ' not found.</p>';
+                    continue;
                 }
 
-                if(!empty($_POST['teamLeaderSelectOption']) && $_POST['teamLeaderSelectOption'] == 'resend') {
+                if ($action === 'delete') {
+                    wp_delete_user($id);
+                    echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' deleted</p>';
+                } elseif ($action === 'resend') {
+                    retrieve_password($user->user_login);
+                    echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' password sent</p>';
+                }
+            }
 
-                    foreach($_POST['userID'] as $id) {
-                        $user = get_user_by('id',$id);
-                        retrieve_password( $user->user_login );    
-                        echo '<p class="newpost-success">User: '. $user->user_login .' password sent</p>';    
-            
-                    }
-
-                    echo '<p class="newpost-success">Passwords sent</p>';
-                 
-                }?>
-                <button class="refresh-btn" onClick="window.location.reload();">Refresh Page</button>
-                </div>
-                <?php  
- 
-           } 
-  
+            if ($action === 'resend') {
+                echo '<p class="newpost-success">Passwords sent</p>';
+            }
+            ?>
+            <button class="refresh-btn" onClick="window.location.reload();">Refresh Page</button>
+            </div>
+            <?php
         }
-        exit; 
+        exit;
     }  
-        
+            
     public function emulate_Team_Leader_Form_Submission() {
         $teamLeader_obj = get_user_by('id', $_POST['teamLeaderSelectOption']);
         $teamLeaderArgs = array(  
