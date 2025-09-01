@@ -251,44 +251,49 @@ class emWooTeamManage
     }
 
     public function profile_save_team_leader_email( $user_id ) {
-      if ( empty( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'update-user_' . $user_id ) ) {
-        return;
-      }
-    
-      if ( !current_user_can( 'edit_user', $user_id ) ) {
-        return;
-      }
-    
-      update_user_meta( $user_id, 'teamID', $_POST['teamID'] );
+        // Verify nonce and capability before saving
+        if (
+            empty($_POST['_wpnonce']) ||
+            !wp_verify_nonce($_POST['_wpnonce'], 'update-user_' . $user_id) ||
+            !current_user_can('edit_user', $user_id)
+        ) {
+            return;
+        }
+
+        // Sanitize and update teamID
+        $teamID = isset($_POST['teamID']) ? sanitize_text_field($_POST['teamID']) : '';
+        update_user_meta($user_id, 'teamID', $teamID);
     }
-    
+
     public function profile_field_team_ID( $user ) {
-        $saved_teamID = get_user_meta( $user->ID, 'teamID', true ); ?>
-        <h3><?php _e('Team Info'); ?></h3>
+        $saved_teamID = get_user_meta($user->ID, 'teamID', true);
+        ?>
+        <h3><?php esc_html_e('Team Info'); ?></h3>
         <table class="form-table">
             <tr>
-            <th><label for="teamID"><?php _e('User Team ID'); ?></label></th>
-            <td>
-            <select name="teamID">
-               <option value="" <?php selected($saved_teamID,'') ?> ></option>
-               <?php
-
-                $teamLeaderArgs = array(  
-                'role__in' => array( 'team_leader' ),  
-                );
-                $teamLeaderUsers = get_users( $teamLeaderArgs );
-                foreach ( $teamLeaderUsers as $user ) {
-                ?>
-                <option value="<?php echo $user->ID; ?>" <?php selected($saved_teamID,$user->ID) ?> ><?php echo $user->ID; ?></option>
-                <?php  
-                }
-                ?>
-            </select>
-                
+                <th><label for="teamID"><?php esc_html_e('User Team ID'); ?></label></th>
+                <td>
+                    <select name="teamID" id="teamID">
+                        <option value="" <?php selected($saved_teamID, ''); ?>></option>
+                        <?php
+                        $teamLeaderArgs = array(
+                            'role__in' => array('team_leader'),
+                            'fields'   => array('ID', 'display_name')
+                        );
+                        $teamLeaderUsers = get_users($teamLeaderArgs);
+                        foreach ($teamLeaderUsers as $leader) {
+                            ?>
+                            <option value="<?php echo esc_attr($leader->ID); ?>" <?php selected($saved_teamID, $leader->ID); ?>>
+                                <?php echo esc_html($leader->display_name . ' (' . $leader->ID . ')'); ?>
+                            </option>
+                            <?php
+                        }
+                        ?>
+                    </select>
                 </td>
-                </tr>
+            </tr>
         </table>
-            <?php 
+        <?php
     }
 
     public function team_Leader_Form_Submission() {
