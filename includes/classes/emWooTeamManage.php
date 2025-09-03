@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace emWooTeamManage\init_plugin\Classes;
 require_once __DIR__ . '/TeamAjaxHandler.php';
+
 /**
  * Main plugin class for EM Woo Team Manage.
  * 
@@ -23,20 +24,22 @@ class emWooTeamManage
      * Constructor: Registers hooks for plugin initialization, admin, AJAX, and WooCommerce integration.
      */
     private $ajax;
+
     public function __construct()
     {
         // Initialization hooks
         add_action('init', [$this, 'user_import_inits']);
         add_action('admin_init', [$this, 'profile_field_team_ID_disable']);
 
-        // Admin menu
-        add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
-
         // User profile fields and saving
         add_action('show_user_profile', [$this, 'profile_field_team_ID']);
         add_action('edit_user_profile', [$this, 'profile_field_team_ID']);
         add_action('personal_options_update', [$this, 'profile_save_team_leader_email']);
         add_action('edit_user_profile_update', [$this, 'profile_save_team_leader_email']);
+
+
+        // Admin menu
+        add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
 
         // AJAX handlers (delegated to TeamAjaxHandler)
         $this->ajax = new TeamAjaxHandler();
@@ -45,7 +48,7 @@ class emWooTeamManage
         add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this->ajax, 'emulate_Team_subordinate_Form_Submission']);
         add_action('wp_ajax_user_import_submission', [$this->ajax, 'user_import_submission']);
         add_action('admin_enqueue_scripts', [$this->ajax, 'load_Admin_Styles']);
-        
+
         // WooCommerce hook
         add_action('woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1);
     }
@@ -55,38 +58,6 @@ class emWooTeamManage
      */
     private function require_template($template) {
         require_once(dirname(__DIR__, 2) . "/templates/{$template}");
-    }
-
-    /**
-     * Registers custom user roles and WooCommerce admin access for team leaders.
-     */
-    public function user_import_inits() {
-        // Common capabilities for custom roles
-        $role_caps = array(
-            'read' => true,
-            'create_posts' => false,
-            'edit_posts' => false,
-            'edit_others_posts' => false,
-            'publish_posts' => false,
-            'manage_categories' => false,
-        );
-
-        // Add custom roles if not already present
-        if (!get_role('team_leader')) {
-            add_role('team_leader', 'Team Leader', $role_caps);
-        }
-        if (!get_role('team_subordinate')) {
-            add_role('team_subordinate', 'Team Subordinate', $role_caps);
-        }
-
-        // Check if WooCommerce is active and user is a team leader
-        if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
-            $user = wp_get_current_user();
-            if (in_array('team_leader', (array) $user->roles)) {
-                add_filter('woocommerce_prevent_admin_access', '__return_false');
-                add_filter('woocommerce_disable_admin_bar', '__return_false');
-            }
-        }
     }
 
     /**
@@ -150,23 +121,6 @@ class emWooTeamManage
         }
     }
 
-
-    /**
-     * Reads a CSV file and yields each row as an array.
-     */
-    public function readCSV($filename, $delimeter=',')
-    {
-        $handle = fopen($filename, "r");
-        if ($handle === false) {
-            return false;
-        }
-
-        while (($data = fgetcsv($handle, 1000, $delimeter)) !== false) {
-           yield $data;
-        }
-
-        fclose($handle);
-    }
 
     /**
      * Disables the teamID field on user profile pages for non-admins.
@@ -256,7 +210,37 @@ class emWooTeamManage
         <?php
     }
 
-    // ...existing code...
+    /**
+     * Registers custom user roles and WooCommerce admin access for team leaders.
+     */
+    public function user_import_inits() {
+        // Common capabilities for custom roles
+        $role_caps = array(
+            'read' => true,
+            'create_posts' => false,
+            'edit_posts' => false,
+            'edit_others_posts' => false,
+            'publish_posts' => false,
+            'manage_categories' => false,
+        );
+
+        // Add custom roles if not already present
+        if (!get_role('team_leader')) {
+            add_role('team_leader', 'Team Leader', $role_caps);
+        }
+        if (!get_role('team_subordinate')) {
+            add_role('team_subordinate', 'Team Subordinate', $role_caps);
+        }
+
+        // Check if WooCommerce is active and user is a team leader
+        if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+            $user = wp_get_current_user();
+            if (in_array('team_leader', (array) $user->roles)) {
+                add_filter('woocommerce_prevent_admin_access', '__return_false');
+                add_filter('woocommerce_disable_admin_bar', '__return_false');
+            }
+        }
+    }
 
     /**
      * Creates a team leader user after WooCommerce payment if not already registered.
