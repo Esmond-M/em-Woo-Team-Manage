@@ -1,8 +1,14 @@
 <?php
+declare(strict_types=1);
 namespace emWooTeamManage\init_plugin\Classes;
-
+require_once __DIR__ . '/TeamUserImporter.php';
 class TeamAjaxHandler
 {
+    private $importer;
+
+    public function __construct() {
+        $this->importer = new TeamUserImporter();
+    }
 
     /**
      * Enqueues admin styles and scripts for plugin pages.
@@ -270,7 +276,7 @@ class TeamAjaxHandler
         }
 
         // Use local file path for reading CSV to avoid SSL errors
-        $csv = $this->readCSV($upload['file']);
+        $csv = $this->importer->readCSV($upload['file']);
 
         $successCount = 0;
         $errorCount = 0;
