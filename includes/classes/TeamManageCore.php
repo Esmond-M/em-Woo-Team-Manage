@@ -1,22 +1,19 @@
 <?php
 declare(strict_types=1);
+/**
+ * TeamManageCore
+ *
+ * Core plugin class for EM Woo Team Manage.
+ *
+ * Responsibilities:
+ * - Registers custom user roles for team leaders and subordinates
+ * - Handles admin menu and submenu registration
+ * - Manages user profile fields for team assignment
+ * - Delegates AJAX and admin asset logic to TeamAjaxHandler
+ * - Integrates with WooCommerce for automatic team leader creation after payment
+ */
 namespace emWooTeamManage\init_plugin\Classes;
 require_once __DIR__ . '/TeamAjaxHandler.php';
-
-/**
- * Main plugin class for EM Woo Team Manage.
- * 
- * Handles:
- * - Custom user roles for team leaders and subordinates
- * - Admin menu and page registration
- * - Enqueuing admin styles and scripts
- * - User profile field management for team assignment
- * - AJAX handlers for team management actions (import, emulation, deletion, password reset)
- * - CSV import of subordinate users
- * - WooCommerce integration for automatic team leader creation after payment
- */
-
-
 
 class TeamManageCore
 {
@@ -40,7 +37,10 @@ class TeamManageCore
         // Admin menu
         add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
 
-        // AJAX handlers (delegated to TeamAjaxHandler)
+        // WooCommerce hook
+        add_action('woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1);
+
+                // AJAX handlers (delegated to TeamAjaxHandler)
         $this->ajax = new TeamAjaxHandler();
         add_action('wp_ajax_team_Leader_Form_Submission', [$this->ajax, 'team_Leader_Form_Submission']);
         add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this->ajax, 'emulate_Team_Leader_Form_Submission']);
@@ -48,16 +48,8 @@ class TeamManageCore
         add_action('wp_ajax_user_import_submission', [$this->ajax, 'user_import_submission']);
         add_action('admin_enqueue_scripts', [$this->ajax, 'load_Admin_Styles']);
 
-        // WooCommerce hook
-        add_action('woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1);
     }
 
-    /**
-     * Helper to require template files from the templates directory.
-     */
-    private function require_template($template) {
-        require_once(dirname(__DIR__, 2) . "/templates/{$template}");
-    }
 
     /**
      * Registers admin menu and submenu pages for team management.
@@ -317,6 +309,13 @@ class TeamManageCore
             }
         }
     }
+
+    /**
+     * Helper to require template files from the templates directory.
+     */
+    private function require_template($template) {
+        require_once(dirname(__DIR__, 2) . "/templates/{$template}");
+    }    
 }
 
 new TeamManageCore;
