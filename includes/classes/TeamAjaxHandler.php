@@ -1,5 +1,14 @@
 <?php
 declare(strict_types=1);
+/**
+ * TeamAjaxHandler
+ *
+ * Handles AJAX requests for team leader actions and user imports.
+ * - Enqueues admin styles and scripts
+ * - Processes team leader form submissions (delete/resend password)
+ * - Emulates team leader view of subordinates
+ * - Handles CSV import of subordinate users
+ */
 namespace emWooTeamManage\init_plugin\Classes;
 require_once __DIR__ . '/TeamUserImporter.php';
 class TeamAjaxHandler

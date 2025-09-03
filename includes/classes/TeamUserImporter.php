@@ -1,5 +1,13 @@
 <?php
 declare(strict_types=1);
+/**
+ * TeamUserImporter
+ *
+ * Handles reading CSV files and importing subordinate users for team leaders.
+ * - Reads CSV files and yields rows
+ * - Imports users from CSV, assigns them to a team leader
+ * - Limits import to 50 users per file
+ */
 namespace emWooTeamManage\init_plugin\Classes;
 
 class TeamUserImporter
