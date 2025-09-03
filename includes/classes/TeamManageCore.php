@@ -18,7 +18,7 @@ require_once __DIR__ . '/TeamAjaxHandler.php';
 
 
 
-class emWooTeamManage
+class TeamManageCore
 {
     /**
      * Constructor: Registers hooks for plugin initialization, admin, AJAX, and WooCommerce integration.
@@ -36,7 +36,6 @@ class emWooTeamManage
         add_action('edit_user_profile', [$this, 'profile_field_team_ID']);
         add_action('personal_options_update', [$this, 'profile_save_team_leader_email']);
         add_action('edit_user_profile_update', [$this, 'profile_save_team_leader_email']);
-
 
         // Admin menu
         add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
@@ -320,7 +319,7 @@ class emWooTeamManage
     }
 }
 
-new emWooTeamManage;
+new TeamManageCore;
 
 
 
