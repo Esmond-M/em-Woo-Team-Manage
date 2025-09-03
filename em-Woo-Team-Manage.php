@@ -67,7 +67,7 @@ final class emWooTeamManageInit {
      * Loads the main plugin class.
      */
     public function init_class() {
-        require_once __DIR__ . '/includes/classes/emWooTeamManage.php';
+        require_once __DIR__ . '/includes/classes/TeamManageCore.php';
     }
 
     /**
