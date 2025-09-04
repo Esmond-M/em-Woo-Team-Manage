@@ -52,18 +52,47 @@
   text-align: center;
 }
 
+
 .emulation-form {
-  max-width: 850px;
-  margin: 150px auto;
-  background: white;
-  padding: 20px;
+  max-width: 700px;
+  margin: 60px auto;
+  background: #fff;
+  padding: 30px 30px 20px 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
 .emulation-form h2 {
-  font-size: 25px;
+  font-size: 2rem;
   text-align: center;
+  color: #2271b1;
+  margin-bottom: 1.2rem;
+}
+.import-steps {
+  background: #f0f8ff;
+  border-radius: 6px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+.import-steps li {
+  margin-bottom: 0.5rem;
+}
+.emulation-form fieldset {
+  border: 1px solid #8c8f94;
+  border-radius: 5px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.emulation-form legend {
+  font-weight: bold;
+  color: #2271b1;
+}
+.emulation-form label {
+  font-weight: 500;
+  margin-right: 10px;
 }
 .emulation-form select {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 2;
   color: #2c3338;
   border-color: #8c8f94;
@@ -78,7 +107,7 @@
   cursor: pointer;
   vertical-align: middle;
 }
-.emulation-form input[type=submit] {
+.emulation-form input[type=submit], .import-container input[type=submit] {
   display: block;
   font-size: 16px;
   border: none;
@@ -91,9 +120,64 @@
   cursor: pointer;
   padding: 10px;
   margin: 10px auto 10px auto;
+  border-radius: 5px;
+  transition: background 0.2s;
 }
-.emulation-form input[type=submit]:hover {
-  background: red;
+.emulation-form input[type=submit]:hover, .import-container input[type=submit]:hover {
+  background: #2271b1;
+}
+
+.import-container {
+  max-width: 700px;
+  margin: 60px auto;
+  background: #fff;
+  padding: 30px 30px 20px 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.import-container h2 {
+  font-size: 2rem;
+  text-align: center;
+  color: #2271b1;
+  margin-bottom: 1.2rem;
+}
+.import-container fieldset {
+  border: 1px solid #8c8f94;
+  border-radius: 5px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.import-container legend {
+  font-weight: bold;
+  color: #2271b1;
+}
+#csv-drop-area {
+  border: 2px dashed #2271b1;
+  background: #f6f8fa;
+  border-radius: 6px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+#csv-drop-area p {
+  color: #333;
+  font-size: 1.1rem;
+}
+.instructional-container {
+  background: #f0f8ff;
+  padding: 16px 24px 24px 24px;
+  border-radius: 6px;
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+}
+.instructional-container strong {
+  color: #2271b1;
+}
+.instructional-container img {
+  margin-top: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
 
 .instructional-container {
