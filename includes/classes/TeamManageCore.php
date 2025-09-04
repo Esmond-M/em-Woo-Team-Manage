@@ -50,10 +50,112 @@ class TeamManageCore
 
     }
 
+    /**
+    * Registers custom user roles and WooCommerce admin access for team leaders.
+    */
+    public function user_import_inits() {
+        // Common capabilities for custom roles
+        $role_caps = array(
+            'read' => true,
+            'create_posts' => false,
+            'edit_posts' => false,
+            'edit_others_posts' => false,
+            'publish_posts' => false,
+            'manage_categories' => false,
+        );
+
+        // Add custom roles if not already present
+        if (!get_role('team_leader')) {
+            add_role('team_leader', 'Team Leader', $role_caps);
+        }
+        if (!get_role('team_subordinate')) {
+            add_role('team_subordinate', 'Team Subordinate', $role_caps);
+        }
+
+        // Check if WooCommerce is active and user is a team leader
+        if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+            $user = wp_get_current_user();
+            if (in_array('team_leader', (array) $user->roles)) {
+                add_filter('woocommerce_prevent_admin_access', '__return_false');
+                add_filter('woocommerce_disable_admin_bar', '__return_false');
+            }
+        }
+    }
 
     /**
-     * Registers admin menu and submenu pages for team management.
-     */
+    * Displays the teamID field in the user profile edit screen.
+    */
+    public function profile_field_team_ID( $user ) {
+        $saved_teamID = get_user_meta($user->ID, 'teamID', true);
+        ?>
+        <h3><?php esc_html_e('Team Info'); ?></h3>
+        <table class="form-table">
+            <tr>
+                <th><label for="teamID"><?php esc_html_e('User Team ID'); ?></label></th>
+                <td>
+                    <select name="teamID" id="teamID">
+                        <option value="" <?php selected($saved_teamID, ''); ?>></option>
+                        <?php
+                        $teamLeaderArgs = array(
+                            'role__in' => array('team_leader'),
+                            'fields'   => array('ID', 'display_name')
+                        );
+                        $teamLeaderUsers = get_users($teamLeaderArgs);
+                        foreach ($teamLeaderUsers as $leader) {
+                            ?>
+                            <option value="<?php echo esc_attr($leader->ID); ?>" <?php selected($saved_teamID, $leader->ID); ?>>
+                                <?php echo esc_html($leader->display_name . ' (' . $leader->ID . ')'); ?>
+                            </option>
+                            <?php
+                        }
+                        ?>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <?php
+    }
+
+
+    /**
+    * Disables the teamID field on user profile pages for non-admins.
+    */
+    public function profile_field_team_ID_disable() {
+
+        global $pagenow;
+
+        // Only apply on user profile or user edit pages, and not for administrators
+        if (
+            ($pagenow !== 'profile.php' && $pagenow !== 'user-edit.php') ||
+            current_user_can('administrator')
+        ) {
+            return;
+        }
+
+        add_action('admin_footer', [$this, 'profile_field_team_ID_disable_js']);
+    }
+
+    /**
+    * Saves the teamID field from the user profile, with nonce and capability checks.
+    */
+    public function profile_save_team_leader_email( $user_id ) {
+        // Verify nonce and capability before saving
+        if (
+            empty($_POST['_wpnonce']) ||
+            !wp_verify_nonce($_POST['_wpnonce'], 'update-user_' . $user_id) ||
+            !current_user_can('edit_user', $user_id)
+        ) {
+            return;
+        }
+
+        // Sanitize and update teamID
+        $teamID = isset($_POST['teamID']) ? sanitize_text_field($_POST['teamID']) : '';
+        update_user_meta($user_id, 'teamID', $teamID);
+    }
+
+    /**
+    * Registers admin menu and submenu pages for team management.
+    */
     public function user_import_register_submenu_page() {
 
         // Main menu page
@@ -112,28 +214,9 @@ class TeamManageCore
         }
     }
 
-
     /**
-     * Disables the teamID field on user profile pages for non-admins.
-     */
-    public function profile_field_team_ID_disable() {
-
-        global $pagenow;
-
-        // Only apply on user profile or user edit pages, and not for administrators
-        if (
-            ($pagenow !== 'profile.php' && $pagenow !== 'user-edit.php') ||
-            current_user_can('administrator')
-        ) {
-            return;
-        }
-
-        add_action('admin_footer', [$this, 'profile_field_team_ID_disable_js']);
-    }
-
-    /**
-     * Outputs JS to disable selected fields in WP Admin user profile.
-     */
+    * Outputs JS to disable selected fields in WP Admin user profile.
+    */
     public function profile_field_team_ID_disable_js() {
     ?>
     <script>
@@ -150,92 +233,8 @@ class TeamManageCore
     }
 
     /**
-     * Saves the teamID field from the user profile, with nonce and capability checks.
-     */
-    public function profile_save_team_leader_email( $user_id ) {
-        // Verify nonce and capability before saving
-        if (
-            empty($_POST['_wpnonce']) ||
-            !wp_verify_nonce($_POST['_wpnonce'], 'update-user_' . $user_id) ||
-            !current_user_can('edit_user', $user_id)
-        ) {
-            return;
-        }
-
-        // Sanitize and update teamID
-        $teamID = isset($_POST['teamID']) ? sanitize_text_field($_POST['teamID']) : '';
-        update_user_meta($user_id, 'teamID', $teamID);
-    }
-
-    /**
-     * Displays the teamID field in the user profile edit screen.
-     */
-    public function profile_field_team_ID( $user ) {
-        $saved_teamID = get_user_meta($user->ID, 'teamID', true);
-        ?>
-        <h3><?php esc_html_e('Team Info'); ?></h3>
-        <table class="form-table">
-            <tr>
-                <th><label for="teamID"><?php esc_html_e('User Team ID'); ?></label></th>
-                <td>
-                    <select name="teamID" id="teamID">
-                        <option value="" <?php selected($saved_teamID, ''); ?>></option>
-                        <?php
-                        $teamLeaderArgs = array(
-                            'role__in' => array('team_leader'),
-                            'fields'   => array('ID', 'display_name')
-                        );
-                        $teamLeaderUsers = get_users($teamLeaderArgs);
-                        foreach ($teamLeaderUsers as $leader) {
-                            ?>
-                            <option value="<?php echo esc_attr($leader->ID); ?>" <?php selected($saved_teamID, $leader->ID); ?>>
-                                <?php echo esc_html($leader->display_name . ' (' . $leader->ID . ')'); ?>
-                            </option>
-                            <?php
-                        }
-                        ?>
-                    </select>
-                </td>
-            </tr>
-        </table>
-        <?php
-    }
-
-    /**
-     * Registers custom user roles and WooCommerce admin access for team leaders.
-     */
-    public function user_import_inits() {
-        // Common capabilities for custom roles
-        $role_caps = array(
-            'read' => true,
-            'create_posts' => false,
-            'edit_posts' => false,
-            'edit_others_posts' => false,
-            'publish_posts' => false,
-            'manage_categories' => false,
-        );
-
-        // Add custom roles if not already present
-        if (!get_role('team_leader')) {
-            add_role('team_leader', 'Team Leader', $role_caps);
-        }
-        if (!get_role('team_subordinate')) {
-            add_role('team_subordinate', 'Team Subordinate', $role_caps);
-        }
-
-        // Check if WooCommerce is active and user is a team leader
-        if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
-            $user = wp_get_current_user();
-            if (in_array('team_leader', (array) $user->roles)) {
-                add_filter('woocommerce_prevent_admin_access', '__return_false');
-                add_filter('woocommerce_disable_admin_bar', '__return_false');
-            }
-        }
-    }
-
-    /**
-     * Creates a team leader user after WooCommerce payment if not already registered.
-     */
+    * Creates a team leader user after WooCommerce payment if not already registered.
+    */
     public function create_Team_Leader_After_Payment( $order_id ) {
         // If user is logged in, do nothing because they already have an account
         if ( is_user_logged_in() ) return;
@@ -256,8 +255,8 @@ class TeamManageCore
 
         // Only create user if not exists and order is paid
         if (
-            ! $user_exists && 
-            ! $email_exists && 
+            ! $user_exists &&
+            ! $email_exists &&
             ( $order->has_status( 'processing' ) || $order->has_status( 'completed' ) )
         ) {
             // Generate random password
@@ -311,11 +310,11 @@ class TeamManageCore
     }
 
     /**
-     * Helper to require template files from the templates directory.
-     */
+    * Helper to require template files from the templates directory.
+    */
     private function require_template($template) {
         require_once(dirname(__DIR__, 2) . "/templates/{$template}");
-    }    
+    }
 }
 
 new TeamManageCore;
