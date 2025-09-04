@@ -40,7 +40,7 @@ class TeamManageCore
         // WooCommerce hook
         add_action('woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1);
 
-                // AJAX handlers (delegated to TeamAjaxHandler)
+        // AJAX handlers (delegated to TeamAjaxHandler)
         $this->ajax = new TeamAjaxHandler();
         add_action('wp_ajax_team_Leader_Form_Submission', [$this->ajax, 'team_Leader_Form_Submission']);
         add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this->ajax, 'emulate_Team_Leader_Form_Submission']);
