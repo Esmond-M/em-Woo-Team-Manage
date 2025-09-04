@@ -1,7 +1,7 @@
 <?php
 /**
- * Allows site admins to emulate team leaders and view their subordinates.
- * Allows team leaders to view and manage their own subordinates (delete or resend password).
+ * Team Leader Admin Page
+ * Improved markup for user-friendliness and clarity.
  */
 ?>
 
@@ -17,16 +17,23 @@ if ( current_user_can( 'manage_options' ) ) {
     }
     ?>
     <div class="emulation-form">
-        <h2>Emulate User to View Subordinates</h2>
+        <h2>Emulate Team Leader to View Subordinates</h2>
+        <ol class="admin-steps">
+            <li>Select a team leader to emulate.</li>
+            <li>Click <strong>Emulate</strong> to view their subordinates.</li>
+        </ol>
         <form id="emulate-team-leader-form" method="POST" action="">
-            <label for="teamLeaderSelectOption">Select Team Leader:</label>
-            <select name="teamLeaderSelectOption" id="teamLeaderSelectOption" form="emulate-team-leader-form">
-                <?php foreach ( $teamLeaderUsers as $user ) : ?>
-                    <option value="<?php echo esc_attr( $user->ID ); ?>"><?php echo esc_html( $user->user_login ); ?></option>
-                <?php endforeach; ?>
-            </select>
+            <fieldset>
+                <legend>Select Team Leader</legend>
+                <label for="teamLeaderSelectOption">Team Leader:</label>
+                <select name="teamLeaderSelectOption" id="teamLeaderSelectOption" form="emulate-team-leader-form">
+                    <?php foreach ( $teamLeaderUsers as $user ) : ?>
+                        <option value="<?php echo esc_attr( $user->ID ); ?>"><?php echo esc_html( $user->user_login ); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </fieldset>
             <input type="hidden" name="action" value="emulate_Team_Leader_Form_Submission" />
-            <input type="submit" value="Emulate">
+            <input type="submit" value="Emulate" class="button button-primary">
         </form>
     </div>
     <?php
@@ -43,42 +50,51 @@ if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' )
     $teamSubordinates = get_users( $teamSubordinateArgs );
     $number_of_users = count( $teamSubordinates );
     ?>
-    <h2>View Subordinates</h2>
-    <form id="team-leader-form" method="POST" action="">
-        <table>
-            <tr>
-                <th>Number of Subordinates</th>
-                <th>Action</th>
-            </tr>
-            <tr>
-                <td><span><?php echo esc_html( $number_of_users ); ?></span></td>
-                <td>
-                    <select name="teamLeaderSelectOption" form="team-leader-form">
-                        <option value="delete">Delete</option>
-                        <option value="resend">Send Password Reset Link</option>
-                    </select>
-                </td>
-            </tr>
-        </table>
-        <table>
-            <tr>
-                <th>Subordinate email</th>
-                <th>Subordinate name</th>
-                <th>Select Subordinate</th>
-            </tr>
-            <?php foreach ( $teamSubordinates as $user ) : ?>
-                <tr>
-                    <td><span><?php echo esc_html( $user->user_email ); ?></span></td>
-                    <td><span><?php echo esc_html( $user->display_name ); ?></span></td>
-                    <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
-                </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
-        <input type="hidden" name="action" value="team_Leader_Form_Submission" />
-        <input type="submit" value="Submit">
-    </form>
+    <div class="subordinate-container">
+        <h2>Manage Your Subordinates</h2>
+        <ol class="leader-steps">
+            <li>Review your list of subordinates below.</li>
+            <li>Select one or more users to delete or send a password reset.</li>
+            <li>Choose an action and click <strong>Submit</strong>.</li>
+        </ol>
+        <form id="team-leader-form" method="POST" action="">
+            <fieldset>
+                <legend>Subordinate Actions</legend>
+                <table>
+                    <tr>
+                        <th>Number of Subordinates</th>
+                        <th>Action <span title="Delete removes user. Resend sends password reset email." style="cursor:help;">&#9432;</span></th>
+                    </tr>
+                    <tr>
+                        <td><span><?php echo esc_html( $number_of_users ); ?></span></td>
+                        <td>
+                            <select name="teamLeaderSelectOption" form="team-leader-form">
+                                <option value="delete">Delete</option>
+                                <option value="resend">Send Password Reset Link</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th>Subordinate Email</th>
+                        <th>Subordinate Name</th>
+                        <th>Select</th>
+                    </tr>
+                    <?php foreach ( $teamSubordinates as $user ) : ?>
+                        <tr>
+                            <td><span><?php echo esc_html( $user->user_email ); ?></span></td>
+                            <td><span><?php echo esc_html( $user->display_name ); ?></span></td>
+                            <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+            </fieldset>
+            <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
+            <input type="hidden" name="action" value="team_Leader_Form_Submission" />
+            <input type="submit" value="Submit" class="button button-primary">
+        </form>
+    </div>
     <?php
 }
-?>
 

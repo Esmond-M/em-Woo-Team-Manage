@@ -1,8 +1,7 @@
 <?php
 /**
- * Allows site admins to emulate team leaders for CSV import.
- * Allows team leaders to import subordinate users via CSV.
- * Shows instructional info and validates file size.
+ * Team Leader User Import Page
+ * Improved markup for user-friendliness and clarity.
  */
 ?>
 <?php
@@ -16,48 +15,87 @@ if ( current_user_can( 'manage_options' ) ) {
     }
     ?>
     <div class="emulation-form">
-        <h2>Emulate User for CSV import</h2>
+        <h2>Emulate Team Leader for CSV Import</h2>
+        <ol class="import-steps">
+            <li>Select a team leader to emulate.</li>
+            <li>Click <strong>Emulate</strong> to view the CSV import form as that leader.</li>
+        </ol>
         <form id="emulate-team-leader-form" method="POST" action="">
-            <label for="teamLeaderSelectOption">Select Team Leader:</label>
-            <select name="teamLeaderSelectOption" id="teamLeaderSelectOption" form="emulate-team-leader-form">
-                <?php foreach ( $teamLeaderUsers as $user ) : ?>
-                    <option value="<?php echo esc_attr( $user->ID ); ?>"><?php echo esc_html( $user->user_login ); ?></option>
-                <?php endforeach; ?>
-            </select>
+            <fieldset>
+                <legend>Select Team Leader</legend>
+                <label for="teamLeaderSelectOption">Team Leader:</label>
+                <select name="teamLeaderSelectOption" id="teamLeaderSelectOption" form="emulate-team-leader-form">
+                    <?php foreach ( $teamLeaderUsers as $user ) : ?>
+                        <option value="<?php echo esc_attr( $user->ID ); ?>"><?php echo esc_html( $user->user_login ); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </fieldset>
             <input type="hidden" name="action" value="emulate_Team_subordinate_Form_Submission" />
-            <input type="submit" value="Emulate">
+            <input type="submit" value="Emulate" class="button button-primary">
         </form>
     </div>
     <?php
 } else {
     $siteURL = esc_url( get_site_url() );
     ?>
-    <h2>Import Users from CSV</h2>
-    <form id="subordinate-import-form" action="" method="post" enctype="multipart/form-data">
-        <label for="csvUpload">
-            CSV file limit 5MB
-            <input id="csvUpload" type="file" name="csvUpload" accept=".csv" />
-        </label>
-        <input name="teamLeaderID" type="hidden" value="<?php echo esc_attr( get_current_user_id() ); ?>">
-        <input type="submit" value="Import">
-    </form>
+    <div class="import-container">
+        <h2>Import Subordinate Users from CSV</h2>
+        <ol class="import-steps">
+            <li>Download the <a href="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/sample-user-import.csv'; ?>" target="_blank">sample CSV file</a>.</li>
+            <li>Fill in user data (max 50 users per import).</li>
+            <li>Drag and drop or select your CSV file below.</li>
+            <li>Click <strong>Import</strong> to upload and create users.</li>
+        </ol>
+        <form id="subordinate-import-form" action="" method="post" enctype="multipart/form-data">
+            <fieldset>
+                <legend>CSV Upload <span title="Max 5MB. First row: email_address, first_name, last_name." style="cursor:help;">&#9432;</span></legend>
+                <div id="csv-drop-area" style="border:2px dashed #ccc;padding:20px;text-align:center;margin-bottom:10px;">
+                    <p>Drag &amp; drop your CSV file here, or click to select.</p>
+                    <input id="csvUpload" type="file" name="csvUpload" accept=".csv" style="display:inline-block;" />
+                </div>
+            </fieldset>
+            <input name="teamLeaderID" type="hidden" value="<?php echo esc_attr( get_current_user_id() ); ?>">
+            <input type="submit" value="Import" class="button button-primary">
+        </form>
 
-    <div class="instructional-container">
-        <p>
-            Import up to 50 users at once. CSV requires first row fields be <strong>email_address, first_name, last_name</strong>.
-            Those are the three pieces of info needed for each user.
-        </p>
-        <img
-            alt="user import example"
-            title="user import example"
-            src="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png'; ?>"
-            style="max-width:100%;height:auto;"
-        />
+        <div class="instructional-container">
+            <p>
+                <strong>CSV Requirements:</strong><br>
+                - Max 50 users per import.<br>
+                - First row must be: <strong>email_address, first_name, last_name</strong>.<br>
+                - File size limit: 5MB.<br>
+            </p>
+            <img
+                alt="user import example"
+                title="user import example"
+                src="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png'; ?>"
+                style="max-width:100%;height:auto;"
+            />
+        </div>
     </div>
     <script>
-        document.getElementById("csvUpload").onchange = function() {
-            if (this.files[0].size > 5242880) {
-                alert("File is too big!");
+        // Drag & drop CSV upload
+        var dropArea = document.getElementById('csv-drop-area');
+        var fileInput = document.getElementById('csvUpload');
+        dropArea.addEventListener('click', function() { fileInput.click(); });
+        dropArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropArea.style.background = '#f0f8ff';
+        });
+        dropArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropArea.style.background = '';
+        });
+        dropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropArea.style.background = '';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+            }
+        });
+        fileInput.onchange = function() {
+            if (this.files[0] && this.files[0].size > 5242880) {
+                alert("File is too big! Max 5MB.");
                 this.value = "";
             }
         };
