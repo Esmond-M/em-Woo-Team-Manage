@@ -4,24 +4,22 @@
 }
 
 table {
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
   font-size: 17px;
   border-collapse: separate;
   border-spacing: 0;
   width: 100%;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
-
-td, th {
+table th, table td {
   border-bottom: 1px solid #eaeaea;
   text-align: left;
   padding: 12px 10px;
   transition: background 0.2s;
 }
-
-tr:nth-child(even) {
+table tr:nth-child(even) {
   background-color: #f7f8fa;
 }
 
@@ -39,14 +37,21 @@ tr:nth-child(even) {
 
 /* Safari */
 @-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg);}
-  100% { -webkit-transform: rotate(360deg);}
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
 }
 @keyframes spin {
-  0% { transform: rotate(0deg);}
-  100% { transform: rotate(360deg);}
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
-
 .emulation-title {
   font-size: 30px;
   text-align: center;
@@ -60,7 +65,7 @@ tr:nth-child(even) {
   background: linear-gradient(90deg, #2271b1 0%, #008CBA 100%);
   padding: 12px 28px;
   border-radius: 5px;
-  box-shadow: 0 2px 6px rgba(34,113,177,0.08);
+  box-shadow: 0 2px 6px rgba(34, 113, 177, 0.08);
   text-decoration: none;
   text-shadow: none;
   text-transform: capitalize;
@@ -70,7 +75,7 @@ tr:nth-child(even) {
 }
 #team-leader-form input[type=submit]:hover {
   background: linear-gradient(90deg, #d7263d 0%, #ff0909 100%);
-  box-shadow: 0 4px 12px rgba(215,38,61,0.12);
+  box-shadow: 0 4px 12px rgba(215, 38, 61, 0.12);
 }
 
 #emulate-team-leader-form {
@@ -84,7 +89,7 @@ tr:nth-child(even) {
   background: #fff;
   padding: 28px 32px 24px 32px;
   border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.09);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.09);
 }
 .emulation-form h2 {
   text-align: center;
@@ -97,7 +102,7 @@ tr:nth-child(even) {
   line-height: 2.2;
   color: #2c3338;
   border: 1px solid #8c8f94;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   border-radius: 5px;
   padding: 0 18px 0 8px;
   min-height: 36px;
@@ -118,7 +123,7 @@ tr:nth-child(even) {
   background: linear-gradient(90deg, #2271b1 0%, #008CBA 100%);
   padding: 12px 28px;
   border-radius: 5px;
-  box-shadow: 0 2px 6px rgba(34,113,177,0.08);
+  box-shadow: 0 2px 6px rgba(34, 113, 177, 0.08);
   text-decoration: none;
   text-shadow: none;
   text-transform: capitalize;
@@ -128,7 +133,7 @@ tr:nth-child(even) {
 }
 .emulation-form input[type=submit]:hover {
   background: linear-gradient(90deg, #d7263d 0%, #ff0909 100%);
-  box-shadow: 0 4px 12px rgba(215,38,61,0.12);
+  box-shadow: 0 4px 12px rgba(215, 38, 61, 0.12);
 }
 
 .user-deletion-password-contain {
@@ -137,7 +142,7 @@ tr:nth-child(even) {
   background: #fff;
   padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 .user-deletion-password-contain p {
   text-decoration: underline;
@@ -157,12 +162,12 @@ tr:nth-child(even) {
   padding: 10px 22px;
   border-radius: 5px;
   font-size: 16px;
-  box-shadow: 0 2px 6px rgba(34,113,177,0.08);
+  box-shadow: 0 2px 6px rgba(34, 113, 177, 0.08);
   transition: background 0.2s, box-shadow 0.2s;
 }
-.refresh-btn :hover {
+.refresh-btn:hover {
   background: linear-gradient(90deg, #d7263d 0%, #ff0909 100%);
-  box-shadow: 0 4px 12px rgba(215,38,61,0.12);
+  box-shadow: 0 4px 12px rgba(215, 38, 61, 0.12);
 }
 
 .wp-die-message p {
@@ -176,7 +181,7 @@ tr:nth-child(even) {
   color: #d7263d;
   text-decoration: underline;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
 /* Add responsive tweaks */

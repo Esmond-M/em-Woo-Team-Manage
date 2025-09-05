@@ -1,10 +1,10 @@
-
 .site-admin-title {
   font-size: 2rem;
   margin-bottom: 1.5rem;
   color: #2271b1;
   text-align: center;
 }
+
 .summary-card {
   background: #f0f8ff;
   border-radius: 8px;
@@ -12,27 +12,29 @@
   margin-bottom: 2rem;
   text-align: center;
   font-size: 1.2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-.summary-label {
+.summary-card .summary-label {
   font-weight: bold;
   color: #333;
 }
-.summary-value {
+.summary-card .summary-value {
   font-size: 1.5rem;
   color: #008CBA;
   margin-left: 0.5rem;
 }
+
 .responsive-table-container {
   overflow-x: auto;
 }
+
 .site-admin-table {
   font-family: arial, sans-serif;
   font-size: 18px;
   border-collapse: collapse;
   width: 100%;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 .site-admin-table th {
   background: #2271b1;
@@ -51,6 +53,7 @@
 .site-admin-table tr.no-subordinates {
   background-color: #ffecec;
 }
+
 .sub-count.has-sub {
   color: #008CBA;
   font-weight: bold;

@@ -1,16 +1,81 @@
-table {
+$primary-color: #2271b1;
+$secondary-color: #008CBA;
+$table-border: #dddddd;
+$table-bg: #fff;
+$table-row-alt: #f6f8fa;
+$table-row-no-sub: #ffecec;
+$card-bg: #f0f8ff;
+
+.site-admin-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: $primary-color;
+  text-align: center;
+}
+
+.summary-card {
+  background: $card-bg;
+  border-radius: 8px;
+  padding: 1rem 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  .summary-label {
+    font-weight: bold;
+    color: #333;
+  }
+
+  .summary-value {
+    font-size: 1.5rem;
+    color: $secondary-color;
+    margin-left: 0.5rem;
+  }
+}
+
+.responsive-table-container {
+  overflow-x: auto;
+}
+
+.site-admin-table {
   font-family: arial, sans-serif;
   font-size: 18px;
   border-collapse: collapse;
   width: 100%;
+  background: $table-bg;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+
+  th {
+    background: $primary-color;
+    color: #fff;
+    padding: 12px 8px;
+    border: 1px solid $table-border;
+  }
+
+  td {
+    border: 1px solid $table-border;
+    text-align: left;
+    padding: 10px 8px;
+  }
+
+  tr {
+    &:nth-child(even) {
+      background-color: $table-row-alt;
+    }
+    &.no-subordinates {
+      background-color: $table-row-no-sub;
+    }
+  }
 }
 
-td, th {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 8px;
-}
-
-tr:nth-child(even) {
-  background-color: #dddddd;
+.sub-count {
+  &.has-sub {
+    color: $secondary-color;
+    font-weight: bold;
+  }
+  &.no-sub {
+    color: #d00;
+    font-weight: bold;
+  }
 }
