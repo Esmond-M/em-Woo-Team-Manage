@@ -1,3 +1,13 @@
+/**
+ * teamLeaderAdmin.js
+ *
+ * Handles AJAX form submissions for team leader actions in the admin interface.
+ * - Submits forms via AJAX for team leader and emulation actions
+ * - Shows a loading spinner during requests
+ * - Displays results and removes forms after completion
+ * - Handles connection errors gracefully
+ * - Re-binds form handlers after AJAX loads new forms (for admin emulation)
+ */
 jQuery(document).ready(function($) {
 
     function handleFormAjax(formSelector, ajaxurl, afterSelector) {

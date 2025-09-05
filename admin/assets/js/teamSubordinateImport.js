@@ -1,3 +1,15 @@
+/**
+ * teamSubordinateImport.js
+ *
+ * Handles AJAX form submissions for team leader emulation and subordinate user import.
+ * - Submits the emulation form via AJAX and displays results
+ * - Submits the subordinate import form via AJAX, including CSV file upload
+ * - Shows a loading spinner during requests
+ * - Validates CSV file size (max 5MB)
+ * - Displays results and removes forms after completion
+ * - Handles connection errors gracefully
+ * - Re-binds form handlers after AJAX loads new forms
+ */
 jQuery(document).ready(function($) {
 
     // AJAX handler for emulation form (admin)
