@@ -54,6 +54,7 @@ final class emWooTeamManageInit {
     public function __construct() {
         add_action( 'init', [ $this, 'i18n' ] );        
         add_action( 'plugins_loaded', [ $this, 'init_class' ] );
+        add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_team_table' ] );
     }
 
     /**
@@ -70,9 +71,25 @@ final class emWooTeamManageInit {
         require_once __DIR__ . '/includes/classes/TeamManageCore.php';
     }
 
-    /**
-     * Returns the singleton instance of the plugin initializer.
-     */
+    public function emwtm_create_team_table() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            leader_id bigint(20) unsigned NOT NULL,
+            subordinate_id bigint(20) unsigned NOT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY leader_id (leader_id),
+            KEY subordinate_id (subordinate_id)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+    }
+   
     public static function get_instance() {
         if ( null == self::$_instance ) {
             self::$_instance = new Self();
