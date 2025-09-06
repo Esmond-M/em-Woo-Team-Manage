@@ -33,7 +33,7 @@ class TeamAjaxHandler
                     ['team-leader-user-import-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css'],
                 ],
                 'scripts' => [
-                    ['team-leader-subordinate-import-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamSubordinateImport.js'],
+                    ['team-leader-subordinate-import-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamSubordinateImport.min.js'],
                 ],
                 'localize' => [
                     ['team-leader-subordinate-import-script', 'emulate_Team_subordinate_Form_Submission', [
@@ -55,8 +55,8 @@ class TeamAjaxHandler
                     ['team-leader-admin-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-admin.css'],
                 ],
                 'scripts' => [
-                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamLeaderAdmin.min.js'],
-                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/teamSubordinateImport.min.js'],
+                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamLeaderAdmin.min.js'],
+                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamSubordinateImport.min.js'],
                 ],
                 'localize' => [
                     ['team-leader-admin-script', 'team_Leader_Form_Submission', [
