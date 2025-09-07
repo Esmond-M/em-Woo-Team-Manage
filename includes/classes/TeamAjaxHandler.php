@@ -191,7 +191,7 @@ class TeamAjaxHandler
         </form>
         <?php
     }
-    
+
 
     /**
      * Handles AJAX emulation for importing subordinates via CSV for a team leader.
@@ -232,112 +232,5 @@ class TeamAjaxHandler
         </div>
         <?php
     }
-    
 
-    /**
-     * Handles AJAX CSV import of subordinate users for a team leader.
-     */
-    public function user_import_submission() {
-        // Load required WordPress files
-
-        // It allows create user functions
-        require_once(ABSPATH . 'wp-includes/user.php');
-
-        // WordPress environment
-        require_once(ABSPATH . 'wp-load.php');
-
-        // it allows us to use wp_handle_upload() function
-        require_once(ABSPATH . 'wp-admin/includes/file.php');
-        ?>
-        <div class="user-upload-results-contain">
-        <?php
-        // Validate file upload
-        if (empty($_FILES['csvUpload'])) {
-            wp_die('<p style="color:red;">File does not exist.</p>');
-        }
-        $file_size = $_FILES['csvUpload']['size'];
-        if ($file_size > 5242880) {
-            wp_die('<p>File too large. File must be less than 5 megabytes.</p>');
-        }
-        $upload = wp_handle_upload(
-            $_FILES['csvUpload'],
-            array('test_form' => false)
-        );
-
-        if (!empty($upload['error'])) {
-            wp_die('<p style="color:red;">' . esc_html($upload["error"]) . '</p>');
-        }
-
-        // Add uploaded file into WordPress media library
-        $attachment_id = wp_insert_attachment(
-            array(
-                'guid'           => $upload['url'],
-                'post_mime_type' => $upload['type'],
-                'post_title'     => basename($upload['file']),
-                'post_content'   => '',
-                'post_status'    => 'inherit',
-            ),
-            $upload['file']
-        );
-
-        if (is_wp_error($attachment_id) || !$attachment_id) {
-            wp_die('<p style="color:red;">Upload error.</p>');
-        }
-
-        // Use local file path for reading CSV to avoid SSL errors
-        $csv = $this->importer->readCSV($upload['file']);
-
-        $successCount = 0;
-        $errorCount = 0;
-        $rowCount = 0;
-        foreach ($csv as $row) {
-            if ($rowCount++ == 0) continue; // skip headers
-
-            $email_address = isset($row[0]) ? sanitize_email($row[0]) : '';
-            $firstName     = isset($row[1]) ? sanitize_text_field($row[1]) : '';
-            $lastName      = isset($row[2]) ? sanitize_text_field($row[2]) : '';
-            $password      = wp_generate_password();
-
-            if (empty($email_address) || empty($firstName) || empty($lastName)) {
-                $errorCount++;
-                echo '<p style="color:red;">Row ' . $rowCount . ' missing required fields.</p>';
-                continue;
-            }
-
-            $user_data = array(
-                'user_login'    => $email_address,
-                'user_pass'     => $password,
-                'user_email'    => $email_address,
-                'first_name'    => $firstName,
-                'last_name'     => $lastName,
-                'user_url'      => '',
-                'description'   => '',
-                'role'          => 'team_subordinate'
-            );
-
-            $user_id = wp_insert_user($user_data);
-
-            if (is_wp_error($user_id)) {
-                $errorCount++;
-                echo '<p style="color:red;">' . $errorCount . '. ' . esc_html($firstName . ' ' . $lastName) . ' did not import. Error: ' . esc_html($user_id->get_error_message()) . '</p>';
-            } else {
-                add_user_meta($user_id, 'teamID', isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0);
-                wp_new_user_notification($user_id, null, "both");
-                $successCount++;
-            }
-
-            if ($rowCount >= 50) {
-                echo '<p style="color:red;">Only first 50 users can be imported from CSV file.</p>';
-                break;
-            }
-        }
-
-        echo '<p style="color:green;">Number of successful subordinates imported: ' . $successCount . '</p>';
-        ?>
-        </div>
-        <?php
-        wp_delete_attachment($attachment_id, true);
-        exit;
-    }
-    
 }
