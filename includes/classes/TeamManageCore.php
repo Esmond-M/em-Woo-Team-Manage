@@ -14,6 +14,7 @@ declare(strict_types=1);
  */
 namespace emWooTeamManage\init_plugin\Classes;
 require_once __DIR__ . '/TeamAjaxHandler.php';
+require_once __DIR__ . '/TeamUserImporter.php';
 
 class TeamManageCore
 {
@@ -21,7 +22,7 @@ class TeamManageCore
      * Constructor: Registers hooks for plugin initialization, admin, AJAX, and WooCommerce integration.
      */
     private $ajax;
-
+    private $importer;
     public function __construct()
     {
         // Initialization hooks
@@ -42,10 +43,11 @@ class TeamManageCore
 
         // AJAX handlers (delegated to TeamAjaxHandler)
         $this->ajax = new TeamAjaxHandler();
+        $this->importer = new TeamUserImporter();
         add_action('wp_ajax_team_Leader_Form_Submission', [$this->ajax, 'team_Leader_Form_Submission']);
         add_action('wp_ajax_emulate_Team_Leader_Form_Submission', [$this->ajax, 'emulate_Team_Leader_Form_Submission']);
         add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this->ajax, 'emulate_Team_subordinate_Form_Submission']);
-        add_action('wp_ajax_user_import_submission', [$this->ajax, 'user_import_submission']);
+        add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
         add_action('admin_enqueue_scripts', [$this->ajax, 'load_Admin_Styles']);
 
     }
