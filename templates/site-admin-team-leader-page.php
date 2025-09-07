@@ -1,12 +1,11 @@
-
 <?php
 /**
  * Site Admin Team Leader Summary Page
- * Improved markup and styling for clarity and modern look.
+ * Displays total team leaders and lists all team leaders with their team details.
  */
 ?>
 <div class="site-admin-team-summary">
-    <h1 class="site-admin-title">Team Leaders &amp; Subordinates Overview</h1>
+    <h1 class="site-admin-title">Team Leaders &amp; Team Details Overview</h1>
     <?php
     $teamLeaderArgs = array(
         'role__in' => array('team_leader'),
@@ -25,27 +24,44 @@
                     <th>Email</th>
                     <th>Name</th>
                     <th>Subordinates</th>
+                    <th>Subordinate Details</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($teamLeaderUsers as $teamLeader): ?>
                     <?php
-                    $teamSubordinateArgs = array(
-                        'role__in'   => array('team_subordinate'),
-                        'meta_key'   => 'teamID',
-                        'meta_value' => $teamLeader->ID,
-                    );
-                    $teamSubordinates = get_users($teamSubordinateArgs);
+                    global $wpdb;
+                    $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+                    $subordinate_ids = $wpdb->get_col( $wpdb->prepare( "SELECT subordinate_id FROM $table WHERE leader_id = %d", $teamLeader->ID ) );
+                    $teamSubordinates = [];
+                    if ( !empty($subordinate_ids) ) {
+                        $teamSubordinates = get_users([
+                            'include' => $subordinate_ids,
+                            'role__in' => ['team_subordinate']
+                        ]);
+                    }
                     $subCount = count($teamSubordinates);
                     ?>
                     <tr<?php if ($subCount === 0) echo ' class="no-subordinates"'; ?>>
                         <td><span><?php echo esc_html($teamLeader->user_email); ?></span></td>
                         <td><span><?php echo esc_html($teamLeader->display_name); ?></span></td>
                         <td><span class="sub-count<?php echo $subCount ? ' has-sub' : ' no-sub'; ?>"><?php echo esc_html($subCount); ?></span></td>
+                        <td>
+                            <?php if ($subCount): ?>
+                                <ul>
+                                    <?php foreach ($teamSubordinates as $sub): ?>
+                                        <li>
+                                            <?php echo esc_html($sub->user_email); ?> - <?php echo esc_html($sub->display_name); ?>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <span>No subordinates</span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     </div>
 </div>
-
