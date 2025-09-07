@@ -27,13 +27,6 @@ class TeamManageCore
     {
         // Initialization hooks
         add_action('init', [$this, 'user_import_inits']);
-        add_action('admin_init', [$this, 'profile_field_team_ID_disable']);
-
-        // User profile fields and saving
-        add_action('show_user_profile', [$this, 'profile_field_team_ID']);
-        add_action('edit_user_profile', [$this, 'profile_field_team_ID']);
-        add_action('personal_options_update', [$this, 'profile_save_team_leader_email']);
-        add_action('edit_user_profile_update', [$this, 'profile_save_team_leader_email']);
 
         // Admin menu
         add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
@@ -82,77 +75,6 @@ class TeamManageCore
                 add_filter('woocommerce_disable_admin_bar', '__return_false');
             }
         }
-    }
-
-    /**
-    * Displays the teamID field in the user profile edit screen.
-    */
-    public function profile_field_team_ID( $user ) {
-        $saved_teamID = get_user_meta($user->ID, 'teamID', true);
-        ?>
-        <h3><?php esc_html_e('Team Info'); ?></h3>
-        <table class="form-table">
-            <tr>
-                <th><label for="teamID"><?php esc_html_e('User Team ID'); ?></label></th>
-                <td>
-                    <select name="teamID" id="teamID">
-                        <option value="" <?php selected($saved_teamID, ''); ?>></option>
-                        <?php
-                        $teamLeaderArgs = array(
-                            'role__in' => array('team_leader'),
-                            'fields'   => array('ID', 'display_name')
-                        );
-                        $teamLeaderUsers = get_users($teamLeaderArgs);
-                        foreach ($teamLeaderUsers as $leader) {
-                            ?>
-                            <option value="<?php echo esc_attr($leader->ID); ?>" <?php selected($saved_teamID, $leader->ID); ?>>
-                                <?php echo esc_html($leader->display_name . ' (' . $leader->ID . ')'); ?>
-                            </option>
-                            <?php
-                        }
-                        ?>
-                    </select>
-                </td>
-            </tr>
-        </table>
-        <?php
-    }
-
-
-    /**
-    * Disables the teamID field on user profile pages for non-admins.
-    */
-    public function profile_field_team_ID_disable() {
-
-        global $pagenow;
-
-        // Only apply on user profile or user edit pages, and not for administrators
-        if (
-            ($pagenow !== 'profile.php' && $pagenow !== 'user-edit.php') ||
-            current_user_can('administrator')
-        ) {
-            return;
-        }
-
-        add_action('admin_footer', [$this, 'profile_field_team_ID_disable_js']);
-    }
-
-    /**
-    * Saves the teamID field from the user profile, with nonce and capability checks.
-    */
-    public function profile_save_team_leader_email( $user_id ) {
-        // Verify nonce and capability before saving
-        if (
-            empty($_POST['_wpnonce']) ||
-            !wp_verify_nonce($_POST['_wpnonce'], 'update-user_' . $user_id) ||
-            !current_user_can('edit_user', $user_id)
-        ) {
-            return;
-        }
-
-        // Sanitize and update teamID
-        $teamID = isset($_POST['teamID']) ? sanitize_text_field($_POST['teamID']) : '';
-        update_user_meta($user_id, 'teamID', $teamID);
     }
 
     /**
@@ -214,24 +136,6 @@ class TeamManageCore
                 $submenu['position']
             );
         }
-    }
-
-    /**
-    * Outputs JS to disable selected fields in WP Admin user profile.
-    */
-    public function profile_field_team_ID_disable_js() {
-    ?>
-    <script>
-    jQuery(function($) {
-        ['teamID'].forEach(function(field) {
-            var $el = $('#' + field);
-            if ($el.length) {
-                $el.prop('disabled', true);
-            }
-        });
-    });
-    </script>
-    <?php
     }
 
     /**
