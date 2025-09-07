@@ -71,6 +71,9 @@ final class emWooTeamManageInit {
         require_once __DIR__ . '/includes/classes/TeamManageCore.php';
     }
 
+    /**
+     * Creates the custom team leaders/subordinates table in the database.
+     */
     public function emwtm_create_team_table() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
@@ -89,7 +92,10 @@ final class emWooTeamManageInit {
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
     }
-   
+
+    /**
+     * Returns the singleton instance of the plugin initializer.
+     */
     public static function get_instance() {
         if ( null == self::$_instance ) {
             self::$_instance = new Self();
