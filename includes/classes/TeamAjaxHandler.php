@@ -143,13 +143,20 @@ class TeamAjaxHandler
         $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
         $teamLeader_obj = get_user_by('id', $team_leader_id);
 
-        // Get subordinates for this team leader
-        $teamLeaderArgs = [
-            'role__in'   => ['team_subordinate'],
-            'meta_key'   => 'teamID',
-            'meta_value' => $team_leader_id,
-        ];
-        $teamLeaderUsers = get_users($teamLeaderArgs);
+        // Get subordinates for this team leader using custom table
+        global $wpdb;
+        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        $subordinate_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT subordinate_id FROM $table WHERE leader_id = %d",
+            $team_leader_id
+        ));
+        $teamLeaderUsers = [];
+        if (!empty($subordinate_ids)) {
+            $teamLeaderUsers = get_users([
+                'include' => $subordinate_ids,
+                'role__in' => ['team_subordinate']
+            ]);
+        }
         $number_of_users = count($teamLeaderUsers);
         ?>
         <p style="color:red;"><strong>Emulating: <?php echo esc_html($teamLeader_obj ? $teamLeader_obj->user_login : 'Unknown'); ?></strong></p>
