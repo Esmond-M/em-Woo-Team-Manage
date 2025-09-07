@@ -224,7 +224,3 @@ class TeamManageCore
 }
 
 new TeamManageCore;
-
-
-
-
