@@ -4,6 +4,7 @@
  * Improved markup for user-friendliness and clarity.
  */
 ?>
+    <div class="import-container">
 <?php
 if ( current_user_can( 'manage_options' ) ) {
     $teamLeaderArgs = array(
@@ -38,7 +39,7 @@ if ( current_user_can( 'manage_options' ) ) {
 } else {
     $siteURL = esc_url( get_site_url() );
     ?>
-    <div class="import-container">
+
         <h2>Import Subordinate Users from CSV</h2>
         <ol class="import-steps">
             <li>Download the <a href="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/sample-user-import.csv'; ?>" target="_blank">sample CSV file</a>.</li>
@@ -72,7 +73,7 @@ if ( current_user_can( 'manage_options' ) ) {
                 style="max-width:100%;height:auto;"
             />
         </div>
-    </div>
+
     <script>
         // Drag & drop CSV upload
         var dropArea = document.getElementById('csv-drop-area');
@@ -100,6 +101,7 @@ if ( current_user_can( 'manage_options' ) ) {
             }
         };
     </script>
+        </div>
     <?php
 }
 

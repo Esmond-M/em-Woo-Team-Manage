@@ -41,13 +41,17 @@ if ( current_user_can( 'manage_options' ) ) {
 
 // If user has Team Leader role
 if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' ) ) {
+    global $wpdb;
     $teamLeaderID = get_current_user_id();
-    $teamSubordinateArgs = array(
-        'role__in'   => array( 'team_subordinate' ),
-        'meta_key'   => 'teamID',
-        'meta_value' => $teamLeaderID,
-    );
-    $teamSubordinates = get_users( $teamSubordinateArgs );
+    $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+    $subordinate_ids = $wpdb->get_col( $wpdb->prepare( "SELECT subordinate_id FROM $table WHERE leader_id = %d", $teamLeaderID ) );
+    $teamSubordinates = [];
+    if ( !empty($subordinate_ids) ) {
+        $teamSubordinates = get_users([
+            'include' => $subordinate_ids,
+            'role__in' => ['team_subordinate']
+        ]);
+    }
     $number_of_users = count( $teamSubordinates );
     ?>
     <div class="subordinate-container">

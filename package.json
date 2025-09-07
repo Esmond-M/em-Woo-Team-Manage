@@ -17,7 +17,8 @@
         "em-Woo-Team-Manage.php"
     ],
     "devDependencies": {
-        "@wordpress/scripts": "^27.9.0"
+        "@wordpress/scripts": "^27.9.0",
+        "terser": "^5.44.0"
     },
     "dependencies": {
         "sass": "^1.84.0"
@@ -27,20 +28,13 @@
         "check-engines": "wp-scripts check-engines",
         "check-licenses": "wp-scripts check-licenses",
         "format": "wp-scripts format",
-        "lint:css": "wp-scripts lint-style",
-        "lint:js": "wp-scripts lint-js",
-        "lint:md:docs": "wp-scripts lint-md-docs",
-        "lint:pkg-json": "wp-scripts lint-pkg-json",
         "packages-update": "wp-scripts packages-update",
         "plugin-zip": "wp-scripts plugin-zip && move *.zip build\\",
         "start": "wp-scripts start",
-        "test:e2e": "wp-scripts test-e2e",
-        "test:unit": "wp-scripts test-unit-js",
         "watch:siteadmin": "sass --watch admin/assets/sass/site-admin-team-leader.scss admin/assets/css/site-admin-team-leader.css --no-source-map",
         "watch:admin": "sass --watch admin/assets/sass/team-leader-admin.scss admin/assets/css/team-leader-admin.css --no-source-map",
         "watch:userimport": "sass --watch admin/assets/sass/team-leader-user-import.scss admin/assets/css/team-leader-user-import.css --no-source-map",
-        "build:sass": "sass admin/assets/sass/site-admin-team-leader.scss admin/assets/css/site-admin-team-leader.css --no-source-map && sass admin/assets/sass/team-leader-admin.scss admin/assets/css/team-leader-admin.css --no-source-map && sass admin/assets/sass/team-leader-user-import.scss admin/assets/css/team-leader-user-import.css --no-source-map"
-
-
+        "build:sass": "sass admin/assets/sass/site-admin-team-leader.scss admin/assets/css/site-admin-team-leader.css --no-source-map && sass admin/assets/sass/team-leader-admin.scss admin/assets/css/team-leader-admin.css --no-source-map && sass admin/assets/sass/team-leader-user-import.scss admin/assets/css/team-leader-user-import.css --no-source-map",
+        "minify:adminjs": "terser admin/assets/js/teamLeaderAdmin.js -o admin/assets/js/min/teamLeaderAdmin.min.js --compress --mangle --source-map && terser admin/assets/js/teamSubordinateImport.js -o admin/assets/js/min/teamSubordinateImport.min.js --compress --mangle --source-map"
     }
 }
