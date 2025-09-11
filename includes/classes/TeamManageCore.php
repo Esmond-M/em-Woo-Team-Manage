@@ -45,8 +45,8 @@ class TeamManageCore
         add_action('wp_ajax_nopriv_edit_subordinate', [$this->ajax, 'handle_edit_subordinate']);
         add_action('admin_post_edit_subordinate', [$this->ajax, 'handle_edit_subordinate']);
 
-        $this->importer = new TeamUserImporter();   
-        add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);     
+        $this->importer = new TeamUserImporter();
+        add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
     }
 
     /**
