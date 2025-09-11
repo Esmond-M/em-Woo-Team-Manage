@@ -55,14 +55,17 @@ class TeamAjaxHandler
                     ['team-leader-admin-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-admin.css'],
                 ],
                 'scripts' => [
-                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamLeaderAdmin.min.js'],
-                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamSubordinateImport.min.js'],
+                    ['team-leader-admin', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamLeaderAdmin.min.js'],
+                    ['team-subordinate-import', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamSubordinateImport.min.js'],
                 ],
                 'localize' => [
-                    ['team-leader-admin-script', 'team_Leader_Form_Submission', [
+                    ['team-subordinate-import', 'team_Leader_Form_Submission', [
                         'ajaxurl' => admin_url('admin-ajax.php'),
                     ]],
-                    ['team-leader-admin-script', 'emulate_Team_Leader_Form_Submission', [
+                    ['team-subordinate-import', 'emulate_Team_Leader_Form_Submission', [
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                    ]],
+                    ['team-leader-admin', 'handle_edit_subordinate', [
                         'ajaxurl' => admin_url('admin-ajax.php'),
                     ]],
                 ],
@@ -264,11 +267,14 @@ class TeamAjaxHandler
             $result = wp_update_user($userdata);
 
             if (is_wp_error($result)) {
-                // Handle error (e.g., add admin notice)
+                wp_send_json_error(['message' => $result->get_error_message()]);
             } else {
-                // Optionally add a success notice
+                wp_send_json_success(['message' => 'User updated successfully']);
             }
+        } else {
+            wp_send_json_error(['message' => 'Invalid request']);
         }
+        wp_die();
     }
 
 }
