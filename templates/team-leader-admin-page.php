@@ -105,7 +105,7 @@ if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' )
     </div>
     <!-- Modal for editing subordinate -->
     <div id="editSubordinateModal" style="display:none;">
-        <form id="editSubordinateForm" method="POST" action="">
+        <form id="editSubordinateForm" method="POST" >
             <input type="hidden" name="edit_user_id" id="edit_user_id" value="" />
             <label for="edit_user_email">Email:</label>
             <input type="email" name="edit_user_email" id="edit_user_email" value="" required />
@@ -119,27 +119,3 @@ if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' )
     </div>
     <?php
 }
-
-if (
-    isset($_POST['action']) &&
-    $_POST['action'] === 'edit_subordinate' &&
-    isset($_POST['edit_user_id']) &&
-    check_admin_referer('edit_subordinate_action', 'edit_subordinate_nonce')
-) {
-    $user_id = intval($_POST['edit_user_id']);
-    $user_email = sanitize_email($_POST['edit_user_email']);
-    $user_name = sanitize_text_field($_POST['edit_user_name']);
-
-    $userdata = [
-        'ID' => $user_id,
-        'user_email' => $user_email,
-        'display_name' => $user_name,
-    ];
-
-    $result = wp_update_user($userdata);
-
-    // Optionally set a success/error message in $_SESSION or via query string
-    wp_redirect( esc_url( $_SERVER['REQUEST_URI'] ) );
-    exit;
-}
-
