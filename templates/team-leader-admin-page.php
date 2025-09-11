@@ -6,41 +6,18 @@
 ?>
 
 <?php
-// If user is a Website admin, allow emulation
-if ( current_user_can( 'manage_options' ) ) {
-    $teamLeaderArgs = array(
-        'role__in' => array( 'team_leader' ),
-    );
-    $teamLeaderUsers = get_users( $teamLeaderArgs );
-    if ( count( $teamLeaderUsers ) === 0 ) {
-        wp_die( '<p>No Team leader user to emulate</p>' );
-    }
+
+if ( current_user_can( 'manage_options' )  && !current_user_can( 'team_leader' ) ) {
     ?>
-    <div class="emulation-form">
-        <h2>Emulate Team Leader to View Subordinates</h2>
-        <ol class="admin-steps">
-            <li>Select a team leader to emulate.</li>
-            <li>Click <strong>Emulate</strong> to view their subordinates.</li>
-        </ol>
-        <form id="emulate-team-leader-form" method="POST" action="">
-            <fieldset>
-                <legend>Select Team Leader</legend>
-                <label for="teamLeaderSelectOption">Team Leader:</label>
-                <select name="teamLeaderSelectOption" id="teamLeaderSelectOption" form="emulate-team-leader-form">
-                    <?php foreach ( $teamLeaderUsers as $user ) : ?>
-                        <option value="<?php echo esc_attr( $user->ID ); ?>"><?php echo esc_html( $user->user_login ); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </fieldset>
-            <input type="hidden" name="action" value="emulate_Team_Leader_Form_Submission" />
-            <input type="submit" value="Emulate" class="button button-primary">
-        </form>
+    <div class="notice notice-info">
+        <p>This page is for Team Leaders only. Site admins do not have subordinate management on this screen.</p>
     </div>
     <?php
+    return;
 }
 
 // If user has Team Leader role
-if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' ) ) {
+if ( current_user_can( 'team_leader' ) ) {
     global $wpdb;
     $teamLeaderID = get_current_user_id();
     $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';

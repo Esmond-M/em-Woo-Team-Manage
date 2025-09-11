@@ -37,7 +37,6 @@ jQuery(document).ready(function($) {
 
     // Initial bindings
     handleFormAjax("#team-leader-form", team_Leader_Form_Submission.ajaxurl, "#team-leader-form");
-    handleFormAjax("#emulate-team-leader-form", team_Leader_Form_Submission.ajaxurl, ".emulation-form");
 
     // Re-bind after AJAX loads new forms (for admin emulation)
     $(document).on("ajaxComplete", function() {
