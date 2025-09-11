@@ -240,4 +240,35 @@ class TeamAjaxHandler
         <?php
     }
 
+    /**
+    * Handles the editing of a subordinate's details via AJAX.
+    */
+    public function handle_edit_subordinate() {
+         error_log('handle_edit_subordinate called'); // Log entry
+        if (
+            isset($_POST['action']) &&
+            $_POST['action'] === 'edit_subordinate' &&
+            isset($_POST['edit_user_id']) &&
+            check_admin_referer('edit_subordinate_action', 'edit_subordinate_nonce')
+        ) {
+            $user_id = intval($_POST['edit_user_id']);
+            $user_email = sanitize_email($_POST['edit_user_email']);
+            $user_name = sanitize_text_field($_POST['edit_user_name']);
+
+            $userdata = [
+                'ID' => $user_id,
+                'user_email' => $user_email,
+                'display_name' => $user_name,
+            ];
+
+            $result = wp_update_user($userdata);
+
+            if (is_wp_error($result)) {
+                // Handle error (e.g., add admin notice)
+            } else {
+                // Optionally add a success notice
+            }
+        }
+    }
+
 }
