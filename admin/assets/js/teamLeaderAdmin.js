@@ -47,21 +47,63 @@ jQuery(document).ready(function($) {
     });
 
     // Handles modal open/close for editing subordinate profiles
-
-        document.querySelectorAll('.edit-subordinate-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                document.getElementById('edit_user_id').value = btn.getAttribute('data-user-id');
-                document.getElementById('edit_user_email').value = btn.getAttribute('data-user-email');
-                document.getElementById('edit_user_name').value = btn.getAttribute('data-user-name');
-                document.getElementById('editSubordinateModal').style.display = 'block';
-            });
+    document.querySelectorAll('.edit-subordinate-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.getElementById('edit_user_id').value = btn.getAttribute('data-user-id');
+            document.getElementById('edit_user_email').value = btn.getAttribute('data-user-email');
+            document.getElementById('edit_user_name').value = btn.getAttribute('data-user-name');
+            document.getElementById('editSubordinateModal').style.display = 'block';
         });
-        var closeBtn = document.getElementById('closeEditModal');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                document.getElementById('editSubordinateModal').style.display = 'none';
-            });
-        }
+    });
+    var closeBtn = document.getElementById('closeEditModal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            document.getElementById('editSubordinateModal').style.display = 'none';
+        });
+    }
 
+    // Trigger AJAX handler on modal form submit
+    $('#editSubordinateForm').submit(function(event) {
+        event.preventDefault();
+        var $form = $(this);
+        $form.find("input[type='submit']").prop("disabled", true);
+        $form.append('<div class="user-import-ajax-loader"></div>');
+        var formData = $form.serialize();
+        $.ajax({
+            type: "POST",
+            url: handle_edit_subordinate.ajaxurl, // Make sure this is localized in your PHP
+            data: formData,
+            dataType: "json",
+            success: function(response) {
+                $(".user-import-ajax-loader").remove();
+                if (response.success) {
+                    window.location.reload();
+                } else {
+                    // Defensive: check if response.data exists
+                    var msg = "Error updating user";
+                    if (response.data && response.data.message) {
+                        msg = response.data.message;
+                    }
+                    alert(msg);
+                    $form.find("input[type='submit']").prop("disabled", false);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                $(".user-import-ajax-loader").remove();
+                let message = "AJAX error: " + textStatus;
+                // Try to get server response text
+                if (jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message) {
+                    message += "\nServer message: " + jqXHR.responseJSON.data.message;
+                } else if (jqXHR.responseText) {
+                    message += "\nResponse: " + jqXHR.responseText;
+                }
+                message += "\nError thrown: " + errorThrown;
+                alert(message);
+                $form.find("input[type='submit']").prop("disabled", false);
+                // Optionally log full jqXHR for debugging
+                console.log("Full jqXHR:", jqXHR);
+            }
+        });
+    });
 
 });
