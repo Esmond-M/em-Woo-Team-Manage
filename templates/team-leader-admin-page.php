@@ -84,12 +84,16 @@ if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' )
                         <th>Subordinate Email</th>
                         <th>Subordinate Name</th>
                         <th>Select</th>
+                        <th>Edit</th>
                     </tr>
                     <?php foreach ( $teamSubordinates as $user ) : ?>
                         <tr>
                             <td><span><?php echo esc_html( $user->user_email ); ?></span></td>
                             <td><span><?php echo esc_html( $user->display_name ); ?></span></td>
                             <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
+                            <td>
+                                <button type="button" class="edit-subordinate-btn" data-user-id="<?php echo esc_attr( $user->ID ); ?>" data-user-email="<?php echo esc_attr( $user->user_email ); ?>" data-user-name="<?php echo esc_attr( $user->display_name ); ?>">Edit</button>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </table>
@@ -99,6 +103,43 @@ if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' )
             <input type="submit" value="Submit" class="button button-primary">
         </form>
     </div>
+    <!-- Modal for editing subordinate -->
+    <div id="editSubordinateModal" style="display:none;">
+        <form id="editSubordinateForm" method="POST" action="">
+            <input type="hidden" name="edit_user_id" id="edit_user_id" value="" />
+            <label for="edit_user_email">Email:</label>
+            <input type="email" name="edit_user_email" id="edit_user_email" value="" required />
+            <label for="edit_user_name">Name:</label>
+            <input type="text" name="edit_user_name" id="edit_user_name" value="" required />
+            <?php wp_nonce_field( 'edit_subordinate_action', 'edit_subordinate_nonce' ); ?>
+            <input type="hidden" name="action" value="edit_subordinate" />
+            <input type="submit" value="Save" class="button button-primary">
+            <button type="button" id="closeEditModal" class="button">Cancel</button>
+        </form>
+    </div>
     <?php
+}
+
+if (
+    isset($_POST['action']) &&
+    $_POST['action'] === 'edit_subordinate' &&
+    isset($_POST['edit_user_id']) &&
+    check_admin_referer('edit_subordinate_action', 'edit_subordinate_nonce')
+) {
+    $user_id = intval($_POST['edit_user_id']);
+    $user_email = sanitize_email($_POST['edit_user_email']);
+    $user_name = sanitize_text_field($_POST['edit_user_name']);
+
+    $userdata = [
+        'ID' => $user_id,
+        'user_email' => $user_email,
+        'display_name' => $user_name,
+    ];
+
+    $result = wp_update_user($userdata);
+
+    // Optionally set a success/error message in $_SESSION or via query string
+    wp_redirect( esc_url( $_SERVER['REQUEST_URI'] ) );
+    exit;
 }
 
