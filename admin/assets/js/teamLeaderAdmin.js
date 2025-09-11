@@ -46,4 +46,22 @@ jQuery(document).ready(function($) {
         }
     });
 
+    // Handles modal open/close for editing subordinate profiles
+
+        document.querySelectorAll('.edit-subordinate-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.getElementById('edit_user_id').value = btn.getAttribute('data-user-id');
+                document.getElementById('edit_user_email').value = btn.getAttribute('data-user-email');
+                document.getElementById('edit_user_name').value = btn.getAttribute('data-user-name');
+                document.getElementById('editSubordinateModal').style.display = 'block';
+            });
+        });
+        var closeBtn = document.getElementById('closeEditModal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                document.getElementById('editSubordinateModal').style.display = 'none';
+            });
+        }
+
+
 });
