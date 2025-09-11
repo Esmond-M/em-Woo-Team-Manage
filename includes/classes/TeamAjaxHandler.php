@@ -55,14 +55,14 @@ class TeamAjaxHandler
                     ['team-leader-admin-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-admin.css'],
                 ],
                 'scripts' => [
-                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamLeaderAdmin.min.js'],
-                    ['team-leader-admin-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamSubordinateImport.min.js'],
+                    ['team-leader-admin', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamLeaderAdmin.min.js'],
+                    ['team-subordinate-import', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamSubordinateImport.min.js'],
                 ],
                 'localize' => [
-                    ['team-leader-admin-script', 'team_Leader_Form_Submission', [
+                    ['team-subordinate-import', 'team_Leader_Form_Submission', [
                         'ajaxurl' => admin_url('admin-ajax.php'),
                     ]],
-                    ['team-leader-admin-script', 'emulate_Team_Leader_Form_Submission', [
+                    ['team-leader-admin', 'handle_edit_subordinate', [
                         'ajaxurl' => admin_url('admin-ajax.php'),
                     ]],
                 ],
@@ -135,71 +135,7 @@ class TeamAjaxHandler
         exit;
     }
 
-    /**
-     * Handles AJAX emulation of a team leader, displaying their subordinates.
-     */
-    public function emulate_Team_Leader_Form_Submission() {
-        // Sanitize input
-        $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
-        $teamLeader_obj = get_user_by('id', $team_leader_id);
-
-        // Get subordinates for this team leader using custom table
-        global $wpdb;
-        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
-        $subordinate_ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT subordinate_id FROM $table WHERE leader_id = %d",
-            $team_leader_id
-        ));
-        $teamLeaderUsers = [];
-        if (!empty($subordinate_ids)) {
-            $teamLeaderUsers = get_users([
-                'include' => $subordinate_ids,
-                'role__in' => ['team_subordinate']
-            ]);
-        }
-        $number_of_users = count($teamLeaderUsers);
-        ?>
-        <p style="color:red;"><strong>Emulating: <?php echo esc_html($teamLeader_obj ? $teamLeader_obj->user_login : 'Unknown'); ?></strong></p>
-        <h2>View Subordinates</h2>
-        <h2 class="emulation-title">Emulating user: <?php echo esc_html($team_leader_id); ?></h2>
-        <form id="team-leader-form" method="POST" action="">
-            <table>
-                <tr>
-                    <th>Number of Subordinates</th>
-                    <th>Action</th>
-                </tr>
-                <tr>
-                    <td><span><?php echo esc_html($number_of_users); ?></span></td>
-                    <td>
-                        <select name="teamLeaderSelectOption" form="team-leader-form">
-                            <option value="delete">Delete</option>
-                            <option value="resend">Send Password Reset Link</option>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <th>Subordinate email</th>
-                    <th>Subordinate name</th>
-                    <th>Select Subordinate</th>
-                </tr>
-                <?php foreach ($teamLeaderUsers as $user): ?>
-                    <tr>
-                        <td><span><?php echo esc_html($user->user_email); ?></span></td>
-                        <td><span><?php echo esc_html($user->display_name); ?></span></td>
-                        <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr($user->ID); ?>" /></td>
-                    </tr>
-                <?php endforeach; ?>
-            </table>
-            <?php wp_nonce_field('team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field'); ?>
-            <input type="hidden" name="action" value="team_Leader_Form_Submission" />
-            <input type="submit" value="Submit">
-        </form>
-        <?php
-    }
-
-
+   
     /**
      * Handles AJAX emulation for importing subordinates via CSV for a team leader.
      */
@@ -238,6 +174,40 @@ class TeamAjaxHandler
             />
         </div>
         <?php
+    }
+
+    /**
+    * Handles the editing of a subordinate's details via AJAX.
+    */
+    public function handle_edit_subordinate() {
+         error_log('handle_edit_subordinate called'); // Log entry
+        if (
+            isset($_POST['action']) &&
+            $_POST['action'] === 'edit_subordinate' &&
+            isset($_POST['edit_user_id']) &&
+            check_admin_referer('edit_subordinate_action', 'edit_subordinate_nonce')
+        ) {
+            $user_id = intval($_POST['edit_user_id']);
+            $user_email = sanitize_email($_POST['edit_user_email']);
+            $user_name = sanitize_text_field($_POST['edit_user_name']);
+
+            $userdata = [
+                'ID' => $user_id,
+                'user_email' => $user_email,
+                'display_name' => $user_name,
+            ];
+
+            $result = wp_update_user($userdata);
+
+            if (is_wp_error($result)) {
+                wp_send_json_error(['message' => $result->get_error_message()]);
+            } else {
+                wp_send_json_success(['message' => 'User updated successfully']);
+            }
+        } else {
+            wp_send_json_error(['message' => 'Invalid request']);
+        }
+        wp_die();
     }
 
 }

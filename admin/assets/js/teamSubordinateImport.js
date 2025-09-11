@@ -17,6 +17,7 @@ jQuery(document).ready(function($) {
         event.preventDefault();
         var $form = $(this);
         $form.find("input[type='submit']").prop("disabled", true);
+        $form.find('.user-import-ajax-loader').remove(); // <-- Add this line
         $form.append('<div class="user-import-ajax-loader"></div>');
         $.ajax({
             type: "POST",

@@ -6,41 +6,18 @@
 ?>
 
 <?php
-// If user is a Website admin, allow emulation
-if ( current_user_can( 'manage_options' ) ) {
-    $teamLeaderArgs = array(
-        'role__in' => array( 'team_leader' ),
-    );
-    $teamLeaderUsers = get_users( $teamLeaderArgs );
-    if ( count( $teamLeaderUsers ) === 0 ) {
-        wp_die( '<p>No Team leader user to emulate</p>' );
-    }
+
+if ( current_user_can( 'manage_options' )  && !current_user_can( 'team_leader' ) ) {
     ?>
-    <div class="emulation-form">
-        <h2>Emulate Team Leader to View Subordinates</h2>
-        <ol class="admin-steps">
-            <li>Select a team leader to emulate.</li>
-            <li>Click <strong>Emulate</strong> to view their subordinates.</li>
-        </ol>
-        <form id="emulate-team-leader-form" method="POST" action="">
-            <fieldset>
-                <legend>Select Team Leader</legend>
-                <label for="teamLeaderSelectOption">Team Leader:</label>
-                <select name="teamLeaderSelectOption" id="teamLeaderSelectOption" form="emulate-team-leader-form">
-                    <?php foreach ( $teamLeaderUsers as $user ) : ?>
-                        <option value="<?php echo esc_attr( $user->ID ); ?>"><?php echo esc_html( $user->user_login ); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </fieldset>
-            <input type="hidden" name="action" value="emulate_Team_Leader_Form_Submission" />
-            <input type="submit" value="Emulate" class="button button-primary">
-        </form>
+    <div class="notice notice-info">
+        <p>This page is for Team Leaders only. Site admins do not have subordinate management on this screen.</p>
     </div>
     <?php
+    return;
 }
 
 // If user has Team Leader role
-if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' ) ) {
+if ( current_user_can( 'team_leader' ) ) {
     global $wpdb;
     $teamLeaderID = get_current_user_id();
     $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
@@ -84,12 +61,16 @@ if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' )
                         <th>Subordinate Email</th>
                         <th>Subordinate Name</th>
                         <th>Select</th>
+                        <th>Edit</th>
                     </tr>
                     <?php foreach ( $teamSubordinates as $user ) : ?>
                         <tr>
                             <td><span><?php echo esc_html( $user->user_email ); ?></span></td>
                             <td><span><?php echo esc_html( $user->display_name ); ?></span></td>
                             <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
+                            <td>
+                                <button type="button" class="edit-subordinate-btn" data-user-id="<?php echo esc_attr( $user->ID ); ?>" data-user-email="<?php echo esc_attr( $user->user_email ); ?>" data-user-name="<?php echo esc_attr( $user->display_name ); ?>">Edit</button>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </table>
@@ -99,6 +80,19 @@ if ( ! current_user_can( 'manage_options' ) && current_user_can( 'team_leader' )
             <input type="submit" value="Submit" class="button button-primary">
         </form>
     </div>
+    <!-- Modal for editing subordinate -->
+    <div id="editSubordinateModal" style="display:none;">
+        <form id="editSubordinateForm" method="POST" >
+            <input type="hidden" name="edit_user_id" id="edit_user_id" value="" />
+            <label for="edit_user_email">Email:</label>
+            <input type="email" name="edit_user_email" id="edit_user_email" value="" required />
+            <label for="edit_user_name">Name:</label>
+            <input type="text" name="edit_user_name" id="edit_user_name" value="" required />
+            <?php wp_nonce_field( 'edit_subordinate_action', 'edit_subordinate_nonce' ); ?>
+            <input type="hidden" name="action" value="edit_subordinate" />
+            <input type="submit" value="Save" class="button button-primary">
+            <button type="button" id="closeEditModal" class="button">Cancel</button>
+        </form>
+    </div>
     <?php
 }
-
