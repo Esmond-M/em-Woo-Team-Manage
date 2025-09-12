@@ -49,6 +49,14 @@ class TeamAjaxHandler
                     ['team-leader-user-import-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css'],
                     ['site-admin-team-leader-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/site-admin-team-leader.css'],
                 ],
+                'scripts' => [
+                    ['site-admin-team-leader-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/siteAdminTeamLeader.min.js'],
+                ],
+                'localize' => [
+                    ['site-admin-team-leader-script', 'siteAdminTeamLeader', [
+                        'ajaxurl' => admin_url('admin-ajax.php')
+                    ]],
+                ],
             ],
             'team-leader-admin' => [
                 'styles' => [
@@ -209,5 +217,40 @@ class TeamAjaxHandler
         }
         wp_die();
     }
+
+    /**
+     * AJAX handler to get subordinates of a team leader.
+     */
+    public function ajax_get_subordinates() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => 'Unauthorized']);
+    }
+    $leader_id = isset($_POST['leader_id']) ? intval($_POST['leader_id']) : 0;
+    if (!$leader_id) {
+        wp_send_json_error(['message' => 'Invalid leader ID']);
+    }
+    global $wpdb;
+    $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+    $subordinate_ids = $wpdb->get_col($wpdb->prepare("SELECT subordinate_id FROM $table WHERE leader_id = %d", $leader_id));
+    $teamSubordinates = [];
+    if (!empty($subordinate_ids)) {
+        $teamSubordinates = get_users([
+            'include' => $subordinate_ids,
+            'role__in' => ['team_subordinate']
+        ]);
+    }
+    ob_start();
+    if ($teamSubordinates) {
+        echo '<ul>';
+        foreach ($teamSubordinates as $sub) {
+            echo '<li>' . esc_html($sub->user_email) . ' - ' . esc_html($sub->display_name) . '</li>';
+        }
+        echo '</ul>';
+    } else {
+        echo '<span>No subordinates</span>';
+    }
+    $html = ob_get_clean();
+    wp_send_json_success(['html' => $html]);
+}
 
 }

@@ -41,11 +41,12 @@ class TeamManageCore
         add_action('wp_ajax_emulate_Team_subordinate_Form_Submission', [$this->ajax, 'emulate_Team_subordinate_Form_Submission']);
         add_action('admin_enqueue_scripts', [$this->ajax, 'load_Admin_Styles']);
         add_action('wp_ajax_edit_subordinate', [$this->ajax, 'handle_edit_subordinate']);
-        add_action('wp_ajax_nopriv_edit_subordinate', [$this->ajax, 'handle_edit_subordinate']);
         add_action('admin_post_edit_subordinate', [$this->ajax, 'handle_edit_subordinate']);
-
+        add_action('wp_ajax_get_subordinates', [$this->ajax, 'ajax_get_subordinates']);
+        add_action('wp_ajax_get_subordinates', [$this, 'ajax_get_subordinates']);
         $this->importer = new TeamUserImporter();
         add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
+        
     }
 
     /**
