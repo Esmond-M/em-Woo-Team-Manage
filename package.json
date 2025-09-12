@@ -35,6 +35,6 @@
         "watch:admin": "sass --watch admin/assets/sass/team-leader-admin.scss admin/assets/css/team-leader-admin.css --no-source-map",
         "watch:userimport": "sass --watch admin/assets/sass/team-leader-user-import.scss admin/assets/css/team-leader-user-import.css --no-source-map",
         "build:sass": "sass admin/assets/sass/site-admin-team-leader.scss admin/assets/css/site-admin-team-leader.css --no-source-map && sass admin/assets/sass/team-leader-admin.scss admin/assets/css/team-leader-admin.css --no-source-map && sass admin/assets/sass/team-leader-user-import.scss admin/assets/css/team-leader-user-import.css --no-source-map",
-        "minify:adminjs": "terser admin/assets/js/teamLeaderAdmin.js -o admin/assets/js/min/teamLeaderAdmin.min.js --compress --mangle --source-map && terser admin/assets/js/teamSubordinateImport.js -o admin/assets/js/min/teamSubordinateImport.min.js --compress --mangle --source-map"
+"minify:adminjs": "terser admin/assets/js/teamLeaderAdmin.js -o admin/assets/js/min/teamLeaderAdmin.min.js --compress --mangle --source-map && terser admin/assets/js/teamSubordinateImport.js -o admin/assets/js/min/teamSubordinateImport.min.js --compress --mangle --source-map && terser admin/assets/js/siteAdminTeamLeader.js -o admin/assets/js/min/siteAdminTeamLeader.min.js --compress --mangle --source-map"
     }
 }

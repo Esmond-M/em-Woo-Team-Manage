@@ -87,7 +87,24 @@ class TeamUserImporter
         $rowCount = 0;
         foreach ($csv as $row) {
             if ($rowCount++ == 0) continue; // skip headers
+            global $wpdb;
+            // Define table and leader_id here
+            $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+            $leader_id = isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0;
 
+            // Check current subordinate count for this leader
+            $current_count = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table WHERE leader_id = %d",
+                $leader_id
+            ));
+            $max_subordinates = 200;
+            if ($current_count >= $max_subordinates) {
+                echo '<p style="color:red;">Maximum number of subordinates ('.$max_subordinates.') reached for this team leader. No more can be imported.</p>';
+                wp_delete_attachment($attachment_id, true); // Clean up uploaded file
+                wp_die(); // Stop further processing
+            }
+
+            // ...now process the row and create user...
             $email_address = isset($row[0]) ? sanitize_email($row[0]) : '';
             $firstName     = isset($row[1]) ? sanitize_text_field($row[1]) : '';
             $lastName      = isset($row[2]) ? sanitize_text_field($row[2]) : '';
@@ -119,9 +136,6 @@ class TeamUserImporter
                 add_user_meta($user_id, 'teamID', isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0);
                 wp_new_user_notification($user_id, null, "both");
                 // Insert leader/subordinate relationship into custom table
-                global $wpdb;
-                $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
-                $leader_id = isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0;
                 $wpdb->insert($table, [
                     'leader_id' => $leader_id,
                     'subordinate_id' => intval($user_id)
