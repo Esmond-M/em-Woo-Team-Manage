@@ -85,12 +85,12 @@ class TeamUserImporter
         $successCount = 0;
         $errorCount = 0;
         $rowCount = 0;
-        foreach ($csv as $row) {        
+        foreach ($csv as $row) {
             if ($rowCount++ == 0) continue; // skip headers
             global $wpdb;
             // Define table and leader_id here
             $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
-            $leader_id = isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0;   
+            $leader_id = isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0;
 
             // Check current subordinate count for this leader
             $current_count = $wpdb->get_var($wpdb->prepare(
