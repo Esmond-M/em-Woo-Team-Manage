@@ -47,17 +47,10 @@
                         <td><span><?php echo esc_html($teamLeader->display_name); ?></span></td>
                         <td><span class="sub-count<?php echo $subCount ? ' has-sub' : ' no-sub'; ?>"><?php echo esc_html($subCount); ?></span></td>
                         <td>
-                            <?php if ($subCount): ?>
-                                <ul>
-                                    <?php foreach ($teamSubordinates as $sub): ?>
-                                        <li>
-                                            <?php echo esc_html($sub->user_email); ?> - <?php echo esc_html($sub->display_name); ?>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            <?php else: ?>
-                                <span>No subordinates</span>
-                            <?php endif; ?>
+                            <button class="view-subs-btn" data-leader-id="<?php echo esc_attr($teamLeader->ID); ?>">
+                                View Subordinates
+                            </button>
+                            <div class="sub-details-container" id="sub-details-<?php echo esc_attr($teamLeader->ID); ?>"></div>
                         </td>
                     </tr>
                 <?php endforeach; ?>
