@@ -1,221 +1,405 @@
-$primary-color: #2271b1;
-$secondary-color: #008CBA;
-$error-color: #d7263d;
-$table-border: #eaeaea;
-$table-bg: #fff;
-$table-row-alt: #f7f8fa;
-$form-bg: #fff;
-$input-border: #8c8f94;
-$input-bg: #f7f8fa;
-$box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-$box-shadow-lg: 0 2px 12px rgba(0,0,0,0.09);
+// ─── Design tokens ────────────────────────────────────────────────────────────
+$primary:      #2271b1;
+$primary-dark: #135e96;
+$success:      #46b450;
+$success-bg:   #edfaee;
+$success-text: #2e7d32;
+$error:        #dc3232;
+$error-bg:     #fef0f0;
+$error-text:   #b71c1c;
+$text-dark:    #1d2327;
+$text-mid:     #50575e;
+$border:       #c3c4c7;
+$border-light: #e5e7eb;
+$bg-light:     #f6f7f7;
+$bg-card:      #ffffff;
+$info-bg:      #eef4fb;
+$info-border:  #b8d0ea;
+$shadow-sm:    0 1px 4px rgba(0,0,0,0.08);
+$shadow-md:    0 2px 10px rgba(0,0,0,0.11);
 
-.site-admin-msg {
-  font-size: 30px;
-  color: red;
-}
-
-table {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  font-size: 17px;
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-  background: $table-bg;
-  border-radius: 8px;
-  box-shadow: $box-shadow;
-
-  th, td {
-    border-bottom: 1px solid $table-border;
-    text-align: left;
-    padding: 12px 10px;
-    transition: background 0.2s;
-  }
-
-  tr {
-    &:nth-child(even) {
-      background-color: $table-row-alt;
-    }
-  }
-}
-
-.user-import-ajax-loader {
-  border: 8px solid #FF0909;
-  border-radius: 50%;
-  border-top: 8px solid #0062FF;
-  width: 40px !important;
-  height: 40px !important;
-  -webkit-animation: spin 1.5s linear infinite;
-  display: block;
-  margin: auto;
-  animation: spin 1.5s linear infinite;
-}
-
-/* Safari */
-@-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg);}
-  100% { -webkit-transform: rotate(360deg);}
-}
+// ─── Spinner ──────────────────────────────────────────────────────────────────
 @keyframes spin {
-  0% { transform: rotate(0deg);}
-  100% { transform: rotate(360deg);}
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+  0%   { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+.user-import-ajax-loader {
+  border: 5px solid $border-light;
+  border-top: 5px solid $primary;
+  border-radius: 50%;
+  width: 36px !important;
+  height: 36px !important;
+  animation: spin 0.8s linear infinite;
+  -webkit-animation: spin 0.8s linear infinite;
+  display: block;
+  margin: 20px auto;
 }
 
-.emulation-title {
-  font-size: 30px;
-  text-align: center;
-}
+// ─── Page wrapper ─────────────────────────────────────────────────────────────
+.subordinate-container {
+  max-width: 960px;
+  margin: 28px 0;
 
-#team-leader-form {
-  input[type=submit] {
-    display: block;
-    font-size: 17px;
-    border: none;
-    color: #fff;
-    background: linear-gradient(90deg, $primary-color 0%, $secondary-color 100%);
-    padding: 12px 28px;
-    border-radius: 5px;
-    box-shadow: 0 2px 6px rgba(34,113,177,0.08);
-    text-decoration: none;
-    text-shadow: none;
-    text-transform: capitalize;
-    cursor: pointer;
-    margin: 18px 0 0 0;
-    transition: background 0.2s, box-shadow 0.2s;
-
-    &:hover {
-      background: linear-gradient(90deg, $error-color 0%, #ff0909 100%);
-      box-shadow: 0 4px 12px rgba(215,38,61,0.12);
-    }
+  > h2 {
+    font-size: 1.5rem;
+    color: $primary;
+    font-weight: 600;
+    margin: 0 0 16px 0;
   }
 }
 
-#emulate-team-leader-form {
-  text-align: center;
-  margin-bottom: 24px;
-}
+// ─── Admin leader-selector bar ────────────────────────────────────────────────
+.subordinate-container .emulation-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: $info-bg;
+  border: 1px solid $info-border;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  max-width: none;
+  box-shadow: none;
 
-.emulation-form {
-  max-width: 650px;
-  margin: 80px auto 40px auto;
-  background: $form-bg;
-  padding: 28px 32px 24px 32px;
-  border-radius: 10px;
-  box-shadow: $box-shadow-lg;
-
-  h2 {
-    text-align: center;
-    font-size: 2.1em;
-    color: $primary-color;
-    margin-bottom: 18px;
+  label, strong {
+    white-space: nowrap;
+    color: $primary;
+    font-weight: 600;
+    font-size: 0.92rem;
   }
 
   select {
-    font-size: 18px;
-    line-height: 2.2;
-    color: #2c3338;
-    border: 1px solid $input-border;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    border-radius: 5px;
-    padding: 0 18px 0 8px;
-    min-height: 36px;
-    width: 100%;
-    min-width: 180px;
-    text-align: center;
-    -webkit-appearance: none;
+    font-size: 14px;
+    border: 1px solid $border;
+    border-radius: 4px;
+    padding: 5px 28px 5px 10px;
+    background: $bg-card;
+    color: $text-dark;
+    min-width: 240px;
+    cursor: pointer;
     appearance: none;
-    cursor: pointer;
-    vertical-align: middle;
-    background: $input-bg;
-  }
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%232271b1' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
 
-  input[type=submit] {
-    display: block;
-    font-size: 17px;
-    border: none;
-    color: #fff;
-    background: linear-gradient(90deg, $primary-color 0%, $secondary-color 100%);
-    padding: 12px 28px;
+    &:focus {
+      border-color: $primary;
+      outline: 2px solid rgba(34,113,177,0.2);
+      outline-offset: 1px;
+    }
+  }
+}
+
+// ─── Step list ────────────────────────────────────────────────────────────────
+.leader-steps {
+  background: $info-bg;
+  border-left: 3px solid $primary;
+  border-radius: 0 6px 6px 0;
+  padding: 10px 18px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+  color: $text-dark;
+  li { margin-bottom: 4px; }
+}
+
+// ─── Export button ────────────────────────────────────────────────────────────
+#export-team-csv-form {
+  display: inline-block;
+  margin-bottom: 12px;
+
+  button {
+    background: $bg-light;
+    border: 1px solid $border;
     border-radius: 5px;
-    box-shadow: 0 2px 6px rgba(34,113,177,0.08);
-    text-decoration: none;
-    text-shadow: none;
-    text-transform: capitalize;
+    padding: 7px 16px;
+    font-size: 0.88rem;
     cursor: pointer;
-    margin: 18px auto 10px auto;
-    transition: background 0.2s, box-shadow 0.2s;
+    color: $text-dark;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
 
     &:hover {
-      background: linear-gradient(90deg, $error-color 0%, #ff0909 100%);
-      box-shadow: 0 4px 12px rgba(215,38,61,0.12);
+      background: $info-bg;
+      border-color: $primary;
+      color: $primary;
     }
   }
 }
 
-.user-deletion-password-contain {
-  max-width: 500px;
-  margin: auto;
-  background: $form-bg;
-  padding: 24px;
+// ─── Main form card ───────────────────────────────────────────────────────────
+#team-leader-form {
+  background: $bg-card;
+  border: 1px solid $border-light;
   border-radius: 8px;
-  box-shadow: $box-shadow;
+  box-shadow: $shadow-sm;
+  padding: 20px 24px;
 
-  p {
-    text-decoration: underline;
-    margin: 0 0 5px 0;
-    font-size: 1.1em;
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  legend {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $primary;
+    margin-bottom: 12px;
+    padding: 0;
   }
 }
 
-.refresh-btn {
-  background: linear-gradient(90deg, $primary-color 0%, $secondary-color 100%);
-  border: none;
-  color: #fff;
-  text-decoration: none;
-  text-shadow: none;
-  text-transform: capitalize;
+// ─── Subordinate tables (scoped — not global) ─────────────────────────────────
+.subordinate-container table,
+#team-leader-form table {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  background: $bg-card;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: $shadow-sm;
+  margin-bottom: 16px;
+
+  th {
+    background: $primary;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 11px 14px;
+    text-align: left;
+    border: none;
+  }
+
+  td {
+    padding: 10px 14px;
+    vertical-align: middle;
+    color: $text-dark;
+    border: none;
+    border-bottom: 1px solid $border-light;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: $bg-light; }
+  tr:hover td { background: $info-bg; }
+
+  select {
+    border: 1px solid $border;
+    border-radius: 4px;
+    padding: 5px 22px 5px 9px;
+    font-size: 0.9rem;
+    background: $bg-card;
+    color: $text-dark;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%232271b1' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 10px;
+  }
+
+  input[type=checkbox] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: $primary;
+  }
+}
+
+// ─── Edit button ──────────────────────────────────────────────────────────────
+.edit-subordinate-btn {
+  background: none;
+  border: 1px solid $border;
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 0.83rem;
+  color: $primary;
   cursor: pointer;
-  margin: 20px 0 0 0;
-  padding: 10px 22px;
-  border-radius: 5px;
-  font-size: 16px;
-  box-shadow: 0 2px 6px rgba(34,113,177,0.08);
-  transition: background 0.2s, box-shadow 0.2s;
+  transition: background 0.15s, border-color 0.15s;
 
   &:hover {
-    background: linear-gradient(90deg, $error-color 0%, #ff0909 100%);
-    box-shadow: 0 4px 12px rgba(215,38,61,0.12);
+    background: $info-bg;
+    border-color: $primary;
   }
 }
 
-.wp-die-message {
-  p {
-    background: $form-bg;
-    padding: 20px 20px 10px 20px;
-    max-width: 500px;
-    margin: auto;
-    font-size: 20px;
-    text-align: center;
-    font-weight: 600;
-    color: $error-color;
-    text-decoration: underline;
+// ─── Form submit ──────────────────────────────────────────────────────────────
+#team-leader-form input[type=submit] {
+  background: $primary;
+  border: none;
+  color: #fff;
+  padding: 9px 24px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 14px;
+  box-shadow: $shadow-sm;
+  transition: background 0.2s;
+  &:hover { background: $primary-dark; }
+}
+
+// ─── Action result ────────────────────────────────────────────────────────────
+.user-deletion-password-contain {
+  background: $bg-card;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-top: 16px;
+  box-shadow: $shadow-sm;
+}
+
+// ─── Feedback messages ────────────────────────────────────────────────────────
+p.newpost-success, .newpost-success {
+  color: $success-text;
+  background: $success-bg;
+  border-left: 3px solid $success;
+  padding: 8px 14px;
+  margin: 5px 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.9rem;
+}
+p.newpost-error, .newpost-error {
+  color: $error-text;
+  background: $error-bg;
+  border-left: 3px solid $error;
+  padding: 8px 14px;
+  margin: 5px 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.9rem;
+}
+
+// ─── Refresh button ───────────────────────────────────────────────────────────
+.refresh-btn {
+  background: $primary;
+  border: none;
+  color: #fff;
+  padding: 8px 20px;
+  font-size: 0.88rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 14px;
+  display: inline-block;
+  transition: background 0.2s;
+  &:hover { background: $primary-dark; }
+}
+
+// ─── Edit modal ───────────────────────────────────────────────────────────────
+#editSubordinateModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.46);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  form#editSubordinateForm {
+    background: $bg-card;
     border-radius: 8px;
-    box-shadow: $box-shadow;
-  }
-}
+    padding: 28px 32px;
+    box-shadow: $shadow-md;
+    min-width: 320px;
+    max-width: 460px;
+    width: 100%;
 
-/* Add responsive tweaks */
-@media (max-width: 700px) {
-  .emulation-form, .user-deletion-password-contain {
-    max-width: 98vw;
-    padding: 12px 6vw;
-  }
-  table {
-    font-size: 15px;
-  }
-  .emulation-form {
-    h2 {
-      font-size: 1.3em;
+    label {
+      display: block;
+      font-weight: 600;
+      color: $text-dark;
+      margin: 14px 0 4px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    input[type=email],
+    input[type=text] {
+      width: 100%;
+      border: 1px solid $border;
+      border-radius: 4px;
+      padding: 7px 10px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      &:focus { border-color: $primary; outline: 2px solid rgba(34,113,177,0.15); }
+    }
+
+    input[type=submit] {
+      background: $primary;
+      border: none;
+      color: #fff;
+      padding: 8px 20px;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 18px;
+      margin-right: 8px;
+      transition: background 0.2s;
+      &:hover { background: $primary-dark; }
+    }
+
+    #closeEditModal {
+      background: $bg-light;
+      border: 1px solid $border;
+      color: $text-mid;
+      padding: 7px 18px;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 18px;
+      transition: background 0.15s;
+      &:hover { background: #e4e6e8; }
     }
   }
 }
+
+// ─── Misc ─────────────────────────────────────────────────────────────────────
+.site-admin-msg  { font-size: 1rem; color: $error; font-weight: 600; }
+.emulation-title { font-size: 1.5rem; text-align: center; color: $primary; }
+
+.wp-die-message p {
+  background: $bg-card;
+  padding: 20px;
+  max-width: 500px;
+  margin: auto;
+  font-size: 1.05rem;
+  text-align: center;
+  font-weight: 600;
+  color: $error;
+  border-radius: 8px;
+  box-shadow: $shadow-sm;
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 782px) {
+  .subordinate-container { margin: 14px 0; }
+
+  .subordinate-container .emulation-form {
+    flex-direction: column;
+    align-items: flex-start;
+    select { min-width: 100%; }
+  }
+
+  #team-leader-form,
+  .user-deletion-password-contain { padding: 14px 12px; }
+
+  .subordinate-container table,
+  #team-leader-form table { font-size: 13px; }
+
+  #editSubordinateModal form#editSubordinateForm {
+    min-width: 280px;
+    padding: 18px 14px;
+  }
+}
+

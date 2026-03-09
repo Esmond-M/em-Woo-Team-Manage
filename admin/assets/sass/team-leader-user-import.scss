@@ -1,241 +1,255 @@
-$primary-color: #2271b1;
-$secondary-color: #008CBA;
-$error-color: #FF0909;
-$info-bg: #f0f8ff;
-$table-bg: #fff;
-$input-border: #8c8f94;
-$input-bg: #f6f8fa;
-$box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+// ─── Design tokens ────────────────────────────────────────────────────────────
+$primary:      #2271b1;
+$primary-dark: #135e96;
+$success:      #46b450;
+$success-bg:   #edfaee;
+$success-text: #2e7d32;
+$error:        #dc3232;
+$error-bg:     #fef0f0;
+$error-text:   #b71c1c;
+$text-dark:    #1d2327;
+$text-mid:     #50575e;
+$border:       #c3c4c7;
+$border-light: #e5e7eb;
+$bg-light:     #f6f7f7;
+$bg-card:      #ffffff;
+$info-bg:      #eef4fb;
+$info-border:  #b8d0ea;
+$shadow-sm:    0 1px 4px rgba(0,0,0,0.08);
 
-@-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg);}
-  100% { -webkit-transform: rotate(360deg);}
-}
+// ─── Spinner ──────────────────────────────────────────────────────────────────
 @keyframes spin {
-  0% { transform: rotate(0deg);}
-  100% { transform: rotate(360deg);}
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
+
+// --- Spinner element ----------------------------------------------------------
 
 .user-import-ajax-loader {
-  border: 16px solid $error-color;
+  border: 8px solid #e5e7eb;
+  border-top: 8px solid $primary;
   border-radius: 50%;
-  border-top: 16px solid #0062FF;
-  width: 60px !important;
-  height: 60px !important;
-  -webkit-animation: spin 2s linear infinite;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
   display: block;
-  margin: auto;
-  animation: spin 2s linear infinite;
+  margin: 16px auto;
 }
 
-#subordinate-import-form {
-  background: $table-bg;
-  padding: 20px 20px 10px 20px;
-
-  input[type=submit] {
-    display: block;
-    font-size: 16px;
-    border: none;
-    color: white;
-    background-color: $secondary-color;
-    padding: 15px 32px;
-    text-decoration: none;
-    text-shadow: none;
-    text-transform: capitalize;
-    cursor: pointer;
-    padding: 10px;
-
-    &:hover {
-      background: red;
-    }
-  }
-}
-
-#emulate-team-leader-form {
-  text-align: center;
-}
-
-.emulation-form {
-  max-width: 700px;
-  margin: 60px auto;
-  background: $table-bg;
-  padding: 30px 30px 20px 30px;
-  border-radius: 10px;
-  box-shadow: $box-shadow;
-
-  h2 {
-    font-size: 2rem;
-    text-align: center;
-    color: $primary-color;
-    margin-bottom: 1.2rem;
-  }
-
-  fieldset {
-    border: 1px solid $input-border;
-    border-radius: 5px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  legend {
-    font-weight: bold;
-    color: $primary-color;
-  }
-
-  label {
-    font-weight: 500;
-    margin-right: 10px;
-  }
-
-  select {
-    font-size: 18px;
-    line-height: 2;
-    color: #2c3338;
-    border-color: $input-border;
-    box-shadow: none;
-    border-radius: 3px;
-    padding: 0 24px 0 8px;
-    min-height: 30px;
-    width: 100%;
-    min-width: 200px;
-    text-align: center;
-    -webkit-appearance: none;
-    cursor: pointer;
-    vertical-align: middle;
-    background: $input-bg;
-  }
-
-  input[type=submit] {
-    display: block;
-    font-size: 16px;
-    border: none;
-    color: white;
-    background-color: $secondary-color;
-    padding: 15px 32px;
-    text-decoration: none;
-    text-shadow: none;
-    text-transform: capitalize;
-    cursor: pointer;
-    padding: 10px;
-    margin: 10px auto 10px auto;
-    border-radius: 5px;
-    transition: background 0.2s;
-
-    &:hover {
-      background: $primary-color;
-    }
-  }
-}
-
-.import-steps {
-  background: $info-bg;
-  border-radius: 6px;
-  padding: 1rem 1.5rem;
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-
-  li {
-    margin-bottom: 0.5rem;
-  }
-}
+// --- Page container -----------------------------------------------------------
 
 .import-container {
-  max-width: 700px;
-  margin: 60px auto;
-  background: $table-bg;
-  padding: 30px 30px 20px 30px;
-  border-radius: 10px;
-  box-shadow: $box-shadow;
+  max-width: 820px;
+  margin: 0;
+  padding: 0 4px;
 
   h2 {
-    font-size: 2rem;
-    text-align: center;
-    color: $primary-color;
-    margin-bottom: 1.2rem;
+    font-size: 1.4em;
+    color: $text-dark;
+    margin: 28px 0 12px 0;
+    padding-bottom: 6px;
+    border-bottom: 2px solid $border-light;
   }
+
+  hr {
+    border: none;
+    border-top: 1px solid $border-light;
+    margin: 28px 0;
+  }
+}
+
+// --- Admin leader bar ---------------------------------------------------------
+
+.emulation-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: $info-bg;
+  border: 1px solid $info-border;
+  border-radius: 6px;
+  padding: 10px 16px;
+  margin-bottom: 0;
+
+  label { font-weight: 600; color: $text-dark; white-space: nowrap; }
+
+  select {
+    font-size: 13px;
+    border: 1px solid $border;
+    border-radius: 4px;
+    padding: 4px 8px;
+    min-height: 30px;
+    min-width: 200px;
+    color: $text-dark;
+    background: $bg-card;
+    cursor: pointer;
+  }
+}
+
+// --- Import steps list --------------------------------------------------------
+
+.import-steps {
+  margin: 0 0 20px 18px;
+  padding: 0;
+  color: $text-mid;
+  line-height: 1.9;
+
+  li { padding-left: 4px; }
+
+  a {
+    color: $primary;
+    text-decoration: underline;
+    &:hover { color: $primary-dark; }
+  }
+}
+
+// --- CSV upload form ----------------------------------------------------------
+
+#subordinate-import-form {
+  background: $bg-card;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 24px 24px 20px;
+  box-shadow: $shadow-sm;
+  margin-bottom: 20px;
 
   fieldset {
-    border: 1px solid $input-border;
-    border-radius: 5px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  legend {
-    font-weight: bold;
-    color: $primary-color;
-  }
-
-  input[type=submit] {
-    display: block;
-    font-size: 16px;
     border: none;
-    color: white;
-    background-color: $secondary-color;
-    padding: 15px 32px;
-    text-decoration: none;
-    text-shadow: none;
-    text-transform: capitalize;
-    cursor: pointer;
-    padding: 10px;
-    margin: 10px auto 10px auto;
-    border-radius: 5px;
-    transition: background 0.2s;
+    padding: 0;
+    margin: 0 0 16px;
 
-    &:hover {
-      background: $primary-color;
+    legend {
+      font-size: 1.05em;
+      font-weight: 600;
+      color: $text-dark;
+      padding: 0;
+      margin-bottom: 10px;
     }
   }
+
+  input[type="submit"] { margin-top: 4px; }
 }
+
+// --- Drag & drop zone ---------------------------------------------------------
 
 #csv-drop-area {
-  border: 2px dashed $primary-color;
-  background: $input-bg;
+  border: 2px dashed $border;
   border-radius: 6px;
-  padding: 20px;
+  padding: 28px 20px;
   text-align: center;
-  margin-bottom: 10px;
-  transition: background 0.2s;
+  background: $bg-light;
+  transition: background 0.2s, border-color 0.2s;
+  cursor: pointer;
 
-  p {
-    color: #333;
-    font-size: 1.1rem;
-  }
+  p { margin: 0 0 10px; color: $text-mid; font-size: 13px; }
+
+  &:hover { background: $info-bg; border-color: $primary; }
 }
+
+// --- Instructions block -------------------------------------------------------
 
 .instructional-container {
-  background: $info-bg;
-  padding: 16px 24px 24px 24px;
-  border-radius: 6px;
-  margin-top: 1.5rem;
-  font-size: 1.1rem;
+  background: $bg-light;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-top: 16px;
+  color: $text-mid;
+  font-size: 13px;
+  line-height: 1.7;
 
-  strong {
-    color: $primary-color;
-  }
+  p { margin: 0 0 12px; }
 
   img {
-    margin-top: 1rem;
-    border-radius: 6px;
-    box-shadow: $box-shadow;
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border: 1px solid $border;
+    border-radius: 4px;
+    margin-top: 8px;
   }
 }
 
-.user-upload-results-contain {
-  background: $table-bg;
-  padding: 20px 20px 10px 20px;
+// --- Single-add form ----------------------------------------------------------
+
+#add-single-subordinate-form {
+  background: $bg-card;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 24px 24px 20px;
+  box-shadow: $shadow-sm;
+
+  table.form-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+
+    th {
+      width: 160px;
+      font-weight: 600;
+      color: $text-dark;
+      vertical-align: middle;
+      padding: 8px 12px 8px 0;
+      label { margin: 0; }
+    }
+
+    td { padding: 8px 0; vertical-align: middle; }
+
+    input[type="text"],
+    input[type="email"] { width: 100%; max-width: 320px; }
+  }
 }
 
-.wp-die-message {
-  p {
-    background: $table-bg;
-    padding: 20px 20px 10px 20px;
-    max-width: 500px;
-    margin: auto;
-    font-size: 20px;
-    text-align: center;
-    font-weight: 600;
-    color: black;
-    text-decoration: underline;
+// --- AJAX result messages -----------------------------------------------------
+
+#add-single-subordinate-result { margin-top: 12px; }
+
+.newpost-success {
+  display: block;
+  padding: 10px 16px;
+  background: $success-bg;
+  color: $success-text;
+  border-left: 4px solid $success;
+  border-radius: 4px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.newpost-error {
+  display: block;
+  padding: 10px 16px;
+  background: $error-bg;
+  color: $error-text;
+  border-left: 4px solid $error;
+  border-radius: 4px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+#em-connect-error {
+  padding: 10px 16px;
+  background: $error-bg;
+  color: $error-text;
+  border-left: 4px solid $error;
+  border-radius: 4px;
+  margin-top: 12px;
+}
+
+// --- Responsive ---------------------------------------------------------------
+
+@media (max-width: 700px) {
+  .emulation-form {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    select { min-width: 100%; }
   }
+
+  #add-single-subordinate-form table.form-table {
+    th, td { display: block; width: auto; padding: 4px 0; }
+  }
+
+  #subordinate-import-form,
+  #add-single-subordinate-form { padding: 16px 14px; }
+
+  #csv-drop-area { padding: 18px 12px; }
 }

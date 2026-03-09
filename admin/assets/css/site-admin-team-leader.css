@@ -1,64 +1,169 @@
+.site-admin-team-summary {
+  max-width: 1100px;
+  margin: 28px 0;
+}
+
 .site-admin-title {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
+  font-size: 1.6rem;
+  font-weight: 700;
   color: #2271b1;
-  text-align: center;
+  margin-bottom: 24px;
 }
 
 .summary-card {
-  background: #f0f8ff;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #eef4fb;
+  border: 1px solid #b8d0ea;
   border-radius: 8px;
-  padding: 1rem 2rem;
-  margin-bottom: 2rem;
-  text-align: center;
-  font-size: 1.2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 14px 28px;
+  margin-bottom: 24px;
+  font-size: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 .summary-card .summary-label {
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #1d2327;
 }
 .summary-card .summary-value {
-  font-size: 1.5rem;
-  color: #008CBA;
-  margin-left: 0.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2271b1;
+  line-height: 1;
 }
 
 .responsive-table-container {
   overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .site-admin-table {
-  font-family: arial, sans-serif;
-  font-size: 18px;
-  border-collapse: collapse;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  background: #ffffff;
 }
 .site-admin-table th {
   background: #2271b1;
   color: #fff;
-  padding: 12px 8px;
-  border: 1px solid #dddddd;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 13px 16px;
+  border: none;
+  border-bottom: 2px solid #135e96;
+}
+.site-admin-table th:first-child {
+  border-radius: 8px 0 0 0;
+}
+.site-admin-table th:last-child {
+  border-radius: 0 8px 0 0;
 }
 .site-admin-table td {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 10px 8px;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1d2327;
+  vertical-align: top;
 }
-.site-admin-table tr:nth-child(even) {
-  background-color: #f6f8fa;
+.site-admin-table tr:last-child td {
+  border-bottom: none;
 }
-.site-admin-table tr.no-subordinates {
-  background-color: #ffecec;
+.site-admin-table tr:nth-child(even) td {
+  background: #f6f7f7;
+}
+.site-admin-table tr:hover td {
+  background: #eef4fb;
+  transition: background 0.15s;
+}
+.site-admin-table tr.no-subordinates td {
+  background: #fff8f8;
 }
 
+.sub-count {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
 .sub-count.has-sub {
-  color: #008CBA;
-  font-weight: bold;
+  background: #e6f4ea;
+  color: #2e7d32;
 }
 .sub-count.no-sub {
-  color: #d00;
-  font-weight: bold;
+  background: #fdecea;
+  color: #b71c1c;
+}
+
+.view-subs-btn {
+  background: #f6f7f7;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 0.83rem;
+  color: #2271b1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.view-subs-btn:hover {
+  background: #eef4fb;
+  border-color: #2271b1;
+}
+.view-subs-btn.active {
+  background: #2271b1;
+  color: #fff;
+  border-color: #2271b1;
+}
+
+.sub-details-container {
+  margin-top: 10px;
+  font-size: 0.85rem;
+}
+.sub-details-container ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #eef4fb;
+  border-radius: 5px;
+  border: 1px solid #b8d0ea;
+  overflow: hidden;
+}
+.sub-details-container ul li {
+  padding: 7px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1d2327;
+}
+.sub-details-container ul li:last-child {
+  border-bottom: none;
+}
+.sub-details-container span.error {
+  color: #b71c1c;
+  font-style: italic;
+}
+.sub-details-container .loader {
+  color: #50575e;
+  font-style: italic;
+  font-size: 0.85rem;
+  padding: 4px 0;
+}
+
+@media (max-width: 782px) {
+  .site-admin-title {
+    font-size: 1.3rem;
+  }
+  .summary-card {
+    padding: 10px 16px;
+  }
+  .site-admin-table th,
+  .site-admin-table td {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
 }

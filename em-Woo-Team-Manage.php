@@ -1,4 +1,5 @@
-<?php
+<?php declare(strict_types=1);
+namespace emWooTeamManage\init_plugin;
 
 /**
  * Main plugin file for EM WooTeamManage.
@@ -30,8 +31,8 @@
  * @package emWooTeamManage
  */
 
-declare(strict_types=1);
-namespace emWooTeamManage\init_plugin;
+define('EMWTM_VERSION', '0.1.0');
+define('EMWTM_PLUGIN_FILE', __FILE__);
 
 use emWooTeamManage\init_plugin\Classes\emWooTeamManage;
 
@@ -73,8 +74,13 @@ final class emWooTeamManageInit {
 
     /**
      * Creates the custom team leaders/subordinates table in the database.
+     * Also registers the My Account endpoint and flushes rewrite rules.
      */
     public function emwtm_create_team_table() {
+        // Register the endpoint before flushing so WP writes it to .htaccess/rewrite rules.
+        add_rewrite_endpoint('team-manage', EP_ROOT | EP_PAGES);
+        flush_rewrite_rules();
+
         global $wpdb;
         $table_name = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
         $charset_collate = $wpdb->get_charset_collate();

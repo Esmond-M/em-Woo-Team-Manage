@@ -13,6 +13,10 @@ build/Release
 
 # Dependency directories
 node_modules/
+vendor/
+
+# PHPUnit
+.phpunit.result.cache
 
 # Optional npm cache directory
 .npm

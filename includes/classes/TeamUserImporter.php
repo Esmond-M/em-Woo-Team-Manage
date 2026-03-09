@@ -13,19 +13,52 @@ namespace emWooTeamManage\init_plugin\Classes;
 class TeamUserImporter
 {
     /**
-     * Reads a CSV file and yields each row as an array.
+     * Sends a "you've been added to a team" notification email (used during CSV import).
+     */
+    private function send_team_added_notification(int $user_id, int $leader_id): void {
+        $subordinate = get_user_by('id', $user_id);
+        $leader      = get_user_by('id', $leader_id);
+        if (!$subordinate) return;
+        $site_name   = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+        $leader_name = $leader ? (trim($leader->first_name . ' ' . $leader->last_name) ?: $leader->user_login) : 'your team leader';
+        $subject     = sprintf('[%s] You have been added to a team', $site_name);
+        $message     = sprintf(
+            "Hi %s,\n\nYou have been added to %s's team on %s.\n\nIf you have any questions, please contact your team leader.\n\nRegards,\n%s",
+            $subordinate->first_name ?: $subordinate->user_login,
+            $leader_name,
+            $site_name,
+            $site_name
+        );
+        wp_mail($subordinate->user_email, $subject, $message);
+    }
+
+    /**
+     * Opens a CSV file and returns a Generator that yields rows, or false on failure.
+     *
+     * Separating the file-open check from the generator body is necessary because
+     * any function containing `yield` is implicitly a generator in PHP and can only
+     * return a Generator object to the caller — never a plain false.
+     *
+     * @return \Generator|false
      */
     public function readCSV($filename, $delimiter = ',')
     {
-        $handle = fopen($filename, "r");
+        $handle = @fopen($filename, 'r');
         if ($handle === false) {
             return false;
         }
 
-        while (($data = fgetcsv($handle, 1000, $delimiter)) !== false) {
+        return $this->iterateCsvRows($handle, $delimiter);
+    }
+
+    /**
+     * Generator that yields rows from an already-open CSV file handle.
+     */
+    private function iterateCsvRows($handle, string $delimiter): \Generator
+    {
+        while (($data = fgetcsv($handle, null, $delimiter, '"', '\\')) !== false) {
             yield $data;
         }
-
         fclose($handle);
     }
 
@@ -33,60 +66,50 @@ class TeamUserImporter
      * Handles AJAX CSV import of subordinate users for a team leader.
      */
     public function user_import_submission() {
+        // Auth: must be a team leader, admin, or emulating via admin
+        if (!current_user_can('team_leader') && !current_user_can('manage_options')) {
+            wp_die('<p style="color:red;">Unauthorized.</p>');
+        }
+        // Nonce verification
+        $nonce = isset($_POST['_import_nonce']) ? sanitize_text_field(wp_unslash($_POST['_import_nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'user_import_submission')) {
+            wp_die('<p style="color:red;">Security check failed.</p>');
+        }
+
         // Load required WordPress files
-
-        // It allows create user functions
-        require_once(ABSPATH . 'wp-includes/user.php');
-
-        // WordPress environment
-        require_once(ABSPATH . 'wp-load.php');
-
-        // it allows us to use wp_handle_upload() function
         require_once(ABSPATH . 'wp-admin/includes/file.php');
         ?>
         <div class="user-upload-results-contain">
         <?php
         // Validate file upload
-        if (empty($_FILES['csvUpload'])) {
-            wp_die('<p style="color:red;">File does not exist.</p>');
+        if (empty($_FILES['csvUpload']) || $_FILES['csvUpload']['error'] !== UPLOAD_ERR_OK) {
+            wp_die('<p style="color:red;">File does not exist or upload error.</p>');
         }
-        $file_size = $_FILES['csvUpload']['size'];
+        $file_size = (int) $_FILES['csvUpload']['size'];
         if ($file_size > 5242880) {
             wp_die('<p>File too large. File must be less than 5 megabytes.</p>');
         }
-        $upload = wp_handle_upload(
-            $_FILES['csvUpload'],
-            array('test_form' => false)
-        );
 
-        if (!empty($upload['error'])) {
-            wp_die('<p style="color:red;">' . esc_html($upload["error"]) . '</p>');
+        // Move to a private temp file — never touches the media library
+        $tmp_file = wp_tempnam('emwtm_csv_');
+        if (!move_uploaded_file($_FILES['csvUpload']['tmp_name'], $tmp_file)) {
+            wp_die('<p style="color:red;">Could not process the uploaded file.</p>');
         }
 
-        // Add uploaded file into WordPress media library
-        $attachment_id = wp_insert_attachment(
-            array(
-                'guid'           => $upload['url'],
-                'post_mime_type' => $upload['type'],
-                'post_title'     => basename($upload['file']),
-                'post_content'   => '',
-                'post_status'    => 'inherit',
-            ),
-            $upload['file']
-        );
-
-        if (is_wp_error($attachment_id) || !$attachment_id) {
-            wp_die('<p style="color:red;">Upload error.</p>');
-        }
-
-        // Use local file path for reading CSV to avoid SSL errors
-        $csv = $this->readCSV($upload['file']);
+        // Use local file path for reading CSV
+        $csv = $this->readCSV($tmp_file);
 
         $successCount = 0;
         $errorCount = 0;
         $rowCount = 0;
+        $dataRowCount = 0;
         foreach ($csv as $row) {
             if ($rowCount++ == 0) continue; // skip headers
+            if ($dataRowCount >= 50) {
+                echo '<p style="color:orange;">Only the first 50 users can be imported per CSV file.</p>';
+                break;
+            }
+            $dataRowCount++;
             global $wpdb;
             // Define table and leader_id here
             $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
@@ -97,11 +120,11 @@ class TeamUserImporter
                 "SELECT COUNT(*) FROM $table WHERE leader_id = %d",
                 $leader_id
             ));
-            $max_subordinates = 200;
+            $max_subordinates = TeamManageCore::get_max_subordinates();
             if ($current_count >= $max_subordinates) {
                 echo '<p style="color:red;">Maximum number of subordinates ('.$max_subordinates.') reached for this team leader. No more can be imported.</p>';
-                wp_delete_attachment($attachment_id, true); // Clean up uploaded file
-                wp_die(); // Stop further processing
+                @unlink($tmp_file);
+                wp_die();
             }
 
             // ...now process the row and create user...
@@ -135,6 +158,7 @@ class TeamUserImporter
             } else {
                 add_user_meta($user_id, 'teamID', isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0);
                 wp_new_user_notification($user_id, null, "both");
+                $this->send_team_added_notification((int) $user_id, $leader_id);
                 // Insert leader/subordinate relationship into custom table
                 $wpdb->insert($table, [
                     'leader_id' => $leader_id,
@@ -146,17 +170,14 @@ class TeamUserImporter
                 $successCount++;
             }
 
-            if ($rowCount >= 50) {
-                echo '<p style="color:red;">Only first 50 users can be imported from CSV file.</p>';
-                break;
-            }
+
         }
 
         echo '<p style="color:green;">Number of successful subordinates imported: ' . $successCount . '</p>';
         ?>
         </div>
         <?php
-        wp_delete_attachment($attachment_id, true);
+        @unlink($tmp_file);
         exit;
     }
 }

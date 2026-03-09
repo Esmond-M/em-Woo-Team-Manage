@@ -1,48 +1,38 @@
 <?php
 /**
- * Team Leader User Import Page
- * Improved markup for user-friendliness and clarity.
+ * Team Leader / Admin Import & Add Page
  */
-?>
-    <div class="import-container">
-<?php
-if ( current_user_can( 'manage_options' ) ) {
-    $teamLeaderArgs = array(
-        'role__in' => array( 'team_leader' ),
-    );
-    $teamLeaderUsers = get_users( $teamLeaderArgs );
-    if ( count( $teamLeaderUsers ) === 0 ) {
-        wp_die( '<p>No Team leader user to emulate</p>' );
+
+$is_admin = current_user_can('manage_options');
+
+if ($is_admin) {
+    $teamLeaderUsers = get_users(['role__in' => ['team_leader']]);
+    if (empty($teamLeaderUsers)) {
+        echo '<div class="import-container"><p>No team leader accounts exist yet.</p></div>';
+        return;
     }
-    ?>
-    <div class="emulation-form">
-        <h2>Emulate Team Leader for CSV Import</h2>
-        <ol class="import-steps">
-            <li>Select a team leader to emulate.</li>
-            <li>Click <strong>Emulate</strong> to view the CSV import form as that leader.</li>
-        </ol>
-        <form id="emulate-team-leader-form" method="POST" action="">
-            <fieldset>
-                <legend>Select Team Leader</legend>
-                <label for="teamLeaderSelectOption">Team Leader:</label>
-                <select name="teamLeaderSelectOption" id="teamLeaderSelectOption" form="emulate-team-leader-form">
-                    <?php foreach ( $teamLeaderUsers as $user ) : ?>
-                        <option value="<?php echo esc_attr( $user->ID ); ?>"><?php echo esc_html( $user->user_login ); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </fieldset>
-            <input type="hidden" name="action" value="emulate_Team_subordinate_Form_Submission" />
-            <input type="submit" value="Emulate" class="button button-primary">
-        </form>
-    </div>
-    <?php
+    $active_leader_id = $teamLeaderUsers[0]->ID;
 } else {
-    $siteURL = esc_url( get_site_url() );
-    ?>
+    $active_leader_id = get_current_user_id();
+}
+?>
+<div class="import-container">
+
+<?php if ($is_admin): ?>
+    <div class="emulation-form" style="margin-bottom:20px;padding:12px;background:#f8f8f8;border:1px solid #ddd;">
+        <label for="admin-leader-select"><strong>Acting as Team Leader:</strong></label>
+        <select id="admin-leader-select" style="margin-left:8px;">
+            <?php foreach ($teamLeaderUsers as $user): ?>
+                <option value="<?php echo esc_attr($user->ID); ?>"><?php echo esc_html($user->display_name . ' (' . $user->user_email . ')'); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <hr style="margin-bottom:24px;">
+<?php endif; ?>
 
         <h2>Import Subordinate Users from CSV</h2>
         <ol class="import-steps">
-            <li>Download the <a href="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/sample-user-import.csv'; ?>" target="_blank">sample CSV file</a>.</li>
+            <li>Download the <a href="<?php echo esc_url(plugins_url('admin/assets/sample-user-import.csv', EMWTM_PLUGIN_FILE)); ?>" target="_blank">sample CSV file</a>.</li>
             <li>Fill in user data (max 50 users per import).</li>
             <li>Drag and drop or select your CSV file below.</li>
             <li>Click <strong>Import</strong> to upload and create users.</li>
@@ -55,7 +45,8 @@ if ( current_user_can( 'manage_options' ) ) {
                     <input id="csvUpload" type="file" name="csvUpload" accept=".csv" style="display:inline-block;" />
                 </div>
             </fieldset>
-            <input name="teamLeaderID" type="hidden" value="<?php echo esc_attr( get_current_user_id() ); ?>">
+            <input name="teamLeaderID" id="csv-leader-id" type="hidden" value="<?php echo esc_attr($active_leader_id); ?>">
+            <?php wp_nonce_field('user_import_submission', '_import_nonce'); ?>
             <input type="submit" value="Import" class="button button-primary">
         </form>
 
@@ -69,10 +60,35 @@ if ( current_user_can( 'manage_options' ) ) {
             <img
                 alt="user import example"
                 title="user import example"
-                src="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png'; ?>"
+                src="<?php echo esc_url(plugins_url('admin/assets/img/user-import-screenshot.png', EMWTM_PLUGIN_FILE)); ?>"
                 style="max-width:100%;height:auto;"
             />
         </div>
+
+        <hr style="margin:30px 0;">
+
+        <h2>Add a Single Subordinate</h2>
+        <form id="add-single-subordinate-form" method="POST" action="">
+            <table class="form-table">
+                <tr>
+                    <th><label for="single_first_name">First Name</label></th>
+                    <td><input type="text" id="single_first_name" name="single_first_name" class="regular-text" required /></td>
+                </tr>
+                <tr>
+                    <th><label for="single_last_name">Last Name</label></th>
+                    <td><input type="text" id="single_last_name" name="single_last_name" class="regular-text" required /></td>
+                </tr>
+                <tr>
+                    <th><label for="single_email">Email Address</label></th>
+                    <td><input type="email" id="single_email" name="single_email" class="regular-text" required /></td>
+                </tr>
+            </table>
+            <input type="hidden" name="action" value="add_single_subordinate" />
+            <input type="hidden" name="teamLeaderID" id="single-leader-id" value="<?php echo esc_attr($active_leader_id); ?>" />
+            <?php wp_nonce_field('add_single_subordinate', '_single_subordinate_nonce'); ?>
+            <input type="submit" value="Add Subordinate" class="button button-primary">
+        </form>
+        <div id="add-single-subordinate-result"></div>
 
     <script>
         // Drag & drop CSV upload
@@ -100,8 +116,34 @@ if ( current_user_can( 'manage_options' ) ) {
                 this.value = "";
             }
         };
+
+        <?php if ($is_admin): ?>
+        // Admin: sync all teamLeaderID fields when dropdown changes
+        document.getElementById('admin-leader-select').addEventListener('change', function() {
+            var id = this.value;
+            document.getElementById('csv-leader-id').value = id;
+            document.getElementById('single-leader-id').value = id;
+        });
+        <?php endif; ?>
+
+        // Single subordinate add via AJAX
+        (function($) {
+            $('#add-single-subordinate-form').on('submit', function(e) {
+                e.preventDefault();
+                var $form = $(this);
+                var $btn  = $form.find('input[type="submit"]').prop('disabled', true);
+                var $result = $('#add-single-subordinate-result');
+                $result.html('');
+                $.post(add_single_subordinate.ajaxurl, $form.serialize(), function(data) {
+                    $result.html(data);
+                    if (data.indexOf('newpost-success') !== -1) { $form[0].reset(); }
+                }).fail(function() {
+                    $result.html('<p style="color:red;">Connection error.</p>');
+                }).always(function() {
+                    $btn.prop('disabled', false);
+                });
+            });
+        })(jQuery);
     </script>
-        </div>
-    <?php
-}
+</div>
 
