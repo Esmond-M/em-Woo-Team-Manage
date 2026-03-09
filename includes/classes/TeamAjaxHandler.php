@@ -117,12 +117,12 @@ class TeamAjaxHandler
             $entry = $config[$page];
             if (!empty($entry['styles'])) {
                 foreach ($entry['styles'] as $style) {
-                    wp_enqueue_style($style[0], $style[1], array(), EMWTM_VERSION);
+                    wp_enqueue_style($style[0], $style[1], array(), rand());
                 }
             }
             if (!empty($entry['scripts'])) {
                 foreach ($entry['scripts'] as $script) {
-                    wp_enqueue_script($script[0], $script[1], array('jquery'), EMWTM_VERSION, true);
+                    wp_enqueue_script($script[0], $script[1], array('jquery'), rand(), true);
                 }
             }
             if (!empty($entry['localize'])) {
