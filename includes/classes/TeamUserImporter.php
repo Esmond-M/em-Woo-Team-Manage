@@ -85,8 +85,14 @@ class TeamUserImporter
         $successCount = 0;
         $errorCount = 0;
         $rowCount = 0;
+        $dataRowCount = 0;
         foreach ($csv as $row) {
             if ($rowCount++ == 0) continue; // skip headers
+            if ($dataRowCount >= 50) {
+                echo '<p style="color:orange;">Only the first 50 users can be imported per CSV file.</p>';
+                break;
+            }
+            $dataRowCount++;
             global $wpdb;
             // Define table and leader_id here
             $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
@@ -146,10 +152,7 @@ class TeamUserImporter
                 $successCount++;
             }
 
-            if ($rowCount >= 50) {
-                echo '<p style="color:red;">Only first 50 users can be imported from CSV file.</p>';
-                break;
-            }
+
         }
 
         echo '<p style="color:green;">Number of successful subordinates imported: ' . $successCount . '</p>';

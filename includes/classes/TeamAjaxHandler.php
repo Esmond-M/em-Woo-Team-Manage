@@ -13,19 +13,12 @@ namespace emWooTeamManage\init_plugin\Classes;
 require_once __DIR__ . '/TeamUserImporter.php';
 class TeamAjaxHandler
 {
-    private $importer;
-
-    public function __construct() {
-        $this->importer = new TeamUserImporter();
-    }
-
     /**
      * Enqueues admin styles and scripts for plugin pages.
      */
     public function load_Admin_Styles(){
         global $pagenow;
-        $rand = rand(1, 99999999999);
-        $page = isset($_GET['page']) ? $_GET['page'] : '';
+        $page = isset($_GET['page']) ? sanitize_key($_GET['page']) : '';
 
         $config = [
             'user-import-controls' => [
@@ -81,12 +74,12 @@ class TeamAjaxHandler
             $entry = $config[$page];
             if (!empty($entry['styles'])) {
                 foreach ($entry['styles'] as $style) {
-                    wp_enqueue_style($style[0], $style[1], array(), $rand);
+                    wp_enqueue_style($style[0], $style[1], array(), EMWTM_VERSION);
                 }
             }
             if (!empty($entry['scripts'])) {
                 foreach ($entry['scripts'] as $script) {
-                    wp_enqueue_script($script[0], $script[1], array('jquery'), $rand, true);
+                    wp_enqueue_script($script[0], $script[1], array('jquery'), EMWTM_VERSION, true);
                 }
             }
             if (!empty($entry['localize'])) {
