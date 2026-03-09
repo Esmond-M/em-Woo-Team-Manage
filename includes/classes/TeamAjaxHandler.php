@@ -367,9 +367,7 @@ class TeamAjaxHandler
             wp_die('', '', ['response' => 403]);
         }
 
-        $csv = "email_address,first_name,last_name\r\n"
-             . "john.doe@example.com,John,Doe\r\n"
-             . "jane.smith@example.com,Jane,Smith\r\n";
+        $csv = file_get_contents(plugin_dir_path(EMWTM_PLUGIN_FILE) . 'admin/assets/sample-user-import.csv');
 
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="sample-user-import.csv"');
