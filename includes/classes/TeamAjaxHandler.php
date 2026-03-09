@@ -355,6 +355,32 @@ class TeamAjaxHandler
     }
 
     /**
+     * AJAX handler to download the sample import CSV.
+     * Requires the user to be logged in with at least team_leader or manage_options capability.
+     */
+    public function sample_csv(): void
+    {
+        if (!check_ajax_referer('emwtm_sample_csv', '_nonce', false)) {
+            wp_die('', '', ['response' => 403]);
+        }
+        if (!current_user_can('team_leader') && !current_user_can('manage_options')) {
+            wp_die('', '', ['response' => 403]);
+        }
+
+        $csv = "email_address,first_name,last_name\r\n"
+             . "john.doe@example.com,John,Doe\r\n"
+             . "jane.smith@example.com,Jane,Smith\r\n";
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="sample-user-import.csv"');
+        header('Content-Length: ' . strlen($csv));
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        echo $csv;
+        exit;
+    }
+
+    /**
      * AJAX handler to get subordinates of a team leader.
      */
     public function ajax_get_subordinates() {

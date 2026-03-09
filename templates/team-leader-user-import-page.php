@@ -32,7 +32,7 @@ if ($is_admin) {
 
         <h2>Import Subordinate Users from CSV</h2>
         <ol class="import-steps">
-            <li>Download the <a href="<?php echo esc_url(plugins_url('admin/assets/sample-user-import.csv', EMWTM_PLUGIN_FILE)); ?>" target="_blank">sample CSV file</a>.</li>
+            <li>Download the <a href="<?php echo esc_url(add_query_arg(['action' => 'emwtm_sample_csv', '_nonce' => wp_create_nonce('emwtm_sample_csv')], admin_url('admin-ajax.php'))); ?>">sample CSV file</a>.</li>
             <li>Fill in user data (max 50 users per import).</li>
             <li>Drag and drop or select your CSV file below.</li>
             <li>Click <strong>Import</strong> to upload and create users.</li>
