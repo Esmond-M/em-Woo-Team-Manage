@@ -67,10 +67,6 @@ class TeamAjaxHandler
                     ['team-leader-subordinate-import-script', plugins_url('admin/assets/js/min/teamSubordinateImport.min.js', EMWTM_PLUGIN_FILE)],
                 ],
                 'localize' => [
-                    ['team-leader-subordinate-import-script', 'emulate_Team_subordinate_Form_Submission', [
-                        'ajaxurl' => admin_url('admin-ajax.php'),
-                        'nonce'   => wp_create_nonce('emulate_team_subordinate'),
-                    ]],
                     ['team-leader-subordinate-import-script', 'user_import_submission', [
                         'ajaxurl' => admin_url('admin-ajax.php'),
                         'nonce'   => wp_create_nonce('user_import_submission'),
@@ -200,53 +196,6 @@ class TeamAjaxHandler
             <?php
         }
         exit;
-    }
-
-   
-    /**
-     * Handles AJAX emulation for importing subordinates via CSV for a team leader.
-     */
-    public function emulate_Team_subordinate_Form_Submission() {
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => 'Unauthorized'], 403);
-        }
-        if (!isset($_POST['_emulate_nonce']) || !wp_verify_nonce($_POST['_emulate_nonce'], 'emulate_team_subordinate')) {
-            wp_send_json_error(['message' => 'Invalid nonce'], 403);
-        }
-        // Sanitize and validate input
-        $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
-        $teamLeader_obj = get_user_by('id', $team_leader_id);
-
-        ?>
-        <p style="color:red;">
-            <strong>
-                Emulating: <?php echo esc_html($teamLeader_obj ? $teamLeader_obj->user_login : 'Unknown'); ?>
-            </strong>
-        </p>
-        <h2>Import Users from CSV</h2>
-        <form id="subordinate-import-form" action="" method="post" enctype="multipart/form-data">
-            <label>
-                CSV file limit 5MB
-                <input id="csvUpload" type="file" name="csvUpload" accept=".csv" />
-            </label>
-            <input name="teamLeaderID" type="hidden" value="<?php echo esc_attr($team_leader_id); ?>" />
-            <input name="_import_nonce" type="hidden" value="<?php echo esc_attr(wp_create_nonce('user_import_submission')); ?>" />
-            <input type="submit" value="Import">
-        </form>
-
-        <div class="instructional-container">
-            <p>
-                Import up to 50 users at once. CSV requires first row fields be <strong>email_address, first_name, last_name</strong>.
-                Those are the three pieces of info needed for each user.
-            </p>
-            <img
-                alt="user import example"
-                title="user import example"
-                src="<?php echo esc_url(plugins_url('admin/assets/img/user-import-screenshot.png', EMWTM_PLUGIN_FILE)); ?>"
-                style="max-width:100%;height:auto;"
-            />
-        </div>
-        <?php
     }
 
     /**

@@ -1,44 +1,34 @@
 <?php
 /**
- * Team Leader User Import Page
- * Improved markup for user-friendliness and clarity.
+ * Team Leader / Admin Import & Add Page
  */
-?>
-    <div class="import-container">
-<?php
-if ( current_user_can( 'manage_options' ) ) {
-    $teamLeaderArgs = array(
-        'role__in' => array( 'team_leader' ),
-    );
-    $teamLeaderUsers = get_users( $teamLeaderArgs );
-    if ( count( $teamLeaderUsers ) === 0 ) {
-        wp_die( '<p>No Team leader user to emulate</p>' );
+
+$is_admin = current_user_can('manage_options');
+
+if ($is_admin) {
+    $teamLeaderUsers = get_users(['role__in' => ['team_leader']]);
+    if (empty($teamLeaderUsers)) {
+        echo '<div class="import-container"><p>No team leader accounts exist yet.</p></div>';
+        return;
     }
-    ?>
-    <div class="emulation-form">
-        <h2>Emulate Team Leader for CSV Import</h2>
-        <ol class="import-steps">
-            <li>Select a team leader to emulate.</li>
-            <li>Click <strong>Emulate</strong> to view the CSV import form as that leader.</li>
-        </ol>
-        <form id="emulate-team-leader-form" method="POST" action="">
-            <fieldset>
-                <legend>Select Team Leader</legend>
-                <label for="teamLeaderSelectOption">Team Leader:</label>
-                <select name="teamLeaderSelectOption" id="teamLeaderSelectOption" form="emulate-team-leader-form">
-                    <?php foreach ( $teamLeaderUsers as $user ) : ?>
-                        <option value="<?php echo esc_attr( $user->ID ); ?>"><?php echo esc_html( $user->user_login ); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </fieldset>
-            <input type="hidden" name="_emulate_nonce" value="<?php echo esc_attr(wp_create_nonce('emulate_team_subordinate')); ?>" />
-            <input type="hidden" name="action" value="emulate_Team_subordinate_Form_Submission" />
-            <input type="submit" value="Emulate" class="button button-primary">
-        </form>
-    </div>
-    <?php
+    $active_leader_id = $teamLeaderUsers[0]->ID;
 } else {
-    ?>
+    $active_leader_id = get_current_user_id();
+}
+?>
+<div class="import-container">
+
+<?php if ($is_admin): ?>
+    <div class="emulation-form" style="margin-bottom:20px;padding:12px;background:#f8f8f8;border:1px solid #ddd;">
+        <label for="admin-leader-select"><strong>Acting as Team Leader:</strong></label>
+        <select id="admin-leader-select" style="margin-left:8px;">
+            <?php foreach ($teamLeaderUsers as $user): ?>
+                <option value="<?php echo esc_attr($user->ID); ?>"><?php echo esc_html($user->display_name . ' (' . $user->user_email . ')'); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <hr style="margin-bottom:24px;">
+<?php endif; ?>
 
         <h2>Import Subordinate Users from CSV</h2>
         <ol class="import-steps">
@@ -55,7 +45,7 @@ if ( current_user_can( 'manage_options' ) ) {
                     <input id="csvUpload" type="file" name="csvUpload" accept=".csv" style="display:inline-block;" />
                 </div>
             </fieldset>
-            <input name="teamLeaderID" type="hidden" value="<?php echo esc_attr( get_current_user_id() ); ?>">
+            <input name="teamLeaderID" id="csv-leader-id" type="hidden" value="<?php echo esc_attr($active_leader_id); ?>">
             <?php wp_nonce_field('user_import_submission', '_import_nonce'); ?>
             <input type="submit" value="Import" class="button button-primary">
         </form>
@@ -94,7 +84,7 @@ if ( current_user_can( 'manage_options' ) ) {
                 </tr>
             </table>
             <input type="hidden" name="action" value="add_single_subordinate" />
-            <input type="hidden" name="teamLeaderID" value="<?php echo esc_attr(get_current_user_id()); ?>" />
+            <input type="hidden" name="teamLeaderID" id="single-leader-id" value="<?php echo esc_attr($active_leader_id); ?>" />
             <?php wp_nonce_field('add_single_subordinate', '_single_subordinate_nonce'); ?>
             <input type="submit" value="Add Subordinate" class="button button-primary">
         </form>
@@ -127,6 +117,15 @@ if ( current_user_can( 'manage_options' ) ) {
             }
         };
 
+        <?php if ($is_admin): ?>
+        // Admin: sync all teamLeaderID fields when dropdown changes
+        document.getElementById('admin-leader-select').addEventListener('change', function() {
+            var id = this.value;
+            document.getElementById('csv-leader-id').value = id;
+            document.getElementById('single-leader-id').value = id;
+        });
+        <?php endif; ?>
+
         // Single subordinate add via AJAX
         (function($) {
             $('#add-single-subordinate-form').on('submit', function(e) {
@@ -146,7 +145,5 @@ if ( current_user_can( 'manage_options' ) ) {
             });
         })(jQuery);
     </script>
-        </div>
-    <?php
-}
+</div>
 
