@@ -47,6 +47,12 @@ class TeamManageCore
         add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
         add_action('wp_ajax_add_single_subordinate', [$this->ajax, 'add_single_subordinate']);
         add_action('wp_ajax_export_team_csv', [$this->ajax, 'export_team_csv']);
+
+        // WooCommerce My Account tab
+        add_action('init', [$this, 'register_myaccount_endpoint']);
+        add_filter('woocommerce_account_menu_items', [$this, 'add_myaccount_menu_item']);
+        add_action('woocommerce_account_team-manage_endpoint', [$this, 'myaccount_team_manage_content']);
+        add_filter('the_title', [$this, 'myaccount_endpoint_title']);
         
     }
 
@@ -141,6 +147,47 @@ class TeamManageCore
                 $submenu['position']
             );
         }
+    }
+
+    /**
+    * Registers the custom WooCommerce My Account endpoint.
+    */
+    public function register_myaccount_endpoint() {
+        add_rewrite_endpoint('team-manage', EP_ROOT | EP_PAGES);
+    }
+
+    /**
+    * Adds the Team Manage link to the WooCommerce My Account navigation.
+    */
+    public function add_myaccount_menu_item(array $items): array {
+        $user = wp_get_current_user();
+        if (!in_array('team_leader', (array) $user->roles, true)) {
+            return $items;
+        }
+        // Insert before logout
+        $logout = $items['customer-logout'] ?? [];
+        unset($items['customer-logout']);
+        $items['team-manage']    = __('My Team', 'emWooTeamManage');
+        $items['customer-logout'] = $logout;
+        return $items;
+    }
+
+    /**
+    * Renders content for the team-manage WooCommerce endpoint.
+    */
+    public function myaccount_team_manage_content() {
+        $this->require_template('team-leader-admin-page.php');
+    }
+
+    /**
+    * Sets the page title for the team-manage endpoint.
+    */
+    public function myaccount_endpoint_title(string $title): string {
+        global $wp_query;
+        if (!is_null($wp_query) && isset($wp_query->query_vars['team-manage']) && in_the_loop()) {
+            $title = __('My Team', 'emWooTeamManage');
+        }
+        return $title;
     }
 
     /**
