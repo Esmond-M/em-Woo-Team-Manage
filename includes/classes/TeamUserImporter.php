@@ -33,6 +33,16 @@ class TeamUserImporter
      * Handles AJAX CSV import of subordinate users for a team leader.
      */
     public function user_import_submission() {
+        // Auth: must be a team leader, admin, or emulating via admin
+        if (!current_user_can('team_leader') && !current_user_can('manage_options')) {
+            wp_die('<p style="color:red;">Unauthorized.</p>');
+        }
+        // Nonce verification
+        $nonce = isset($_POST['_import_nonce']) ? sanitize_text_field(wp_unslash($_POST['_import_nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'user_import_submission')) {
+            wp_die('<p style="color:red;">Security check failed.</p>');
+        }
+
         // Load required WordPress files
 
         // It allows create user functions

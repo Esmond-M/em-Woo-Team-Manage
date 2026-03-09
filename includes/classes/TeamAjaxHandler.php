@@ -30,10 +30,12 @@ class TeamAjaxHandler
                 ],
                 'localize' => [
                     ['team-leader-subordinate-import-script', 'emulate_Team_subordinate_Form_Submission', [
-                        'ajaxurl' => admin_url('admin-ajax.php')
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                        'nonce'   => wp_create_nonce('emulate_team_subordinate'),
                     ]],
                     ['team-leader-subordinate-import-script', 'user_import_submission', [
-                        'ajaxurl' => admin_url('admin-ajax.php')
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                        'nonce'   => wp_create_nonce('user_import_submission'),
                     ]],
                 ],
             ],
@@ -95,13 +97,20 @@ class TeamAjaxHandler
      * Handles AJAX submission for team leader actions (delete/resend password).
      */
     public function team_Leader_Form_Submission() {
-        // Verify nonce for security
+        // Verify nonce and role
         if (
             empty($_POST['team_Leader_Form_Submission_nonce_field']) ||
             !wp_verify_nonce($_POST['team_Leader_Form_Submission_nonce_field'], 'team_Leader_Form_Submission')
         ) {
-            exit;
+            wp_die('', '', ['response' => 403]);
         }
+        if (!current_user_can('team_leader') && !current_user_can('manage_options')) {
+            wp_die('', '', ['response' => 403]);
+        }
+
+        global $wpdb;
+        $current_leader_id = get_current_user_id();
+        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
 
         // Check if user IDs are provided
         if (!empty($_POST['userID'])) {
@@ -109,7 +118,17 @@ class TeamAjaxHandler
             <div class="user-deletion-password-contain">
             <?php
             $action = isset($_POST['teamLeaderSelectOption']) ? sanitize_text_field($_POST['teamLeaderSelectOption']) : '';
-            foreach ($_POST['userID'] as $id) {
+            foreach ($_POST['userID'] as $raw_id) {
+                $id = (int) $raw_id;
+                // Verify this subordinate belongs to the current leader
+                $is_subordinate = (bool) $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM $table WHERE leader_id = %d AND subordinate_id = %d",
+                    $current_leader_id, $id
+                ));
+                if (!$is_subordinate) {
+                    echo '<p class="newpost-error">User ID ' . esc_html($id) . ' is not your subordinate.</p>';
+                    continue;
+                }
                 $user = get_user_by('id', $id);
                 if (!$user) {
                     echo '<p class="newpost-error">User ID ' . esc_html($id) . ' not found.</p>';
@@ -118,6 +137,7 @@ class TeamAjaxHandler
 
                 if ($action === 'delete') {
                     wp_delete_user($id);
+                    $wpdb->delete($table, ['subordinate_id' => $id], ['%d']);
                     echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' deleted</p>';
                 } elseif ($action === 'resend') {
                     retrieve_password($user->user_login);
@@ -141,6 +161,12 @@ class TeamAjaxHandler
      * Handles AJAX emulation for importing subordinates via CSV for a team leader.
      */
     public function emulate_Team_subordinate_Form_Submission() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized'], 403);
+        }
+        if (!isset($_POST['_emulate_nonce']) || !wp_verify_nonce($_POST['_emulate_nonce'], 'emulate_team_subordinate')) {
+            wp_send_json_error(['message' => 'Invalid nonce'], 403);
+        }
         // Sanitize and validate input
         $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
         $teamLeader_obj = get_user_by('id', $team_leader_id);
@@ -159,6 +185,7 @@ class TeamAjaxHandler
                 <input id="csvUpload" type="file" name="csvUpload" accept=".csv" />
             </label>
             <input name="teamLeaderID" type="hidden" value="<?php echo esc_attr($team_leader_id); ?>" />
+            <input name="_import_nonce" type="hidden" value="<?php echo esc_attr(wp_create_nonce('user_import_submission')); ?>" />
             <input type="submit" value="Import">
         </form>
 

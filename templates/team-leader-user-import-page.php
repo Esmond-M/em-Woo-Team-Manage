@@ -31,6 +31,7 @@ if ( current_user_can( 'manage_options' ) ) {
                     <?php endforeach; ?>
                 </select>
             </fieldset>
+            <input type="hidden" name="_emulate_nonce" value="<?php echo esc_attr(wp_create_nonce('emulate_team_subordinate')); ?>" />
             <input type="hidden" name="action" value="emulate_Team_subordinate_Form_Submission" />
             <input type="submit" value="Emulate" class="button button-primary">
         </form>
@@ -56,6 +57,7 @@ if ( current_user_can( 'manage_options' ) ) {
                 </div>
             </fieldset>
             <input name="teamLeaderID" type="hidden" value="<?php echo esc_attr( get_current_user_id() ); ?>">
+            <?php wp_nonce_field('user_import_submission', '_import_nonce'); ?>
             <input type="submit" value="Import" class="button button-primary">
         </form>
 
