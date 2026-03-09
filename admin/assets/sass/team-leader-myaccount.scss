@@ -1,0 +1,370 @@
+// ─── Design tokens ────────────────────────────────────────────────────────────
+$primary:      #3a86c8;
+$primary-dark: #2e6ea6;
+$text-dark:    #1d3557;
+$text-mid:     #444;
+$text-base:    #333;
+$border:       #b0bec5;
+$border-light: #e5e7eb;
+$bg-light:     #f7faff;
+$bg-card:      #ffffff;
+$info-bg:      #eef4fb;
+$info-border:  #bad4f5;
+$shadow-sm:    0 1px 4px rgba(0,0,0,0.07);
+$shadow-md:    0 2px 8px rgba(0,0,0,0.07);
+
+// ─── Caret SVG (url-encoded, colour matches $primary) ─────────────────────────
+$caret-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%233a86c8' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+
+// ─── Outer wrapper ────────────────────────────────────────────────────────────
+.emwtm-myaccount {
+  max-width: 900px;
+  margin: 0 0 32px;
+  font-family: inherit;
+  color: $text-base;
+
+  // ── Page heading ─────────────────────────────────────────────────────────
+  > h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid $border-light;
+  }
+
+  // ── Notice banner ─────────────────────────────────────────────────────────
+  .emwtm-notice {
+    background: #f0f6ff;
+    border: 1px solid $info-border;
+    border-left: 4px solid $primary;
+    border-radius: 5px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    color: $text-dark;
+  }
+
+  // ── Instruction list ──────────────────────────────────────────────────────
+  .leader-steps {
+    background: $bg-light;
+    border-left: 4px solid $primary;
+    border-radius: 0 5px 5px 0;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    color: $text-base;
+    list-style: decimal inside;
+
+    li {
+      margin-bottom: 5px;
+      line-height: 1.5;
+    }
+  }
+
+  // ── Admin leader-selector bar ─────────────────────────────────────────────
+  .emulation-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: $info-bg;
+    border: 1px solid $info-border;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+
+    label, strong {
+      white-space: nowrap;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: $text-dark;
+    }
+
+    select {
+      font-size: 0.9rem;
+      border: 1px solid $border;
+      border-radius: 5px;
+      padding: 6px 30px 6px 10px;
+      background: $bg-card;
+      color: $text-base;
+      min-width: 220px;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: $caret-svg;
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 10px;
+
+      &:focus {
+        border-color: $primary;
+        outline: 2px solid rgba(58,134,200,0.25);
+        outline-offset: 1px;
+      }
+    }
+  }
+
+  // ── Export CSV button ─────────────────────────────────────────────────────
+  #export-team-csv-form {
+    display: inline-block;
+    margin-bottom: 14px;
+
+    button {
+      background: $bg-card;
+      border: 1px solid $border;
+      border-radius: 5px;
+      padding: 7px 16px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      color: #444;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+      &:hover {
+        background: #f0f6ff;
+        border-color: $primary;
+        color: $text-dark;
+      }
+    }
+  }
+
+  // ── Main form card ────────────────────────────────────────────────────────
+  #team-leader-form {
+    background: $bg-card;
+    border: 1px solid $border-light;
+    border-radius: 8px;
+    box-shadow: $shadow-md;
+    padding: 20px 24px;
+
+    fieldset {
+      border: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    legend {
+      font-size: 1rem;
+      font-weight: 700;
+      color: $text-dark;
+      margin-bottom: 14px;
+      padding: 0;
+    }
+
+    input[type="submit"] {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 9px 22px;
+      background: $primary;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+
+      &:hover { background: $primary-dark; }
+    }
+  }
+
+  // ── Tables ────────────────────────────────────────────────────────────────
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+    background: $bg-card;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: $shadow-sm;
+    margin-bottom: 16px;
+
+    th {
+      background: $primary;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 11px 14px;
+      text-align: left;
+      border: none;
+    }
+
+    td {
+      padding: 10px 14px;
+      vertical-align: middle;
+      color: $text-base;
+      border: none;
+      border-bottom: 1px solid $border-light;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tbody {
+      tr:nth-child(even) td { background: $bg-light; }
+      tr:hover td {
+        background: $info-bg;
+        transition: background 0.1s;
+      }
+    }
+
+    select {
+      border: 1px solid $border;
+      border-radius: 4px;
+      padding: 5px 24px 5px 9px;
+      font-size: 0.88rem;
+      background: $bg-card;
+      color: $text-base;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: $caret-svg;
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: $primary;
+    }
+  }
+
+  // ── Edit row button ───────────────────────────────────────────────────────
+  .edit-subordinate-btn {
+    background: $bg-card;
+    border: 1px solid $primary;
+    color: $primary;
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      background: $primary;
+      color: #fff;
+    }
+  }
+}
+
+// ── Utility button class (usable anywhere) ────────────────────────────────────
+.emwtm-btn {
+  display: inline-block;
+  padding: 9px 22px;
+  background: #3a86c8;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #2e6ea6; }
+}
+
+// ─── Edit-subordinate modal ────────────────────────────────────────────────────
+#editSubordinateModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // theme resets the display to none via inline style
+  &[style*="display:none"],
+  &[style*="display: none"] { display: none !important; }
+}
+
+#editSubordinateForm {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 28px 32px;
+  min-width: 320px;
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $text-mid;
+    margin-bottom: 2px;
+    display: block;
+  }
+
+  input[type="email"],
+  input[type="text"] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid $border;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    color: $text-base;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+
+    &:focus {
+      border-color: $primary;
+      outline: 2px solid rgba(58,134,200,0.2);
+      outline-offset: 1px;
+    }
+  }
+
+  input[type="submit"] {
+    background: $primary;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 9px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover { background: $primary-dark; }
+  }
+
+  #closeEditModal {
+    background: #f7f7f7;
+    border: 1px solid $border;
+    color: #555;
+    border-radius: 5px;
+    padding: 9px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+
+    &:hover {
+      background: $border-light;
+      border-color: #aaa;
+    }
+  }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .emwtm-myaccount {
+    table {
+      font-size: 0.8rem;
+
+      th, td { padding: 8px 10px; }
+    }
+
+    #team-leader-form { padding: 14px 16px; }
+  }
+
+  #editSubordinateForm {
+    padding: 20px 18px;
+    min-width: 0;
+  }
+}

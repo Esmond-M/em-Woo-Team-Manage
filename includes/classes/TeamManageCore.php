@@ -53,6 +53,7 @@ class TeamManageCore
         add_filter('woocommerce_account_menu_items', [$this, 'add_myaccount_menu_item']);
         add_action('woocommerce_account_team-manage_endpoint', [$this, 'myaccount_team_manage_content']);
         add_filter('the_title', [$this, 'myaccount_endpoint_title']);
+        add_action('wp_enqueue_scripts', [$this, 'load_myaccount_styles']);
         
     }
 
@@ -186,10 +187,28 @@ class TeamManageCore
     }
 
     /**
+    * Enqueues frontend styles for the My Account team-manage page.
+    */
+    public function load_myaccount_styles() {
+        global $wp_query;
+        if (!is_account_page() || !isset($wp_query->query_vars['team-manage'])) {
+            return;
+        }
+        wp_enqueue_style(
+            'emwtm-myaccount-styles',
+            plugins_url('admin/assets/css/team-leader-myaccount.css', EMWTM_PLUGIN_FILE),
+            [],
+            EMWTM_VERSION
+        );
+    }
+
+    /**
     * Renders content for the team-manage WooCommerce endpoint.
     */
     public function myaccount_team_manage_content() {
+        echo '<div class="emwtm-myaccount">';
         $this->require_template('team-leader-admin-page.php');
+        echo '</div>';
     }
 
     /**
