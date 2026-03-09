@@ -150,8 +150,15 @@ class TeamAjaxHandler
         }
 
         global $wpdb;
-        $current_leader_id = get_current_user_id();
         $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        if (current_user_can('manage_options') && !empty($_POST['leaderID'])) {
+            $posted_leader = get_user_by('id', (int) $_POST['leaderID']);
+            $current_leader_id = ($posted_leader && in_array('team_leader', (array) $posted_leader->roles))
+                ? (int) $_POST['leaderID']
+                : get_current_user_id();
+        } else {
+            $current_leader_id = get_current_user_id();
+        }
 
         // Check if user IDs are provided
         if (!empty($_POST['userID'])) {
@@ -241,9 +248,16 @@ class TeamAjaxHandler
         }
         check_ajax_referer('export_team_csv', '_export_nonce');
 
-        $leader_id = get_current_user_id();
         global $wpdb;
         $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        if (current_user_can('manage_options') && !empty($_POST['leaderID'])) {
+            $posted_leader = get_user_by('id', (int) $_POST['leaderID']);
+            $leader_id = ($posted_leader && in_array('team_leader', (array) $posted_leader->roles))
+                ? (int) $_POST['leaderID']
+                : get_current_user_id();
+        } else {
+            $leader_id = get_current_user_id();
+        }
         $sub_ids = $wpdb->get_col($wpdb->prepare(
             "SELECT subordinate_id FROM $table WHERE leader_id = %d", $leader_id
         ));
