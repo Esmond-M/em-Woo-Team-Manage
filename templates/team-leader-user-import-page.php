@@ -38,12 +38,11 @@ if ( current_user_can( 'manage_options' ) ) {
     </div>
     <?php
 } else {
-    $siteURL = esc_url( get_site_url() );
     ?>
 
         <h2>Import Subordinate Users from CSV</h2>
         <ol class="import-steps">
-            <li>Download the <a href="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/sample-user-import.csv'; ?>" target="_blank">sample CSV file</a>.</li>
+            <li>Download the <a href="<?php echo esc_url(plugins_url('admin/assets/sample-user-import.csv', EMWTM_PLUGIN_FILE)); ?>" target="_blank">sample CSV file</a>.</li>
             <li>Fill in user data (max 50 users per import).</li>
             <li>Drag and drop or select your CSV file below.</li>
             <li>Click <strong>Import</strong> to upload and create users.</li>
@@ -71,7 +70,7 @@ if ( current_user_can( 'manage_options' ) ) {
             <img
                 alt="user import example"
                 title="user import example"
-                src="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png'; ?>"
+                src="<?php echo esc_url(plugins_url('admin/assets/img/user-import-screenshot.png', EMWTM_PLUGIN_FILE)); ?>"
                 style="max-width:100%;height:auto;"
             />
         </div>

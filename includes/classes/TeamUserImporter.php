@@ -44,53 +44,27 @@ class TeamUserImporter
         }
 
         // Load required WordPress files
-
-        // It allows create user functions
-        require_once(ABSPATH . 'wp-includes/user.php');
-
-        // WordPress environment
-        require_once(ABSPATH . 'wp-load.php');
-
-        // it allows us to use wp_handle_upload() function
         require_once(ABSPATH . 'wp-admin/includes/file.php');
         ?>
         <div class="user-upload-results-contain">
         <?php
         // Validate file upload
-        if (empty($_FILES['csvUpload'])) {
-            wp_die('<p style="color:red;">File does not exist.</p>');
+        if (empty($_FILES['csvUpload']) || $_FILES['csvUpload']['error'] !== UPLOAD_ERR_OK) {
+            wp_die('<p style="color:red;">File does not exist or upload error.</p>');
         }
-        $file_size = $_FILES['csvUpload']['size'];
+        $file_size = (int) $_FILES['csvUpload']['size'];
         if ($file_size > 5242880) {
             wp_die('<p>File too large. File must be less than 5 megabytes.</p>');
         }
-        $upload = wp_handle_upload(
-            $_FILES['csvUpload'],
-            array('test_form' => false)
-        );
 
-        if (!empty($upload['error'])) {
-            wp_die('<p style="color:red;">' . esc_html($upload["error"]) . '</p>');
+        // Move to a private temp file — never touches the media library
+        $tmp_file = wp_tempnam('emwtm_csv_');
+        if (!move_uploaded_file($_FILES['csvUpload']['tmp_name'], $tmp_file)) {
+            wp_die('<p style="color:red;">Could not process the uploaded file.</p>');
         }
 
-        // Add uploaded file into WordPress media library
-        $attachment_id = wp_insert_attachment(
-            array(
-                'guid'           => $upload['url'],
-                'post_mime_type' => $upload['type'],
-                'post_title'     => basename($upload['file']),
-                'post_content'   => '',
-                'post_status'    => 'inherit',
-            ),
-            $upload['file']
-        );
-
-        if (is_wp_error($attachment_id) || !$attachment_id) {
-            wp_die('<p style="color:red;">Upload error.</p>');
-        }
-
-        // Use local file path for reading CSV to avoid SSL errors
-        $csv = $this->readCSV($upload['file']);
+        // Use local file path for reading CSV
+        $csv = $this->readCSV($tmp_file);
 
         $successCount = 0;
         $errorCount = 0;
@@ -116,8 +90,8 @@ class TeamUserImporter
             $max_subordinates = 200;
             if ($current_count >= $max_subordinates) {
                 echo '<p style="color:red;">Maximum number of subordinates ('.$max_subordinates.') reached for this team leader. No more can be imported.</p>';
-                wp_delete_attachment($attachment_id, true); // Clean up uploaded file
-                wp_die(); // Stop further processing
+                @unlink($tmp_file);
+                wp_die();
             }
 
             // ...now process the row and create user...
@@ -169,7 +143,7 @@ class TeamUserImporter
         ?>
         </div>
         <?php
-        wp_delete_attachment($attachment_id, true);
+        @unlink($tmp_file);
         exit;
     }
 }

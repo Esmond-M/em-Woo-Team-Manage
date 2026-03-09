@@ -23,10 +23,10 @@ class TeamAjaxHandler
         $config = [
             'user-import-controls' => [
                 'styles' => [
-                    ['team-leader-user-import-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css'],
+                    ['team-leader-user-import-styles', plugins_url('admin/assets/css/team-leader-user-import.css', EMWTM_PLUGIN_FILE)],
                 ],
                 'scripts' => [
-                    ['team-leader-subordinate-import-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamSubordinateImport.min.js'],
+                    ['team-leader-subordinate-import-script', plugins_url('admin/assets/js/min/teamSubordinateImport.min.js', EMWTM_PLUGIN_FILE)],
                 ],
                 'localize' => [
                     ['team-leader-subordinate-import-script', 'emulate_Team_subordinate_Form_Submission', [
@@ -41,11 +41,11 @@ class TeamAjaxHandler
             ],
             'site-admin-team-leader-admin' => [
                 'styles' => [
-                    ['team-leader-user-import-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-user-import.css'],
-                    ['site-admin-team-leader-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/site-admin-team-leader.css'],
+                    ['team-leader-user-import-styles', plugins_url('admin/assets/css/team-leader-user-import.css', EMWTM_PLUGIN_FILE)],
+                    ['site-admin-team-leader-styles', plugins_url('admin/assets/css/site-admin-team-leader.css', EMWTM_PLUGIN_FILE)],
                 ],
                 'scripts' => [
-                    ['site-admin-team-leader-script', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/siteAdminTeamLeader.min.js'],
+                    ['site-admin-team-leader-script', plugins_url('admin/assets/js/min/siteAdminTeamLeader.min.js', EMWTM_PLUGIN_FILE)],
                 ],
                 'localize' => [
                     ['site-admin-team-leader-script', 'siteAdminTeamLeader', [
@@ -55,11 +55,11 @@ class TeamAjaxHandler
             ],
             'team-leader-admin' => [
                 'styles' => [
-                    ['team-leader-admin-styles', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/css/team-leader-admin.css'],
+                    ['team-leader-admin-styles', plugins_url('admin/assets/css/team-leader-admin.css', EMWTM_PLUGIN_FILE)],
                 ],
                 'scripts' => [
-                    ['team-leader-admin', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamLeaderAdmin.min.js'],
-                    ['team-subordinate-import', '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/js/min/teamSubordinateImport.min.js'],
+                    ['team-leader-admin', plugins_url('admin/assets/js/min/teamLeaderAdmin.min.js', EMWTM_PLUGIN_FILE)],
+                    ['team-subordinate-import', plugins_url('admin/assets/js/min/teamSubordinateImport.min.js', EMWTM_PLUGIN_FILE)],
                 ],
                 'localize' => [
                     ['team-subordinate-import', 'team_Leader_Form_Submission', [
@@ -170,7 +170,6 @@ class TeamAjaxHandler
         // Sanitize and validate input
         $team_leader_id = isset($_POST['teamLeaderSelectOption']) ? intval($_POST['teamLeaderSelectOption']) : 0;
         $teamLeader_obj = get_user_by('id', $team_leader_id);
-        $siteURL = esc_url(get_site_url());
 
         ?>
         <p style="color:red;">
@@ -197,7 +196,7 @@ class TeamAjaxHandler
             <img
                 alt="user import example"
                 title="user import example"
-                src="<?php echo $siteURL . '/wp-content/plugins/em-Woo-Team-Manage/admin/assets/img/user-import-screenshot.png'; ?>"
+                src="<?php echo esc_url(plugins_url('admin/assets/img/user-import-screenshot.png', EMWTM_PLUGIN_FILE)); ?>"
                 style="max-width:100%;height:auto;"
             />
         </div>
