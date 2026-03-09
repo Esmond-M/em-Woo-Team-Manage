@@ -37,6 +37,9 @@ class TeamAjaxHandler
                         'ajaxurl' => admin_url('admin-ajax.php'),
                         'nonce'   => wp_create_nonce('user_import_submission'),
                     ]],
+                    ['team-leader-subordinate-import-script', 'add_single_subordinate', [
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                    ]],
                 ],
             ],
             'site-admin-team-leader-admin' => [
@@ -234,6 +237,74 @@ class TeamAjaxHandler
         } else {
             wp_send_json_error(['message' => 'Invalid request']);
         }
+        wp_die();
+    }
+
+    /**
+     * AJAX handler to add a single subordinate by email.
+     */
+    public function add_single_subordinate() {
+        if (!current_user_can('team_leader') && !current_user_can('manage_options')) {
+            echo '<p class="newpost-error">Unauthorized.</p>';
+            wp_die();
+        }
+        $nonce = isset($_POST['_single_subordinate_nonce']) ? sanitize_text_field(wp_unslash($_POST['_single_subordinate_nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'add_single_subordinate')) {
+            echo '<p class="newpost-error">Security check failed.</p>';
+            wp_die();
+        }
+
+        $first_name = isset($_POST['single_first_name']) ? sanitize_text_field($_POST['single_first_name']) : '';
+        $last_name  = isset($_POST['single_last_name'])  ? sanitize_text_field($_POST['single_last_name'])  : '';
+        $email      = isset($_POST['single_email'])      ? sanitize_email($_POST['single_email'])           : '';
+        $leader_id  = isset($_POST['teamLeaderID'])      ? (int) $_POST['teamLeaderID']                     : 0;
+
+        if (empty($first_name) || empty($last_name) || empty($email) || !is_email($email)) {
+            echo '<p class="newpost-error">Please fill in all fields with a valid email.</p>';
+            wp_die();
+        }
+
+        // Authorise: team leaders can only add to themselves
+        if (current_user_can('team_leader') && !current_user_can('manage_options')) {
+            $leader_id = get_current_user_id();
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+
+        $current_count = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table WHERE leader_id = %d", $leader_id
+        ));
+        if ($current_count >= 200) {
+            echo '<p class="newpost-error">Maximum subordinate limit (200) reached.</p>';
+            wp_die();
+        }
+
+        if (email_exists($email)) {
+            echo '<p class="newpost-error">A user with that email already exists.</p>';
+            wp_die();
+        }
+
+        $password = wp_generate_password();
+        $user_id  = wp_insert_user([
+            'user_login' => $email,
+            'user_pass'  => $password,
+            'user_email' => $email,
+            'first_name' => $first_name,
+            'last_name'  => $last_name,
+            'role'       => 'team_subordinate',
+        ]);
+
+        if (is_wp_error($user_id)) {
+            echo '<p class="newpost-error">' . esc_html($user_id->get_error_message()) . '</p>';
+            wp_die();
+        }
+
+        add_user_meta($user_id, 'teamID', $leader_id);
+        wp_new_user_notification($user_id, null, 'both');
+        $wpdb->insert($table, ['leader_id' => $leader_id, 'subordinate_id' => $user_id]);
+
+        echo '<p class="newpost-success">' . esc_html($first_name . ' ' . $last_name) . ' (' . esc_html($email) . ') added successfully.</p>';
         wp_die();
     }
 

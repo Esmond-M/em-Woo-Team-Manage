@@ -45,6 +45,7 @@ class TeamManageCore
         add_action('wp_ajax_get_subordinates', [$this->ajax, 'ajax_get_subordinates']);
         $this->importer = new TeamUserImporter();
         add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
+        add_action('wp_ajax_add_single_subordinate', [$this->ajax, 'add_single_subordinate']);
         
     }
 

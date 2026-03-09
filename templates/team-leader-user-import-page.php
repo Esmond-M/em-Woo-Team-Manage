@@ -75,6 +75,31 @@ if ( current_user_can( 'manage_options' ) ) {
             />
         </div>
 
+        <hr style="margin:30px 0;">
+
+        <h2>Add a Single Subordinate</h2>
+        <form id="add-single-subordinate-form" method="POST" action="">
+            <table class="form-table">
+                <tr>
+                    <th><label for="single_first_name">First Name</label></th>
+                    <td><input type="text" id="single_first_name" name="single_first_name" class="regular-text" required /></td>
+                </tr>
+                <tr>
+                    <th><label for="single_last_name">Last Name</label></th>
+                    <td><input type="text" id="single_last_name" name="single_last_name" class="regular-text" required /></td>
+                </tr>
+                <tr>
+                    <th><label for="single_email">Email Address</label></th>
+                    <td><input type="email" id="single_email" name="single_email" class="regular-text" required /></td>
+                </tr>
+            </table>
+            <input type="hidden" name="action" value="add_single_subordinate" />
+            <input type="hidden" name="teamLeaderID" value="<?php echo esc_attr(get_current_user_id()); ?>" />
+            <?php wp_nonce_field('add_single_subordinate', '_single_subordinate_nonce'); ?>
+            <input type="submit" value="Add Subordinate" class="button button-primary">
+        </form>
+        <div id="add-single-subordinate-result"></div>
+
     <script>
         // Drag & drop CSV upload
         var dropArea = document.getElementById('csv-drop-area');
@@ -101,6 +126,25 @@ if ( current_user_can( 'manage_options' ) ) {
                 this.value = "";
             }
         };
+
+        // Single subordinate add via AJAX
+        (function($) {
+            $('#add-single-subordinate-form').on('submit', function(e) {
+                e.preventDefault();
+                var $form = $(this);
+                var $btn  = $form.find('input[type="submit"]').prop('disabled', true);
+                var $result = $('#add-single-subordinate-result');
+                $result.html('');
+                $.post(add_single_subordinate.ajaxurl, $form.serialize(), function(data) {
+                    $result.html(data);
+                    if (data.indexOf('newpost-success') !== -1) { $form[0].reset(); }
+                }).fail(function() {
+                    $result.html('<p style="color:red;">Connection error.</p>');
+                }).always(function() {
+                    $btn.prop('disabled', false);
+                });
+            });
+        })(jQuery);
     </script>
         </div>
     <?php
