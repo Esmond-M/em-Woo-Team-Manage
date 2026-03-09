@@ -71,6 +71,10 @@ class TeamAjaxHandler
                     ['team-leader-admin', 'handle_edit_subordinate', [
                         'ajaxurl' => admin_url('admin-ajax.php'),
                     ]],
+                    ['team-leader-admin', 'export_team_csv', [
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                        'nonce'   => wp_create_nonce('export_team_csv'),
+                    ]],
                 ],
             ],
         ];
@@ -238,6 +242,45 @@ class TeamAjaxHandler
             wp_send_json_error(['message' => 'Invalid request']);
         }
         wp_die();
+    }
+
+    /**
+     * AJAX handler to export the current leader's subordinates as a CSV download.
+     */
+    public function export_team_csv() {
+        if (!current_user_can('team_leader') && !current_user_can('manage_options')) {
+            wp_die('Unauthorized', '', ['response' => 403]);
+        }
+        check_ajax_referer('export_team_csv', '_export_nonce');
+
+        $leader_id = get_current_user_id();
+        global $wpdb;
+        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        $sub_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT subordinate_id FROM $table WHERE leader_id = %d", $leader_id
+        ));
+
+        $rows = [];
+        if (!empty($sub_ids)) {
+            $rows = get_users(['include' => $sub_ids, 'role__in' => ['team_subordinate']]);
+        }
+
+        $filename = 'team-export-' . date('Y-m-d') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['email_address', 'first_name', 'last_name']);
+        foreach ($rows as $user) {
+            fputcsv($out, [
+                $user->user_email,
+                $user->first_name,
+                $user->last_name,
+            ]);
+        }
+        fclose($out);
+        exit;
     }
 
     /**

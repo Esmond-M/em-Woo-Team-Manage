@@ -46,6 +46,7 @@ class TeamManageCore
         $this->importer = new TeamUserImporter();
         add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
         add_action('wp_ajax_add_single_subordinate', [$this->ajax, 'add_single_subordinate']);
+        add_action('wp_ajax_export_team_csv', [$this->ajax, 'export_team_csv']);
         
     }
 

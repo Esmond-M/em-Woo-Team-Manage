@@ -38,6 +38,13 @@ if ( current_user_can( 'team_leader' ) ) {
             <li>Select one or more users to delete or send a password reset.</li>
             <li>Choose an action and click <strong>Submit</strong>.</li>
         </ol>
+
+        <!-- Export button -->
+        <form id="export-team-csv-form" method="POST" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" style="display:inline-block;margin-bottom:16px;">
+            <input type="hidden" name="action" value="export_team_csv" />
+            <input type="hidden" name="_export_nonce" value="<?php echo esc_attr(wp_create_nonce('export_team_csv')); ?>" />
+            <button type="submit" class="button">⬇ Export Team as CSV</button>
+        </form>
         <form id="team-leader-form" method="POST" action="">
             <fieldset>
                 <legend>Subordinate Actions</legend>
