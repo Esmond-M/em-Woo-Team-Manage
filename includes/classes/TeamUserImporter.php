@@ -33,19 +33,32 @@ class TeamUserImporter
     }
 
     /**
-     * Reads a CSV file and yields each row as an array.
+     * Opens a CSV file and returns a Generator that yields rows, or false on failure.
+     *
+     * Separating the file-open check from the generator body is necessary because
+     * any function containing `yield` is implicitly a generator in PHP and can only
+     * return a Generator object to the caller — never a plain false.
+     *
+     * @return \Generator|false
      */
     public function readCSV($filename, $delimiter = ',')
     {
-        $handle = fopen($filename, "r");
+        $handle = @fopen($filename, 'r');
         if ($handle === false) {
             return false;
         }
 
-        while (($data = fgetcsv($handle, 1000, $delimiter)) !== false) {
+        return $this->iterateCsvRows($handle, $delimiter);
+    }
+
+    /**
+     * Generator that yields rows from an already-open CSV file handle.
+     */
+    private function iterateCsvRows($handle, string $delimiter): \Generator
+    {
+        while (($data = fgetcsv($handle, null, $delimiter, '"', '\\')) !== false) {
             yield $data;
         }
-
         fclose($handle);
     }
 
