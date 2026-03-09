@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace emWooTeamManage\init_plugin\Classes;
 require_once __DIR__ . '/TeamAjaxHandler.php';
 require_once __DIR__ . '/TeamUserImporter.php';
+require_once __DIR__ . '/TeamDemoSeeder.php';
 
 class TeamManageCore
 {
@@ -23,6 +24,7 @@ class TeamManageCore
      */
     private $ajax;
     private $importer;
+    private $seeder;
     public function __construct()
     {
         // Initialization hooks
@@ -47,6 +49,11 @@ class TeamManageCore
         add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
         add_action('wp_ajax_add_single_subordinate', [$this->ajax, 'add_single_subordinate']);
         add_action('wp_ajax_export_team_csv', [$this->ajax, 'export_team_csv']);
+
+        // Demo seeder (admin only)
+        $this->seeder = new TeamDemoSeeder();
+        add_action('wp_ajax_emwtm_seed_demo',  [$this->seeder, 'ajax_seed']);
+        add_action('wp_ajax_emwtm_clear_demo', [$this->seeder, 'ajax_clear']);
 
         // WooCommerce My Account tab
         add_action('init', [$this, 'register_myaccount_endpoint']);
@@ -143,6 +150,15 @@ class TeamManageCore
                 'template'    => null,
                 'callback'    => [$this, 'render_settings_page'],
                 'position'    => 4
+            ],
+            [
+                'parent_slug' => 'user-import-controls',
+                'page_title'  => 'Demo Data Seeder',
+                'menu_title'  => 'Demo Data',
+                'capability'  => 'manage_options',
+                'menu_slug'   => 'emwtm-demo-seeder',
+                'template'    => 'team-demo-seeder-page.php',
+                'position'    => 5
             ],
         ];
 
