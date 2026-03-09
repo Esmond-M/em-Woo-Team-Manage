@@ -1,81 +1,181 @@
-$primary-color: #2271b1;
-$secondary-color: #008CBA;
-$table-border: #dddddd;
-$table-bg: #fff;
-$table-row-alt: #f6f8fa;
-$table-row-no-sub: #ffecec;
-$card-bg: #f0f8ff;
+// ─── Design tokens ────────────────────────────────────────────────────────────
+$primary:      #2271b1;
+$primary-dark: #135e96;
+$success:      #46b450;
+$text-dark:    #1d2327;
+$text-mid:     #50575e;
+$border-light: #e5e7eb;
+$bg-light:     #f6f7f7;
+$bg-card:      #ffffff;
+$info-bg:      #eef4fb;
+$info-border:  #b8d0ea;
+$shadow-sm:    0 1px 4px rgba(0,0,0,0.08);
 
+// ─── Page wrapper ─────────────────────────────────────────────────────────────
+.site-admin-team-summary { max-width: 1100px; margin: 28px 0; }
+
+// ─── Page heading ───────────────────────────────────────────────────────────
 .site-admin-title {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: $primary-color;
-  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: $primary;
+  margin-bottom: 24px;
 }
 
+// ─── Summary card ───────────────────────────────────────────────────────────
 .summary-card {
-  background: $card-bg;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: $info-bg;
+  border: 1px solid $info-border;
   border-radius: 8px;
-  padding: 1rem 2rem;
-  margin-bottom: 2rem;
-  text-align: center;
-  font-size: 1.2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 14px 28px;
+  margin-bottom: 24px;
+  font-size: 1rem;
+  box-shadow: $shadow-sm;
 
   .summary-label {
-    font-weight: bold;
-    color: #333;
+    font-weight: 600;
+    color: $text-dark;
   }
 
   .summary-value {
-    font-size: 1.5rem;
-    color: $secondary-color;
-    margin-left: 0.5rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: $primary;
+    line-height: 1;
   }
 }
 
+// ─── Table container ──────────────────────────────────────────────────────────
 .responsive-table-container {
   overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: $shadow-sm;
 }
 
+// ─── Leaders overview table ────────────────────────────────────────────────────
 .site-admin-table {
-  font-family: arial, sans-serif;
-  font-size: 18px;
-  border-collapse: collapse;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
-  background: $table-bg;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  background: $bg-card;
 
   th {
-    background: $primary-color;
+    background: $primary;
     color: #fff;
-    padding: 12px 8px;
-    border: 1px solid $table-border;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 13px 16px;
+    border: none;
+    border-bottom: 2px solid $primary-dark;
+    &:first-child { border-radius: 8px 0 0 0; }
+    &:last-child  { border-radius: 0 8px 0 0; }
   }
 
   td {
-    border: 1px solid $table-border;
-    text-align: left;
-    padding: 10px 8px;
+    padding: 12px 16px;
+    border: none;
+    border-bottom: 1px solid $border-light;
+    color: $text-dark;
+    vertical-align: top;
   }
 
-  tr {
-    &:nth-child(even) {
-      background-color: $table-row-alt;
-    }
-    &.no-subordinates {
-      background-color: $table-row-no-sub;
-    }
-  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: $bg-light; }
+  tr:hover td { background: $info-bg; transition: background 0.15s; }
+
+  tr.no-subordinates td { background: #fff8f8; }
 }
 
+// ─── Sub-count badges ─────────────────────────────────────────────────────────
 .sub-count {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+
   &.has-sub {
-    color: $secondary-color;
-    font-weight: bold;
+    background: #e6f4ea;
+    color: #2e7d32;
   }
+
   &.no-sub {
-    color: #d00;
-    font-weight: bold;
+    background: #fdecea;
+    color: #b71c1c;
   }
 }
+
+// ─── View Subordinates button ─────────────────────────────────────────────────
+.view-subs-btn {
+  background: $bg-light;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 0.83rem;
+  color: $primary;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: $info-bg;
+    border-color: $primary;
+  }
+
+  &.active {
+    background: $primary;
+    color: #fff;
+    border-color: $primary;
+  }
+}
+
+// ─── Sub-details AJAX panel ────────────────────────────────────────────────────
+.sub-details-container {
+  margin-top: 10px;
+  font-size: 0.85rem;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: $info-bg;
+    border-radius: 5px;
+    border: 1px solid $info-border;
+    overflow: hidden;
+
+    li {
+      padding: 7px 12px;
+      border-bottom: 1px solid $border-light;
+      color: $text-dark;
+      &:last-child { border-bottom: none; }
+    }
+  }
+
+  span.error {
+    color: #b71c1c;
+    font-style: italic;
+  }
+
+  .loader {
+    color: $text-mid;
+    font-style: italic;
+    font-size: 0.85rem;
+    padding: 4px 0;
+  }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 782px) {
+  .site-admin-title { font-size: 1.3rem; }
+  .summary-card { padding: 10px 16px; }
+  .site-admin-table th,
+  .site-admin-table td { padding: 9px 10px; font-size: 13px; }
+}
+
