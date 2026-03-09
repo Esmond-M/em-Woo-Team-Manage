@@ -107,7 +107,7 @@ class TeamUserImporter
                 "SELECT COUNT(*) FROM $table WHERE leader_id = %d",
                 $leader_id
             ));
-            $max_subordinates = 200;
+            $max_subordinates = TeamManageCore::get_max_subordinates();
             if ($current_count >= $max_subordinates) {
                 echo '<p style="color:red;">Maximum number of subordinates ('.$max_subordinates.') reached for this team leader. No more can be imported.</p>';
                 @unlink($tmp_file);

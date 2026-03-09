@@ -357,8 +357,8 @@ class TeamAjaxHandler
         $current_count = (int) $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $table WHERE leader_id = %d", $leader_id
         ));
-        if ($current_count >= 200) {
-            echo '<p class="newpost-error">Maximum subordinate limit (200) reached.</p>';
+        if ($current_count >= TeamManageCore::get_max_subordinates()) {
+            echo '<p class="newpost-error">Maximum subordinate limit (' . TeamManageCore::get_max_subordinates() . ') reached.</p>';
             wp_die();
         }
 

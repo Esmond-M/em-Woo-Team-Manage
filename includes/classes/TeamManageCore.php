@@ -30,6 +30,7 @@ class TeamManageCore
 
         // Admin menu
         add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
+        add_action('admin_init', [$this, 'register_plugin_settings']);
 
         // WooCommerce hook
         add_action('woocommerce_thankyou', [$this, 'create_Team_Leader_After_Payment'], 10, 1);
@@ -133,17 +134,30 @@ class TeamManageCore
                 'template'    => 'site-admin-team-leader-page.php',
                 'position'    => 2
             ],
+            [
+                'parent_slug' => 'user-import-controls',
+                'page_title'  => 'Team Settings',
+                'menu_title'  => 'Settings',
+                'capability'  => 'manage_options',
+                'menu_slug'   => 'emwtm-settings',
+                'template'    => null,
+                'callback'    => [$this, 'render_settings_page'],
+                'position'    => 4
+            ],
         ];
 
         // Add submenus with a generic callback
         foreach ($submenus as $submenu) {
+            $callback = isset($submenu['callback'])
+                ? $submenu['callback']
+                : function() use ($submenu) { $this->require_template($submenu['template']); };
             add_submenu_page(
                 $submenu['parent_slug'],
                 $submenu['page_title'],
                 $submenu['menu_title'],
                 $submenu['capability'],
                 $submenu['menu_slug'],
-                function() use ($submenu) { $this->require_template($submenu['template']); },
+                $callback,
                 $submenu['position']
             );
         }
@@ -188,6 +202,55 @@ class TeamManageCore
             $title = __('My Team', 'emWooTeamManage');
         }
         return $title;
+    }
+
+    /**
+    * Registers plugin settings with the WordPress Settings API.
+    */
+    public function register_plugin_settings() {
+        register_setting('emwtm_settings_group', 'emwtm_max_subordinates', [
+            'type'              => 'integer',
+            'sanitize_callback' => function($val) { $v = (int) $val; return $v > 0 ? $v : 200; },
+            'default'           => 200,
+        ]);
+        add_settings_section('emwtm_main', 'Team Manage Settings', null, 'emwtm-settings');
+        add_settings_field(
+            'emwtm_max_subordinates',
+            'Max Subordinates per Team Leader',
+            function() {
+                $val = (int) get_option('emwtm_max_subordinates', 200);
+                echo '<input type="number" name="emwtm_max_subordinates" value="' . esc_attr($val) . '" min="1" max="5000" class="small-text" />';
+                echo '<p class="description">Maximum number of subordinates a single team leader can have (default: 200).</p>';
+            },
+            'emwtm-settings',
+            'emwtm_main'
+        );
+    }
+
+    /**
+    * Renders the Settings admin page.
+    */
+    public function render_settings_page() {
+        if (!current_user_can('manage_options')) return;
+        ?>
+        <div class="wrap">
+            <h1>Team Manage Settings</h1>
+            <form method="post" action="options.php">
+                <?php
+                settings_fields('emwtm_settings_group');
+                do_settings_sections('emwtm-settings');
+                submit_button();
+                ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    /**
+    * Returns the configured max subordinates limit.
+    */
+    public static function get_max_subordinates(): int {
+        return (int) get_option('emwtm_max_subordinates', 200);
     }
 
     /**
