@@ -1,8 +1,8 @@
 # EM WooTeamManage Plugin
 
-A WordPress plugin for WooCommerce that enables site admins and team leaders to manage teams through custom admin pages.
-Import users, assign roles, emulate team leaders, and control team access directly from dedicated admin interfaces.
+A WordPress plugin for WooCommerce that lets site admins and team leaders manage their teams directly from the WordPress admin. Create team leaders automatically after purchase, import subordinate users via CSV or individually, view and edit team rosters, and export team data — all from dedicated admin pages.
 
+**Version:** 0.1.0  
 **Project:** [GitHub Repository](https://github.com/Esmond-M/em-Woo-Team-Manage)  
 **Author:** [esmondmccain.com](https://esmondmccain.com/)
 
@@ -10,33 +10,71 @@ Import users, assign roles, emulate team leaders, and control team access direct
 
 ## Features
 
-- Adds a "Team Management" page to WooCommerce customer accounts
-- Import users via CSV or manual entry
-- Assign and manage user roles within a team
-- Restrict access to team-only content or products
-- Fully translatable and extendable
-- Secure integration with WooCommerce
+### Team Leader Management
+- Automatically creates a **Team Leader** account after a WooCommerce purchase (via `woocommerce_thankyou` hook)
+- Team leaders get WooCommerce admin access so they can log in to wp-admin
+- A **"My Team"** link is added to the WooCommerce My Account navigation for team leader accounts
+
+### Subordinate Management (Team Leaders)
+- **Add Subordinates** page — two methods:
+  - **CSV import**: drag-and-drop or file-select upload, up to 50 users per file (max 5 MB), columns: `email_address`, `first_name`, `last_name`
+  - **Single add form**: add one subordinate by name and email via AJAX
+- **View Subordinates** page — paginated table of all subordinates with:
+  - Delete subordinate (with password confirmation)
+  - Edit subordinate details inline via modal
+  - Resend welcome/password email
+  - Export team roster to CSV
+  - View subordinate details panel
+- Email notifications sent to subordinates when added or removed from a team
+
+### Site Admin Tools
+- **Site Admin View** page — overview of all team leaders with subordinate counts and quick-access links
+- **View Subordinates** page works for site admins too — select any team leader from a dropdown to manage their subordinates, export their CSV, or add/remove members; no separate emulation step required
+- **Add Subordinates** page includes an "Acting as Team Leader" dropdown for admins — both the CSV import and single-add form sync to the selected leader
+
+### Custom Roles
+- Registers two custom WordPress roles: `team_leader` and `team_subordinate`
+
+### Admin Pages (under "Team Manage" menu)
+| Page | Slug | Access |
+|------|------|--------|
+| Add Subordinates | `user-import-controls` | All roles |
+| View Subordinates | `team-leader-admin` | All roles |
+| Site Admin View | `site-admin-team-leader-admin` | `manage_options` only |
+| Settings | `emwtm-settings` | `manage_options` only |
 
 ---
 
 ## Installation
 
 1. [Download the latest release](https://github.com/Esmond-M/em-Woo-Team-Manage/blob/main/build/em-Woo-Team-Manage.zip)
-2. Upload the `em-Woo-Team-Manage.zip` file to your `/wp-content/plugins/` directory.
-3. Extract the zip file. The plugin folder should be named `em-Woo-Team-Manage`.
-4. Activate the plugin via **Plugins > Installed Plugins** in your WordPress admin.
-5. Make sure WooCommerce is installed and activated.
+2. Upload the `em-Woo-Team-Manage.zip` file to your `/wp-content/plugins/` directory and extract it. The folder must be named `em-Woo-Team-Manage`.
+3. Activate the plugin via **Plugins > Installed Plugins** in your WordPress admin.
+4. Ensure WooCommerce is installed and activated.
 
-![Alt text](/docs/img/team-manage-menu.png "menu option")
+![Team Manage menu](/docs/img/team-manage-menu.png "Team Manage menu")
 
 ---
 
 ## Usage
 
-- Go to your WooCommerce account area and find the new "Team Management" page.
-- Import users or add them manually.
-- Assign roles and manage team members.
-- Use shortcodes or blocks (if provided) to display team features on your site.
+### For Site Admins
+- Navigate to **Team Manage > Site Admin View** for an overview of all team leaders.
+- Use **Team Manage > View Subordinates** and select a team leader from the dropdown to manage their roster, export their CSV, or delete/edit members.
+- Use **Team Manage > Add Subordinates** and select a team leader from the "Acting as Team Leader" bar to import a CSV or add a single user on their behalf.
+
+### For Team Leaders
+- Log in to wp-admin and navigate to **Team Manage > Add Subordinates** to import users via CSV or add them one at a time.
+- Navigate to **Team Manage > View Subordinates** to see your team roster, edit member details, delete members, or export to CSV.
+- In the WooCommerce **My Account** area, find the **My Team** tab for a quick view of your team.
+
+### CSV Import Format
+The first row must be the header:
+```
+email_address,first_name,last_name
+```
+- Maximum 50 rows per file
+- Maximum file size: 5 MB
 
 ---
 
@@ -48,13 +86,28 @@ Import users, assign roles, emulate team leaders, and control team access direct
 
 ---
 
-## Support & Development
+## File Structure
 
-For issues, suggestions, or contributions, please use the [GitHub Issues](https://github.com/Esmond-M/em-Woo-Team-Manage/issues) page.
+```
+em-Woo-Team-Manage/
+├── em-Woo-Team-Manage.php          # Plugin entry point
+├── includes/classes/
+│   ├── TeamManageCore.php          # Role registration, menu/hooks setup
+│   ├── TeamAjaxHandler.php         # AJAX handlers, asset enqueue
+│   └── TeamUserImporter.php        # CSV import logic
+├── templates/
+│   ├── team-leader-admin-page.php          # View/manage subordinates
+│   ├── team-leader-user-import-page.php    # CSV + single-add import
+│   └── site-admin-team-leader-page.php     # Site admin overview
+└── admin/assets/
+    ├── css/                        # Compiled CSS
+    ├── sass/                       # SCSS source files
+    └── js/                         # JavaScript (+ minified in js/min/)
+```
 
 ---
 
+## Support & Development
 
-
-
+For issues, suggestions, or contributions, please use the [GitHub Issues](https://github.com/Esmond-M/em-Woo-Team-Manage/issues) page.
 
