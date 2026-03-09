@@ -13,6 +13,26 @@ namespace emWooTeamManage\init_plugin\Classes;
 class TeamUserImporter
 {
     /**
+     * Sends a "you've been added to a team" notification email (used during CSV import).
+     */
+    private function send_team_added_notification(int $user_id, int $leader_id): void {
+        $subordinate = get_user_by('id', $user_id);
+        $leader      = get_user_by('id', $leader_id);
+        if (!$subordinate) return;
+        $site_name   = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+        $leader_name = $leader ? (trim($leader->first_name . ' ' . $leader->last_name) ?: $leader->user_login) : 'your team leader';
+        $subject     = sprintf('[%s] You have been added to a team', $site_name);
+        $message     = sprintf(
+            "Hi %s,\n\nYou have been added to %s's team on %s.\n\nIf you have any questions, please contact your team leader.\n\nRegards,\n%s",
+            $subordinate->first_name ?: $subordinate->user_login,
+            $leader_name,
+            $site_name,
+            $site_name
+        );
+        wp_mail($subordinate->user_email, $subject, $message);
+    }
+
+    /**
      * Reads a CSV file and yields each row as an array.
      */
     public function readCSV($filename, $delimiter = ',')
@@ -125,6 +145,7 @@ class TeamUserImporter
             } else {
                 add_user_meta($user_id, 'teamID', isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0);
                 wp_new_user_notification($user_id, null, "both");
+                $this->send_team_added_notification((int) $user_id, $leader_id);
                 // Insert leader/subordinate relationship into custom table
                 $wpdb->insert($table, [
                     'leader_id' => $leader_id,

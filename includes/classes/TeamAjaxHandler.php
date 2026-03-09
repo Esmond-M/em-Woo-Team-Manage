@@ -14,6 +14,44 @@ require_once __DIR__ . '/TeamUserImporter.php';
 class TeamAjaxHandler
 {
     /**
+     * Sends a plain-text notification email to a subordinate.
+     *
+     * @param int    $user_id  WP user ID of the subordinate.
+     * @param string $type     'added' or 'removed'.
+     * @param int    $leader_id WP user ID of the team leader.
+     */
+    private function send_team_notification(int $user_id, string $type, int $leader_id): void {
+        $subordinate = get_user_by('id', $user_id);
+        $leader      = get_user_by('id', $leader_id);
+        if (!$subordinate) return;
+
+        $site_name    = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+        $leader_name  = $leader ? trim($leader->first_name . ' ' . $leader->last_name) ?: $leader->user_login : 'your team leader';
+
+        if ($type === 'added') {
+            $subject = sprintf('[%s] You have been added to a team', $site_name);
+            $message = sprintf(
+                "Hi %s,\n\nYou have been added to %s's team on %s.\n\nIf you have any questions, please contact your team leader.\n\nRegards,\n%s",
+                $subordinate->first_name ?: $subordinate->user_login,
+                $leader_name,
+                $site_name,
+                $site_name
+            );
+        } else {
+            $subject = sprintf('[%s] You have been removed from a team', $site_name);
+            $message = sprintf(
+                "Hi %s,\n\nYou have been removed from %s's team on %s.\n\nIf you believe this is a mistake, please contact your team leader.\n\nRegards,\n%s",
+                $subordinate->first_name ?: $subordinate->user_login,
+                $leader_name,
+                $site_name,
+                $site_name
+            );
+        }
+
+        wp_mail($subordinate->user_email, $subject, $message);
+    }
+
+    /**
      * Enqueues admin styles and scripts for plugin pages.
      */
     public function load_Admin_Styles(){
@@ -145,6 +183,7 @@ class TeamAjaxHandler
                 if ($action === 'delete') {
                     wp_delete_user($id);
                     $wpdb->delete($table, ['subordinate_id' => $id], ['%d']);
+                    $this->send_team_notification($id, 'removed', $current_leader_id);
                     echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' deleted</p>';
                 } elseif ($action === 'resend') {
                     retrieve_password($user->user_login);
@@ -345,6 +384,7 @@ class TeamAjaxHandler
 
         add_user_meta($user_id, 'teamID', $leader_id);
         wp_new_user_notification($user_id, null, 'both');
+        $this->send_team_notification($user_id, 'added', $leader_id);
         $wpdb->insert($table, ['leader_id' => $leader_id, 'subordinate_id' => $user_id]);
 
         echo '<p class="newpost-success">' . esc_html($first_name . ' ' . $last_name) . ' (' . esc_html($email) . ') added successfully.</p>';
