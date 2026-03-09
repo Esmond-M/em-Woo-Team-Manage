@@ -1,4 +1,5 @@
-<?php
+<?php declare(strict_types=1);
+namespace emWooTeamManage\init_plugin;
 
 /**
  * Main plugin file for EM WooTeamManage.
@@ -32,9 +33,6 @@
 
 define('EMWTM_VERSION', '0.1.0');
 define('EMWTM_PLUGIN_FILE', __FILE__);
-
-declare(strict_types=1);
-namespace emWooTeamManage\init_plugin;
 
 use emWooTeamManage\init_plugin\Classes\emWooTeamManage;
 
