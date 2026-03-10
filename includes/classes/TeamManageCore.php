@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace emWooTeamManage\init_plugin\Classes;
 require_once __DIR__ . '/TeamAjaxHandler.php';
 require_once __DIR__ . '/TeamUserImporter.php';
+require_once __DIR__ . '/TeamDemoSeeder.php';
 
 class TeamManageCore
 {
@@ -23,6 +24,7 @@ class TeamManageCore
      */
     private $ajax;
     private $importer;
+    private $seeder;
     public function __construct()
     {
         // Initialization hooks
@@ -47,12 +49,19 @@ class TeamManageCore
         add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
         add_action('wp_ajax_add_single_subordinate', [$this->ajax, 'add_single_subordinate']);
         add_action('wp_ajax_export_team_csv', [$this->ajax, 'export_team_csv']);
+        add_action('wp_ajax_emwtm_sample_csv', [$this->ajax, 'sample_csv']);
+
+        // Demo seeder (admin only)
+        $this->seeder = new TeamDemoSeeder();
+        add_action('wp_ajax_emwtm_seed_demo',  [$this->seeder, 'ajax_seed']);
+        add_action('wp_ajax_emwtm_clear_demo', [$this->seeder, 'ajax_clear']);
 
         // WooCommerce My Account tab
         add_action('init', [$this, 'register_myaccount_endpoint']);
         add_filter('woocommerce_account_menu_items', [$this, 'add_myaccount_menu_item']);
         add_action('woocommerce_account_team-manage_endpoint', [$this, 'myaccount_team_manage_content']);
         add_filter('the_title', [$this, 'myaccount_endpoint_title']);
+        add_action('wp_enqueue_scripts', [$this, 'load_myaccount_styles']);
         
     }
 
@@ -143,6 +152,15 @@ class TeamManageCore
                 'callback'    => [$this, 'render_settings_page'],
                 'position'    => 4
             ],
+            [
+                'parent_slug' => 'user-import-controls',
+                'page_title'  => 'Demo Data Seeder',
+                'menu_title'  => 'Demo Data',
+                'capability'  => 'manage_options',
+                'menu_slug'   => 'emwtm-demo-seeder',
+                'template'    => 'team-demo-seeder-page.php',
+                'position'    => 5
+            ],
         ];
 
         // Add submenus with a generic callback
@@ -186,10 +204,28 @@ class TeamManageCore
     }
 
     /**
+    * Enqueues frontend styles for the My Account team-manage page.
+    */
+    public function load_myaccount_styles() {
+        global $wp_query;
+        if (!is_account_page() || !isset($wp_query->query_vars['team-manage'])) {
+            return;
+        }
+        wp_enqueue_style(
+            'emwtm-myaccount-styles',
+            plugins_url('admin/assets/css/team-leader-myaccount.css', EMWTM_PLUGIN_FILE),
+            [],
+            EMWTM_VERSION
+        );
+    }
+
+    /**
     * Renders content for the team-manage WooCommerce endpoint.
     */
     public function myaccount_team_manage_content() {
+        echo '<div class="emwtm-myaccount">';
         $this->require_template('team-leader-admin-page.php');
+        echo '</div>';
     }
 
     /**
