@@ -1,8 +1,7 @@
 /**
  * teamSubordinateImport.js
  *
- * Handles AJAX form submissions for team leader emulation and subordinate user import.
- * - Submits the emulation form via AJAX and displays results
+ * Handles AJAX form submissions for subordinate user import.
  * - Submits the subordinate import form via AJAX, including CSV file upload
  * - Shows a loading spinner during requests
  * - Validates CSV file size (max 5MB)
@@ -11,31 +10,6 @@
  * - Re-binds form handlers after AJAX loads new forms
  */
 jQuery(document).ready(function($) {
-
-    // AJAX handler for emulation form (admin)
-    $("#emulate-team-leader-form").submit(function(event) {
-        event.preventDefault();
-        var $form = $(this);
-        $form.find("input[type='submit']").prop("disabled", true);
-        $form.find('.user-import-ajax-loader').remove(); // <-- Add this line
-        $form.append('<div class="user-import-ajax-loader"></div>');
-        $.ajax({
-            type: "POST",
-            dataType: "html",
-            url: emulate_Team_subordinate_Form_Submission.ajaxurl,
-            data: $form.serialize(),
-            success: function(data) {
-                $(".user-import-ajax-loader").remove();
-                $('.emulation-form').after(data);
-                $('.emulation-form').remove();
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                $(".user-import-ajax-loader").remove();
-                $form.append('<div id="em-connect-error">Connection Error</div>');
-                console.log(JSON.stringify(jqXHR) + " :: " + textStatus + " :: " + errorThrown);
-            }
-        });
-    });
 
     // AJAX handler for subordinate import form (team leader)
     $("#subordinate-import-form").submit(function(event) {
