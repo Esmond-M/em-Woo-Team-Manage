@@ -66,7 +66,7 @@ class TeamUserImporter
      * Handles AJAX CSV import of subordinate users for a team leader.
      */
     public function user_import_submission() {
-        // Auth: must be a team leader, admin, or emulating via admin
+        // Auth: must be a team leader or admin
         if (!current_user_can('team_leader') && !current_user_can('manage_options')) {
             wp_die('<p style="color:red;">Unauthorized.</p>');
         }
@@ -74,6 +74,17 @@ class TeamUserImporter
         $nonce = isset($_POST['_import_nonce']) ? sanitize_text_field(wp_unslash($_POST['_import_nonce'])) : '';
         if (!wp_verify_nonce($nonce, 'user_import_submission')) {
             wp_die('<p style="color:red;">Security check failed.</p>');
+        }
+
+        // Resolve and validate leader ID before touching any files.
+        if (current_user_can('manage_options') && !empty($_POST['teamLeaderID'])) {
+            $posted_leader = get_user_by('id', (int) $_POST['teamLeaderID']);
+            if (!$posted_leader || !in_array('team_leader', (array) $posted_leader->roles, true)) {
+                wp_die('<p style="color:red;">Invalid team leader selected.</p>');
+            }
+            $resolved_leader_id = (int) $_POST['teamLeaderID'];
+        } else {
+            $resolved_leader_id = get_current_user_id();
         }
 
         // Load required WordPress files
@@ -113,7 +124,7 @@ class TeamUserImporter
             global $wpdb;
             // Define table and leader_id here
             $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
-            $leader_id = isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0;
+            $leader_id = $resolved_leader_id;
 
             // Check current subordinate count for this leader
             $current_count = $wpdb->get_var($wpdb->prepare(
@@ -156,7 +167,7 @@ class TeamUserImporter
                 $errorCount++;
                 echo '<p style="color:red;">' . $errorCount . '. ' . esc_html($firstName . ' ' . $lastName) . ' did not import. Error: ' . esc_html($user_id->get_error_message()) . '</p>';
             } else {
-                add_user_meta($user_id, 'teamID', isset($_POST['teamLeaderID']) ? intval($_POST['teamLeaderID']) : 0);
+                add_user_meta($user_id, 'teamID', $resolved_leader_id);
                 wp_new_user_notification($user_id, null, "both");
                 $this->send_team_added_notification((int) $user_id, $leader_id);
                 // Insert leader/subordinate relationship into custom table
