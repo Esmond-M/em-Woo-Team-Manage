@@ -117,12 +117,12 @@ class TeamAjaxHandler
             $entry = $config[$page];
             if (!empty($entry['styles'])) {
                 foreach ($entry['styles'] as $style) {
-                    wp_enqueue_style($style[0], $style[1], array(), rand());
+                    wp_enqueue_style($style[0], $style[1], array(), EMWTM_VERSION);
                 }
             }
             if (!empty($entry['scripts'])) {
                 foreach ($entry['scripts'] as $script) {
-                    wp_enqueue_script($script[0], $script[1], array('jquery'), rand(), true);
+                    wp_enqueue_script($script[0], $script[1], array('jquery'), EMWTM_VERSION, true);
                 }
             }
             if (!empty($entry['localize'])) {
@@ -209,32 +209,57 @@ class TeamAjaxHandler
     * Handles the editing of a subordinate's details via AJAX.
     */
     public function handle_edit_subordinate() {
-         error_log('handle_edit_subordinate called'); // Log entry
+        if (!current_user_can('team_leader') && !current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized']);
+            wp_die();
+        }
+
         if (
-            isset($_POST['action']) &&
-            $_POST['action'] === 'edit_subordinate' &&
-            isset($_POST['edit_user_id']) &&
-            check_admin_referer('edit_subordinate_action', 'edit_subordinate_nonce')
+            !isset($_POST['action']) ||
+            $_POST['action'] !== 'edit_subordinate' ||
+            !isset($_POST['edit_user_id'])
         ) {
-            $user_id = intval($_POST['edit_user_id']);
-            $user_email = sanitize_email($_POST['edit_user_email']);
-            $user_name = sanitize_text_field($_POST['edit_user_name']);
-
-            $userdata = [
-                'ID' => $user_id,
-                'user_email' => $user_email,
-                'display_name' => $user_name,
-            ];
-
-            $result = wp_update_user($userdata);
-
-            if (is_wp_error($result)) {
-                wp_send_json_error(['message' => $result->get_error_message()]);
-            } else {
-                wp_send_json_success(['message' => 'User updated successfully']);
-            }
-        } else {
             wp_send_json_error(['message' => 'Invalid request']);
+            wp_die();
+        }
+
+        check_ajax_referer('edit_subordinate_action', 'edit_subordinate_nonce');
+
+        $user_id = intval($_POST['edit_user_id']);
+
+        // Site admins have full control — skip ownership check.
+        if (!current_user_can('manage_options')) {
+            // Verify ownership: subordinate must belong to the current team leader.
+            global $wpdb;
+            $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+
+            $is_subordinate = (bool) $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table WHERE leader_id = %d AND subordinate_id = %d",
+                get_current_user_id(),
+                $user_id
+            ));
+
+            if (!$is_subordinate) {
+                wp_send_json_error(['message' => 'User is not your subordinate']);
+                wp_die();
+            }
+        }
+
+        $user_email = sanitize_email($_POST['edit_user_email'] ?? '');
+        $user_name  = sanitize_text_field($_POST['edit_user_name'] ?? '');
+
+        $userdata = [
+            'ID'           => $user_id,
+            'user_email'   => $user_email,
+            'display_name' => $user_name,
+        ];
+
+        $result = wp_update_user($userdata);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()]);
+        } else {
+            wp_send_json_success(['message' => 'User updated successfully']);
         }
         wp_die();
     }

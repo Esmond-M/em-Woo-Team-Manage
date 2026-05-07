@@ -113,6 +113,7 @@ $number_of_users = count($teamSubordinates);
     <div id="editSubordinateModal" style="display:none;">
         <form id="editSubordinateForm" method="POST" >
             <input type="hidden" name="edit_user_id" id="edit_user_id" value="" />
+            <input type="hidden" name="leaderID" value="<?php echo esc_attr( $teamLeaderID ); ?>" />
             <label for="edit_user_email">Email:</label>
             <input type="email" name="edit_user_email" id="edit_user_email" value="" required />
             <label for="edit_user_name">Name:</label>
