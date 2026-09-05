@@ -136,7 +136,7 @@ class TeamAjaxHandler
     }
 
     /**
-     * Handles AJAX submission for team leader actions (delete/resend password).
+     * Handles AJAX submission for team leader actions (remove/resend password).
      */
     public function team_Leader_Form_Submission() {
         // Verify nonce and role
@@ -167,6 +167,15 @@ class TeamAjaxHandler
             <div class="user-deletion-password-contain">
             <?php
             $action = isset($_POST['teamLeaderSelectOption']) ? sanitize_text_field($_POST['teamLeaderSelectOption']) : '';
+            if ($action === 'delete' && (
+                empty($_POST['confirm_removal']) ||
+                sanitize_text_field(wp_unslash($_POST['confirm_removal'])) !== '1'
+            )) {
+                echo '<p class="newpost-error">Please confirm that you want to remove the selected users from this team.</p>';
+                echo '<button class="refresh-btn" onClick="window.location.reload();">Refresh Page</button>';
+                echo '</div>';
+                wp_die();
+            }
             foreach ($_POST['userID'] as $raw_id) {
                 $id = (int) $raw_id;
                 // Verify this subordinate belongs to the current leader
@@ -185,10 +194,32 @@ class TeamAjaxHandler
                 }
 
                 if ($action === 'delete') {
-                    wp_delete_user($id);
-                    $wpdb->delete($table, ['subordinate_id' => $id], ['%d']);
+                    $removed = $wpdb->delete(
+                        $table,
+                        ['leader_id' => $current_leader_id, 'subordinate_id' => $id],
+                        ['%d', '%d']
+                    );
+                    if ($removed === false) {
+                        echo '<p class="newpost-error">Could not remove User ID ' . esc_html($id) . ' from the team.</p>';
+                        continue;
+                    }
+                    $remaining_teams = (int) $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM $table WHERE subordinate_id = %d",
+                        $id
+                    ));
+                    if ((string) get_user_meta($id, 'teamID', true) === (string) $current_leader_id) {
+                        if ($remaining_teams === 0) {
+                            delete_user_meta($id, 'teamID');
+                        } else {
+                            $remaining_leader_id = (int) $wpdb->get_var($wpdb->prepare(
+                                "SELECT leader_id FROM $table WHERE subordinate_id = %d ORDER BY id ASC LIMIT 1",
+                                $id
+                            ));
+                            update_user_meta($id, 'teamID', $remaining_leader_id);
+                        }
+                    }
                     $this->send_team_notification($id, 'removed', $current_leader_id);
-                    echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' deleted</p>';
+                    echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' removed from the team</p>';
                 } elseif ($action === 'resend') {
                     retrieve_password($user->user_login);
                     echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' password sent</p>';
@@ -203,7 +234,7 @@ class TeamAjaxHandler
             </div>
             <?php
         }
-        exit;
+        wp_die();
     }
 
     /**

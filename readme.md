@@ -20,7 +20,7 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
   - **CSV import**: drag-and-drop or file-select upload, up to 50 users per file (max 5 MB), columns: `email_address`, `first_name`, `last_name`
   - **Single add form**: add one subordinate by name and email via AJAX
 - **View Subordinates** page — paginated table of all subordinates with:
-  - Delete subordinate (with password confirmation)
+  - Remove subordinate from the current team while retaining the WordPress/WooCommerce account
   - Edit subordinate details inline via modal
   - Resend welcome/password email
   - Export team roster to CSV
@@ -60,12 +60,12 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
 
 ### For Site Admins
 - Navigate to **Team Manage > Site Admin View** for an overview of all team leaders.
-- Use **Team Manage > View Subordinates** and select a team leader from the dropdown to manage their roster, export their CSV, or delete/edit members.
+- Use **Team Manage > View Subordinates** and select a team leader from the dropdown to manage their roster, export their CSV, or remove/edit members.
 - Use **Team Manage > Add Subordinates** and select a team leader from the "Acting as Team Leader" bar to import a CSV or add a single user on their behalf.
 
 ### For Team Leaders
 - Log in to wp-admin and navigate to **Team Manage > Add Subordinates** to import users via CSV or add them one at a time.
-- Navigate to **Team Manage > View Subordinates** to see your team roster, edit member details, delete members, or export to CSV.
+- Navigate to **Team Manage > View Subordinates** to see your team roster, edit member details, remove members from the team, or export to CSV.
 - In the WooCommerce **My Account** area, find the **My Team** tab for a quick view of your team.
 
 ### CSV Import Format

@@ -72,13 +72,13 @@ $number_of_users = count($teamSubordinates);
                 <table>
                     <tr>
                         <th>Number of Subordinates</th>
-                        <th>Action <span title="Delete removes user. Resend sends password reset email." style="cursor:help;">&#9432;</span></th>
+                        <th>Action <span title="Remove takes the user off this team. Resend sends a password reset email." style="cursor:help;">&#9432;</span></th>
                     </tr>
                     <tr>
                         <td><span><?php echo esc_html( $number_of_users ); ?></span></td>
                         <td>
                             <select name="teamLeaderSelectOption" form="team-leader-form">
-                                <option value="delete">Delete</option>
+                                <option value="delete">Remove from Team</option>
                                 <option value="resend">Send Password Reset Link</option>
                             </select>
                         </td>
@@ -106,6 +106,7 @@ $number_of_users = count($teamSubordinates);
             <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
             <input type="hidden" name="action" value="team_Leader_Form_Submission" />
             <input type="hidden" name="leaderID" value="<?php echo esc_attr($teamLeaderID); ?>" />
+            <label><input type="checkbox" name="confirm_removal" value="1" /> Confirm removing selected users from this team</label>
             <input type="submit" value="Submit" class="button button-primary">
         </form>
     </div>
