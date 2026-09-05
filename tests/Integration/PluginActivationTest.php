@@ -39,4 +39,27 @@ class PluginActivationTest extends WP_UnitTestCase
 
         $this->assertSame($this->relationshipTable(), $actual_table);
     }
+
+    public function test_plugin_registers_team_roles_with_limited_baseline_capabilities(): void
+    {
+        global $wp_roles;
+
+        remove_role('team_leader');
+        remove_role('team_subordinate');
+
+        (new TeamManageCore())->user_import_inits();
+
+        $leader = get_role('team_leader');
+        $subordinate = get_role('team_subordinate');
+
+        $this->assertNotNull($leader);
+        $this->assertNotNull($subordinate);
+        $this->assertTrue($leader->has_cap('read'));
+        $this->assertTrue($subordinate->has_cap('read'));
+        $this->assertFalse($leader->has_cap('edit_posts'));
+        $this->assertFalse($subordinate->has_cap('edit_posts'));
+
+        $this->assertArrayHasKey('team_leader', $wp_roles->roles);
+        $this->assertArrayHasKey('team_subordinate', $wp_roles->roles);
+    }
 }
