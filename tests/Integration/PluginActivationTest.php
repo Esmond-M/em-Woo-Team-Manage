@@ -62,4 +62,14 @@ class PluginActivationTest extends WP_UnitTestCase
         $this->assertArrayHasKey('team_leader', $wp_roles->roles);
         $this->assertArrayHasKey('team_subordinate', $wp_roles->roles);
     }
+
+    public function test_team_leader_role_name_is_an_authorization_capability(): void
+    {
+        $user_id = self::factory()->user->create(['role' => 'team_leader']);
+        wp_set_current_user($user_id);
+
+        $this->assertTrue(current_user_can('team_leader'));
+        $this->assertTrue(current_user_can('read'));
+        $this->assertFalse(current_user_can('manage_options'));
+    }
 }
