@@ -29,6 +29,7 @@ class TeamManageCore
     {
         // Initialization hooks
         add_action('init', [$this, 'user_import_inits']);
+        add_action('delete_user', [$this, 'cleanup_user_relationships']);
 
         // Admin menu
         add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
@@ -95,6 +96,18 @@ class TeamManageCore
                 add_filter('woocommerce_disable_admin_bar', '__return_false');
             }
         }
+    }
+
+    /**
+     * Removes relationship rows when a WordPress user is deleted.
+     */
+    public function cleanup_user_relationships(int $user_id): void
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        $wpdb->delete($table, ['leader_id' => $user_id], ['%d']);
+        $wpdb->delete($table, ['subordinate_id' => $user_id], ['%d']);
     }
 
     /**
