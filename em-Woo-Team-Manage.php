@@ -90,7 +90,8 @@ final class emWooTeamManageInit {
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
             KEY leader_id (leader_id),
-            KEY subordinate_id (subordinate_id)
+            KEY subordinate_id (subordinate_id),
+            UNIQUE KEY leader_subordinate (leader_id, subordinate_id)
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');

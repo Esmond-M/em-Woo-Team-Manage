@@ -92,4 +92,32 @@ class PluginActivationTest extends WP_UnitTestCase
         wp_set_current_user($admin_id);
         $this->assertTrue(TeamManageCore::can_manage_team_pages());
     }
+
+    public function test_relationship_table_rejects_duplicate_memberships(): void
+    {
+        global $wpdb;
+
+        $leader_id = self::factory()->user->create(['role' => 'team_leader']);
+        $subordinate_id = self::factory()->user->create(['role' => 'team_subordinate']);
+        $other_leader_id = self::factory()->user->create(['role' => 'team_leader']);
+
+        $this->assertSame(1, $wpdb->insert(
+            $this->relationshipTable(),
+            ['leader_id' => $leader_id, 'subordinate_id' => $subordinate_id],
+            ['%d', '%d']
+        ));
+        $this->assertFalse($wpdb->insert(
+            $this->relationshipTable(),
+            ['leader_id' => $leader_id, 'subordinate_id' => $subordinate_id],
+            ['%d', '%d']
+        ));
+        $this->assertSame(1, $wpdb->insert(
+            $this->relationshipTable(),
+            ['leader_id' => $other_leader_id, 'subordinate_id' => $subordinate_id],
+            ['%d', '%d']
+        ));
+        $this->assertSame(2, (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$this->relationshipTable()}"
+        ));
+    }
 }
