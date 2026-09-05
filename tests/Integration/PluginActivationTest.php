@@ -147,4 +147,34 @@ class PluginActivationTest extends WP_UnitTestCase
         $this->assertNotNull(get_role('team_leader'));
         $this->assertNotNull(get_role('team_subordinate'));
     }
+
+    public function test_activation_deduplicates_legacy_relationship_rows_before_unique_key_migration(): void
+    {
+        global $wpdb;
+
+        $table = $this->relationshipTable();
+        $wpdb->query("DROP TABLE IF EXISTS {$table}");
+        $wpdb->query("CREATE TABLE {$table} (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            leader_id bigint(20) unsigned NOT NULL,
+            subordinate_id bigint(20) unsigned NOT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY leader_id (leader_id),
+            KEY subordinate_id (subordinate_id)
+        ) {$wpdb->get_charset_collate()}");
+
+        $wpdb->insert($table, ['leader_id' => 10, 'subordinate_id' => 20], ['%d', '%d']);
+        $wpdb->insert($table, ['leader_id' => 10, 'subordinate_id' => 20], ['%d', '%d']);
+
+        emWooTeamManageInit::get_instance()->emwtm_create_team_table();
+
+        $this->assertSame(1, (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$table} WHERE leader_id = 10 AND subordinate_id = 20"
+        ));
+        $this->assertGreaterThanOrEqual(1, (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND INDEX_NAME = 'leader_subordinate'",
+            $table
+        )));
+    }
 }
