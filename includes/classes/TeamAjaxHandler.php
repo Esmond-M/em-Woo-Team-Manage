@@ -239,6 +239,37 @@ class TeamAjaxHandler
     }
 
     /**
+     * Permanently deletes a pure team subordinate account for site admins.
+     */
+    public function delete_user_account(): void
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized', '', ['response' => 403]);
+        }
+        if (!check_ajax_referer('emwtm_delete_user_account', '_nonce', false)) {
+            wp_die('Security check failed', '', ['response' => 403]);
+        }
+        if (
+            empty($_POST['confirm_deletion']) ||
+            sanitize_text_field(wp_unslash($_POST['confirm_deletion'])) !== '1'
+        ) {
+            wp_die('Please confirm permanent account deletion.', '', ['response' => 400]);
+        }
+
+        $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+        $user = $user_id ? get_user_by('id', $user_id) : false;
+        if (!$user || !in_array('team_subordinate', (array) $user->roles, true) || in_array('team_leader', (array) $user->roles, true)) {
+            wp_die('Only pure team subordinate accounts can be permanently deleted.', '', ['response' => 400]);
+        }
+
+        if (!wp_delete_user($user_id)) {
+            wp_die('Could not delete the user account.', '', ['response' => 500]);
+        }
+
+        wp_die('User account permanently deleted.');
+    }
+
+    /**
     * Handles the editing of a subordinate's details via AJAX.
     */
     public function handle_edit_subordinate() {
