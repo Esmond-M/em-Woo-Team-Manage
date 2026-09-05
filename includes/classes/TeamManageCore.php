@@ -208,7 +208,7 @@ class TeamManageCore
     */
     public function load_myaccount_styles() {
         global $wp_query;
-        if (!is_account_page() || !isset($wp_query->query_vars['team-manage'])) {
+        if (!function_exists('is_account_page') || !is_account_page() || !isset($wp_query->query_vars['team-manage'])) {
             return;
         }
         wp_enqueue_style(
