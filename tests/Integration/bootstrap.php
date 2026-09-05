@@ -10,6 +10,11 @@ if (!$tests_dir || !is_dir($tests_dir)) {
 
 require_once $tests_dir . '/includes/functions.php';
 
+define(
+    'WP_TESTS_PHPUNIT_POLYFILLS_PATH',
+    '/var/www/html/wp-content/plugins/em-Woo-Team-Manage/vendor-integration/yoast/phpunit-polyfills'
+);
+
 tests_add_filter('muplugins_loaded', static function (): void {
     require_once WP_PLUGIN_DIR . '/woocommerce/woocommerce.php';
     require_once dirname(__DIR__, 2) . '/em-Woo-Team-Manage.php';

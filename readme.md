@@ -102,6 +102,7 @@ Integration tests run in wp-env's separate `tests-cli` container and never use t
 ```bash
 npm install
 npm run env:start
+npm run test:integration:install
 npm run test:integration
 npm run env:stop
 ```
