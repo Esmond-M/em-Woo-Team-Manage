@@ -40,8 +40,8 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
 ### Admin Pages (under "Team Manage" menu)
 | Page | Slug | Access |
 |------|------|--------|
-| Add Subordinates | `user-import-controls` | All roles |
-| View Subordinates | `team-leader-admin` | All roles |
+| Add Subordinates | `user-import-controls` | Team leaders and site administrators |
+| View Subordinates | `team-leader-admin` | Team leaders and site administrators |
 | Site Admin View | `site-admin-team-leader-admin` | `manage_options` only |
 | Settings | `emwtm-settings` | `manage_options` only |
 

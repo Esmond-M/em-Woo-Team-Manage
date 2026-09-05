@@ -72,4 +72,24 @@ class PluginActivationTest extends WP_UnitTestCase
         $this->assertTrue(current_user_can('read'));
         $this->assertFalse(current_user_can('manage_options'));
     }
+
+    public function test_only_team_leaders_and_site_admins_can_manage_team_pages(): void
+    {
+        $customer_id = self::factory()->user->create(['role' => 'customer']);
+        $subordinate_id = self::factory()->user->create(['role' => 'team_subordinate']);
+        $leader_id = self::factory()->user->create(['role' => 'team_leader']);
+        $admin_id = self::factory()->user->create(['role' => 'administrator']);
+
+        wp_set_current_user($customer_id);
+        $this->assertFalse(TeamManageCore::can_manage_team_pages());
+
+        wp_set_current_user($subordinate_id);
+        $this->assertFalse(TeamManageCore::can_manage_team_pages());
+
+        wp_set_current_user($leader_id);
+        $this->assertTrue(TeamManageCore::can_manage_team_pages());
+
+        wp_set_current_user($admin_id);
+        $this->assertTrue(TeamManageCore::can_manage_team_pages());
+    }
 }

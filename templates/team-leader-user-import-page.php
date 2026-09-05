@@ -3,6 +3,10 @@
  * Team Leader / Admin Import & Add Page
  */
 
+if (!emWooTeamManage\init_plugin\Classes\TeamManageCore::can_manage_team_pages()) {
+    return;
+}
+
 $is_admin = current_user_can('manage_options');
 
 if ($is_admin) {

@@ -2,6 +2,10 @@
 /**
  * Team Leader Admin Page
  */
+if (!emWooTeamManage\init_plugin\Classes\TeamManageCore::can_manage_team_pages()) {
+    return;
+}
+
 global $wpdb;
 $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
 $is_admin = current_user_can('manage_options');

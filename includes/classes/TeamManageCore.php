@@ -33,6 +33,7 @@ class TeamManageCore
 
         // Admin menu
         add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
+        add_action('admin_menu', [$this, 'remove_unauthorized_team_menus'], 999);
         add_action('admin_init', [$this, 'register_plugin_settings']);
 
         // WooCommerce hook
@@ -128,6 +129,14 @@ class TeamManageCore
     }
 
     /**
+     * Returns whether the current user can access team leader workflows.
+     */
+    public static function can_manage_team_pages(): bool
+    {
+        return current_user_can('team_leader') || current_user_can('manage_options');
+    }
+
+    /**
     * Registers admin menu and submenu pages for team management.
     */
     public function user_import_register_submenu_page() {
@@ -208,6 +217,20 @@ class TeamManageCore
                 $submenu['position']
             );
         }
+    }
+
+    /**
+     * Hides team leader workflow menus from users who cannot manage teams.
+     */
+    public function remove_unauthorized_team_menus(): void
+    {
+        if (self::can_manage_team_pages()) {
+            return;
+        }
+
+        remove_menu_page('user-import-controls');
+        remove_submenu_page('user-import-controls', 'user-import-controls');
+        remove_submenu_page('user-import-controls', 'team-leader-admin');
     }
 
     /**
