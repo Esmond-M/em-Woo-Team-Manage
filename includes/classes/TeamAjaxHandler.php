@@ -110,6 +110,10 @@ class TeamAjaxHandler
                         'ajaxurl' => admin_url('admin-ajax.php'),
                         'nonce'   => wp_create_nonce('export_team_csv'),
                     ]],
+                    ['team-leader-admin', 'delete_user_account', [
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                        'nonce'   => wp_create_nonce('emwtm_delete_user_account'),
+                    ]],
                 ],
             ],
         ];

@@ -98,6 +98,9 @@ $number_of_users = count($teamSubordinates);
                             <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
                             <td>
                                 <button type="button" class="edit-subordinate-btn" data-user-id="<?php echo esc_attr( $user->ID ); ?>" data-user-email="<?php echo esc_attr( $user->user_email ); ?>" data-user-name="<?php echo esc_attr( $user->display_name ); ?>">Edit</button>
+                                <?php if ($is_admin && in_array('team_subordinate', (array) $user->roles, true) && !in_array('team_leader', (array) $user->roles, true)): ?>
+                                    <button type="button" class="button-link-delete emwtm-delete-user-btn" data-user-id="<?php echo esc_attr($user->ID); ?>">Permanently Delete Account</button>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
