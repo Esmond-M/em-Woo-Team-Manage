@@ -58,6 +58,15 @@ class TeamAjaxHandler
         global $pagenow;
         $page = isset($_GET['page']) ? sanitize_key($_GET['page']) : '';
 
+        $team_workflow_page = in_array($page, ['user-import-controls', 'team-leader-admin'], true);
+        $configured_admin_page = $team_workflow_page || $page === 'site-admin-team-leader-admin';
+        $allowed = $team_workflow_page
+            ? (current_user_can('team_leader') || current_user_can('manage_options'))
+            : ($configured_admin_page && current_user_can('manage_options'));
+        if ($pagenow === 'admin.php' && !$allowed) {
+            return;
+        }
+
         $config = [
             'user-import-controls' => [
                 'styles' => [
