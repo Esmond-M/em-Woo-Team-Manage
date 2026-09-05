@@ -210,6 +210,7 @@ class TeamAjaxHandler
                     if ((string) get_user_meta($id, 'teamID', true) === (string) $current_leader_id) {
                         if ($remaining_teams === 0) {
                             delete_user_meta($id, 'teamID');
+                            TeamManageCore::restore_customer_role_after_team_removal($id);
                         } else {
                             $remaining_leader_id = (int) $wpdb->get_var($wpdb->prepare(
                                 "SELECT leader_id FROM $table WHERE subordinate_id = %d ORDER BY id ASC LIMIT 1",

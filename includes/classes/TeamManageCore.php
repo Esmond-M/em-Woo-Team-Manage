@@ -111,6 +111,22 @@ class TeamManageCore
     }
 
     /**
+     * Removes the team-only role after the user's final team membership ends.
+     */
+    public static function restore_customer_role_after_team_removal(int $user_id): void
+    {
+        $user = new \WP_User($user_id);
+        if (!$user->exists() || !in_array('team_subordinate', (array) $user->roles, true)) {
+            return;
+        }
+
+        $user->remove_role('team_subordinate');
+        if (empty($user->roles) && get_role('customer')) {
+            $user->add_role('customer');
+        }
+    }
+
+    /**
     * Registers admin menu and submenu pages for team management.
     */
     public function user_import_register_submenu_page() {

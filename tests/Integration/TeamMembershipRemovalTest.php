@@ -136,4 +136,49 @@ class TeamMembershipRemovalTest extends WP_UnitTestCase
         $this->assertSame((string) $other_leader_id, get_user_meta($subordinate_id, 'teamID', true));
         $this->assertSame(1, $mail_count);
     }
+
+    public function test_final_removal_restores_a_team_only_user_to_customer(): void
+    {
+        global $wpdb;
+
+        $leader_id = self::factory()->user->create(['role' => 'team_leader']);
+        $subordinate_id = self::factory()->user->create(['role' => 'team_subordinate']);
+        $this->user_ids = [$leader_id, $subordinate_id];
+        $wpdb->insert($this->relationshipTable(), ['leader_id' => $leader_id, 'subordinate_id' => $subordinate_id], ['%d', '%d']);
+        update_user_meta($subordinate_id, 'teamID', $leader_id);
+        wp_set_current_user($leader_id);
+        add_filter('pre_wp_mail', '__return_true');
+
+        $post = $this->basePost($subordinate_id);
+        $post['confirm_removal'] = '1';
+        $this->runRemoval($post);
+
+        $user = get_user_by('id', $subordinate_id);
+        $this->assertNotFalse($user);
+        $this->assertSame(['customer'], array_values((array) $user->roles));
+        $this->assertSame('', get_user_meta($subordinate_id, 'teamID', true));
+    }
+
+    public function test_final_removal_preserves_team_leader_role(): void
+    {
+        global $wpdb;
+
+        $leader_id = self::factory()->user->create(['role' => 'team_leader']);
+        $member_id = self::factory()->user->create(['role' => 'team_leader']);
+        $member = new WP_User($member_id);
+        $member->add_role('team_subordinate');
+        $this->user_ids = [$leader_id, $member_id];
+        $wpdb->insert($this->relationshipTable(), ['leader_id' => $leader_id, 'subordinate_id' => $member_id], ['%d', '%d']);
+        update_user_meta($member_id, 'teamID', $leader_id);
+        wp_set_current_user($leader_id);
+        add_filter('pre_wp_mail', '__return_true');
+
+        $post = $this->basePost($member_id);
+        $post['confirm_removal'] = '1';
+        $this->runRemoval($post);
+
+        $user = get_user_by('id', $member_id);
+        $this->assertContains('team_leader', (array) $user->roles);
+        $this->assertNotContains('team_subordinate', (array) $user->roles);
+    }
 }

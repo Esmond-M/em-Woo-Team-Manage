@@ -21,6 +21,7 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
   - **Single add form**: add one subordinate by name and email via AJAX
 - **View Subordinates** page — paginated table of all subordinates with:
   - Remove subordinate from the current team while retaining the WordPress/WooCommerce account
+  - Restore final team-only members to the WooCommerce Customer role while preserving other roles
   - Edit subordinate details inline via modal
   - Resend welcome/password email
   - Export team roster to CSV
