@@ -54,6 +54,8 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
 3. Activate the plugin via **Plugins > Installed Plugins** in your WordPress admin.
 4. Ensure WooCommerce is installed and activated.
 
+Deactivating the plugin flushes its rewrite rules but preserves team relationships, user roles, user metadata, settings, and the custom relationship table. The plugin does not automatically delete this data on deactivation or uninstall.
+
 ![Team Manage menu](/docs/img/team-manage-menu.png "Team Manage menu")
 
 ---

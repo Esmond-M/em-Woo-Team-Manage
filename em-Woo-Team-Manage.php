@@ -54,6 +54,7 @@ final class emWooTeamManageInit {
         add_action( 'init', [ $this, 'i18n' ] );        
         add_action( 'plugins_loaded', [ $this, 'init_class' ] );
         add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_team_table' ] );
+        add_action( 'deactivate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_deactivate' ] );
     }
 
     /**
@@ -96,6 +97,13 @@ final class emWooTeamManageInit {
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
+    }
+
+    /**
+     * Flushes plugin rewrite rules without deleting plugin data.
+     */
+    public function emwtm_deactivate(): void {
+        flush_rewrite_rules();
     }
 
     /**

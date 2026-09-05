@@ -120,4 +120,31 @@ class PluginActivationTest extends WP_UnitTestCase
             "SELECT COUNT(*) FROM {$this->relationshipTable()}"
         ));
     }
+
+    public function test_deactivation_preserves_relationship_table(): void
+    {
+        global $wpdb;
+
+        $leader_id = self::factory()->user->create(['role' => 'team_leader']);
+        $subordinate_id = self::factory()->user->create(['role' => 'team_subordinate']);
+        $wpdb->insert(
+            $this->relationshipTable(),
+            ['leader_id' => $leader_id, 'subordinate_id' => $subordinate_id],
+            ['%d', '%d']
+        );
+
+        emWooTeamManageInit::get_instance()->emwtm_deactivate();
+
+        $this->assertSame($this->relationshipTable(), $wpdb->get_var($wpdb->prepare(
+            'SHOW TABLES LIKE %s',
+            $wpdb->esc_like($this->relationshipTable())
+        )));
+        $this->assertSame(1, (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$this->relationshipTable()} WHERE leader_id = %d AND subordinate_id = %d",
+            $leader_id,
+            $subordinate_id
+        )));
+        $this->assertNotNull(get_role('team_leader'));
+        $this->assertNotNull(get_role('team_subordinate'));
+    }
 }
