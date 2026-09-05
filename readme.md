@@ -97,6 +97,17 @@ composer test
 
 The unit suite uses Brain Monkey and does not load WordPress, WooCommerce, or a database. It is safe to run without connecting to a LocalWP database.
 
+Integration tests run in wp-env's separate `tests-cli` container and never use the working LocalWP database. Docker Desktop must be installed and running:
+
+```bash
+npm install
+npm run env:start
+npm run test:integration
+npm run env:stop
+```
+
+The environment pins WordPress and WooCommerce versions in `.wp-env.json`. Use `npm run env:destroy` to remove its containers and disposable volumes.
+
 ---
 
 ## File Structure
