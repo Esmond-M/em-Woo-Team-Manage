@@ -63,6 +63,63 @@ class TeamUserImporter
     }
 
     /**
+     * Imports one CSV data row for a team leader.
+     *
+     * @return array{success:bool,message:string,user_id:int}
+     */
+    public function import_row(array $row, int $leader_id): array
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        $email_address = isset($row[0]) ? sanitize_email($row[0]) : '';
+        $first_name = isset($row[1]) ? sanitize_text_field($row[1]) : '';
+        $last_name = isset($row[2]) ? sanitize_text_field($row[2]) : '';
+
+        if (empty($email_address) || empty($first_name) || empty($last_name)) {
+            return ['success' => false, 'message' => 'Missing required fields.', 'user_id' => 0];
+        }
+
+        $current_count = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $table WHERE leader_id = %d",
+            $leader_id
+        ));
+        if ($current_count >= TeamManageCore::get_max_subordinates()) {
+            return [
+                'success' => false,
+                'message' => 'Maximum number of subordinates (' . TeamManageCore::get_max_subordinates() . ') reached for this team leader.',
+                'user_id' => 0,
+            ];
+        }
+
+        $user_id = wp_insert_user([
+            'user_login' => $email_address,
+            'user_pass' => wp_generate_password(),
+            'user_email' => $email_address,
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'user_url' => '',
+            'description' => '',
+            'role' => 'team_subordinate',
+        ]);
+
+        if (is_wp_error($user_id)) {
+            return [
+                'success' => false,
+                'message' => $user_id->get_error_message(),
+                'user_id' => 0,
+            ];
+        }
+
+        add_user_meta($user_id, 'teamID', $leader_id);
+        wp_new_user_notification($user_id, null, 'both');
+        $this->send_team_added_notification((int) $user_id, $leader_id);
+        $wpdb->insert($table, ['leader_id' => $leader_id, 'subordinate_id' => (int) $user_id], ['%d', '%d']);
+
+        return ['success' => true, 'message' => $first_name . ' ' . $last_name, 'user_id' => (int) $user_id];
+    }
+
+    /**
      * Handles AJAX CSV import of subordinate users for a team leader.
      */
     public function user_import_submission() {
@@ -121,63 +178,17 @@ class TeamUserImporter
                 break;
             }
             $dataRowCount++;
-            global $wpdb;
-            // Define table and leader_id here
-            $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
-            $leader_id = $resolved_leader_id;
+            $result = $this->import_row($row, $resolved_leader_id);
 
-            // Check current subordinate count for this leader
-            $current_count = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM $table WHERE leader_id = %d",
-                $leader_id
-            ));
-            $max_subordinates = TeamManageCore::get_max_subordinates();
-            if ($current_count >= $max_subordinates) {
-                echo '<p style="color:red;">Maximum number of subordinates ('.$max_subordinates.') reached for this team leader. No more can be imported.</p>';
-                @unlink($tmp_file);
-                wp_die();
-            }
-
-            // ...now process the row and create user...
-            $email_address = isset($row[0]) ? sanitize_email($row[0]) : '';
-            $firstName     = isset($row[1]) ? sanitize_text_field($row[1]) : '';
-            $lastName      = isset($row[2]) ? sanitize_text_field($row[2]) : '';
-            $password      = wp_generate_password();
-
-            if (empty($email_address) || empty($firstName) || empty($lastName)) {
-                $errorCount++;
-                echo '<p style="color:red;">Row ' . $rowCount . ' missing required fields.</p>';
-                continue;
-            }
-
-            $user_data = array(
-                'user_login'    => $email_address,
-                'user_pass'     => $password,
-                'user_email'    => $email_address,
-                'first_name'    => $firstName,
-                'last_name'     => $lastName,
-                'user_url'      => '',
-                'description'   => '',
-                'role'          => 'team_subordinate'
-            );
-
-            $user_id = wp_insert_user($user_data);
-
-            if (is_wp_error($user_id)) {
-                $errorCount++;
-                echo '<p style="color:red;">' . $errorCount . '. ' . esc_html($firstName . ' ' . $lastName) . ' did not import. Error: ' . esc_html($user_id->get_error_message()) . '</p>';
-            } else {
-                add_user_meta($user_id, 'teamID', $resolved_leader_id);
-                wp_new_user_notification($user_id, null, "both");
-                $this->send_team_added_notification((int) $user_id, $leader_id);
-                // Insert leader/subordinate relationship into custom table
-                $wpdb->insert($table, [
-                    'leader_id' => $leader_id,
-                    'subordinate_id' => intval($user_id)
-                ]);
-                if ($wpdb->last_error) {
-                    error_log('DB Insert Error: ' . $wpdb->last_error);
+            if (!$result['success']) {
+                if (strpos($result['message'], 'Maximum number of subordinates') === 0) {
+                    echo '<p style="color:red;">' . esc_html($result['message']) . '</p>';
+                    @unlink($tmp_file);
+                    wp_die();
                 }
+                $errorCount++;
+                echo '<p style="color:red;">' . $errorCount . '. Row ' . $rowCount . ' did not import. Error: ' . esc_html($result['message']) . '</p>';
+            } else {
                 $successCount++;
             }
 
