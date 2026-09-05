@@ -38,6 +38,14 @@ class TeamMembershipMutationTest extends WP_UnitTestCase
         $other_leader_id = self::factory()->user->create(['role' => 'team_leader']);
         wp_set_current_user($leader_id);
         add_filter('pre_wp_mail', '__return_true');
+        if (!defined('DOING_AJAX')) {
+            define('DOING_AJAX', true);
+        }
+        add_filter('wp_die_ajax_handler', static function () {
+            return static function ($message = '', $title = '', $args = []): void {
+                throw new WPDieException((string) $message);
+            };
+        });
 
         $_POST = [
             '_single_subordinate_nonce' => wp_create_nonce('add_single_subordinate'),
