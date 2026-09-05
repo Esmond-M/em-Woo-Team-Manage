@@ -18,5 +18,9 @@
         "psr-4": {
             "emWooTeamManage\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "test": "@test:unit",
+        "test:unit": "phpunit --testsuite Unit"
     }
 }

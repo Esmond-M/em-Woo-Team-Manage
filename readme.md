@@ -86,6 +86,19 @@ email_address,first_name,last_name
 
 ---
 
+## Development
+
+Install the locked PHP development dependencies and run the unit suite:
+
+```bash
+composer install
+composer test
+```
+
+The unit suite uses Brain Monkey and does not load WordPress, WooCommerce, or a database. It is safe to run without connecting to a LocalWP database.
+
+---
+
 ## File Structure
 
 ```
