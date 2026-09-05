@@ -135,4 +135,30 @@ class PermanentAccountDeletionTest extends WP_UnitTestCase
             $user_id
         )));
     }
+
+    public function test_permanent_account_deletion_retains_woocommerce_order_history(): void
+    {
+        $user_id = self::factory()->user->create([
+            'role' => 'team_subordinate',
+            'user_email' => 'order-history@example.com',
+        ]);
+        $this->user_ids = [];
+
+        $order = wc_create_order(['customer_id' => $user_id]);
+        $order->set_billing_email('order-history@example.com');
+        $order->set_status('completed');
+        $order->set_total('125.50');
+        $order->save();
+        $order_id = $order->get_id();
+
+        $this->setAdmin();
+        $output = $this->runDelete($this->post($user_id, wp_create_nonce('emwtm_delete_user_account')));
+
+        $this->assertStringContainsString('permanently deleted', $output);
+        $this->assertFalse(get_user_by('id', $user_id));
+        $retained_order = wc_get_order($order_id);
+        $this->assertNotFalse($retained_order);
+        $this->assertSame('completed', $retained_order->get_status());
+        $this->assertSame('125.50', $retained_order->get_total());
+    }
 }
