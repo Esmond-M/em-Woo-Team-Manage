@@ -7,6 +7,7 @@ use emWooTeamManage\init_plugin\Classes\TeamAjaxHandler;
 class PermanentAccountDeletionTest extends WP_UnitTestCase
 {
     private array $user_ids = [];
+    private array $product_ids = [];
 
     private function relationshipTable(): string
     {
@@ -37,6 +38,9 @@ class PermanentAccountDeletionTest extends WP_UnitTestCase
             if (get_user_by('id', $user_id)) {
                 wp_delete_user($user_id);
             }
+        }
+        foreach ($this->product_ids as $product_id) {
+            wp_delete_post($product_id, true);
         }
         $wpdb->query("DROP TABLE IF EXISTS {$this->relationshipTable()}");
         $_POST = [];
@@ -144,8 +148,15 @@ class PermanentAccountDeletionTest extends WP_UnitTestCase
         ]);
         $this->user_ids = [];
 
+        $product = new WC_Product_Simple();
+        $product->set_name('Retained Product');
+        $product->set_regular_price('125.50');
+        $product->save();
+        $this->product_ids[] = $product->get_id();
+
         $order = wc_create_order(['customer_id' => $user_id]);
         $order->set_billing_email('order-history@example.com');
+        $order->add_product($product, 1);
         $order->set_status('completed');
         $order->set_total('125.50');
         $order->save();
@@ -160,5 +171,8 @@ class PermanentAccountDeletionTest extends WP_UnitTestCase
         $this->assertNotFalse($retained_order);
         $this->assertSame('completed', $retained_order->get_status());
         $this->assertSame('125.50', $retained_order->get_total());
+        $items = $retained_order->get_items();
+        $this->assertCount(1, $items);
+        $this->assertSame($product->get_id(), (int) reset($items)->get_product_id());
     }
 }
