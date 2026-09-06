@@ -13,8 +13,8 @@
         "/admin",
         "/includes",
         "/templates",
-        "/page-templates",
-        "em-Woo-Team-Manage.php"
+        "em-Woo-Team-Manage.php",
+        "readme.md"
     ],
     "devDependencies": {
         "@wordpress/env": "10.39.0",
