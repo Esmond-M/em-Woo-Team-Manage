@@ -105,4 +105,31 @@ jQuery(document).ready(function($) {
         });
     });
 
+    $(document).on('click', '.emwtm-delete-user-btn', function(event) {
+        event.preventDefault();
+        var $button = $(this);
+        var userId = $button.data('user-id');
+
+        if (!window.confirm('Permanently delete this account? This cannot be undone.')) {
+            return;
+        }
+
+        $button.prop('disabled', true).text('Deleting...');
+        $.post(delete_user_account.ajaxurl, {
+            action: 'emwtm_delete_user_account',
+            _nonce: delete_user_account.nonce,
+            user_id: userId,
+            confirm_deletion: '1'
+        }).done(function() {
+            window.location.reload();
+        }).fail(function(jqXHR) {
+            var message = 'Could not delete the account.';
+            if (jqXHR.responseText) {
+                message += '\n' + jqXHR.responseText.replace(/<[^>]*>/g, '').trim();
+            }
+            window.alert(message);
+            $button.prop('disabled', false).text('Permanently Delete Account');
+        });
+    });
+
 });

@@ -58,6 +58,15 @@ class TeamAjaxHandler
         global $pagenow;
         $page = isset($_GET['page']) ? sanitize_key($_GET['page']) : '';
 
+        $team_workflow_page = in_array($page, ['user-import-controls', 'team-leader-admin'], true);
+        $configured_admin_page = $team_workflow_page || $page === 'site-admin-team-leader-admin';
+        $allowed = $team_workflow_page
+            ? (current_user_can('team_leader') || current_user_can('manage_options'))
+            : ($configured_admin_page && current_user_can('manage_options'));
+        if ($pagenow === 'admin.php' && !$allowed) {
+            return;
+        }
+
         $config = [
             'user-import-controls' => [
                 'styles' => [
@@ -86,7 +95,8 @@ class TeamAjaxHandler
                 ],
                 'localize' => [
                     ['site-admin-team-leader-script', 'siteAdminTeamLeader', [
-                        'ajaxurl' => admin_url('admin-ajax.php')
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                        'nonce'   => wp_create_nonce('get_subordinates'),
                     ]],
                 ],
             ],
@@ -108,6 +118,10 @@ class TeamAjaxHandler
                     ['team-leader-admin', 'export_team_csv', [
                         'ajaxurl' => admin_url('admin-ajax.php'),
                         'nonce'   => wp_create_nonce('export_team_csv'),
+                    ]],
+                    ['team-leader-admin', 'delete_user_account', [
+                        'ajaxurl' => admin_url('admin-ajax.php'),
+                        'nonce'   => wp_create_nonce('emwtm_delete_user_account'),
                     ]],
                 ],
             ],
@@ -135,7 +149,7 @@ class TeamAjaxHandler
     }
 
     /**
-     * Handles AJAX submission for team leader actions (delete/resend password).
+     * Handles AJAX submission for team leader actions (remove/resend password).
      */
     public function team_Leader_Form_Submission() {
         // Verify nonce and role
@@ -166,6 +180,15 @@ class TeamAjaxHandler
             <div class="user-deletion-password-contain">
             <?php
             $action = isset($_POST['teamLeaderSelectOption']) ? sanitize_text_field($_POST['teamLeaderSelectOption']) : '';
+            if ($action === 'delete' && (
+                empty($_POST['confirm_removal']) ||
+                sanitize_text_field(wp_unslash($_POST['confirm_removal'])) !== '1'
+            )) {
+                echo '<p class="newpost-error">Please confirm that you want to remove the selected users from this team.</p>';
+                echo '<button class="refresh-btn" onClick="window.location.reload();">Refresh Page</button>';
+                echo '</div>';
+                wp_die();
+            }
             foreach ($_POST['userID'] as $raw_id) {
                 $id = (int) $raw_id;
                 // Verify this subordinate belongs to the current leader
@@ -184,10 +207,33 @@ class TeamAjaxHandler
                 }
 
                 if ($action === 'delete') {
-                    wp_delete_user($id);
-                    $wpdb->delete($table, ['subordinate_id' => $id], ['%d']);
+                    $removed = $wpdb->delete(
+                        $table,
+                        ['leader_id' => $current_leader_id, 'subordinate_id' => $id],
+                        ['%d', '%d']
+                    );
+                    if ($removed === false) {
+                        echo '<p class="newpost-error">Could not remove User ID ' . esc_html($id) . ' from the team.</p>';
+                        continue;
+                    }
+                    $remaining_teams = (int) $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM $table WHERE subordinate_id = %d",
+                        $id
+                    ));
+                    if ((string) get_user_meta($id, 'teamID', true) === (string) $current_leader_id) {
+                        if ($remaining_teams === 0) {
+                            delete_user_meta($id, 'teamID');
+                            TeamManageCore::restore_customer_role_after_team_removal($id);
+                        } else {
+                            $remaining_leader_id = (int) $wpdb->get_var($wpdb->prepare(
+                                "SELECT leader_id FROM $table WHERE subordinate_id = %d ORDER BY id ASC LIMIT 1",
+                                $id
+                            ));
+                            update_user_meta($id, 'teamID', $remaining_leader_id);
+                        }
+                    }
                     $this->send_team_notification($id, 'removed', $current_leader_id);
-                    echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' deleted</p>';
+                    echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' removed from the team</p>';
                 } elseif ($action === 'resend') {
                     retrieve_password($user->user_login);
                     echo '<p class="newpost-success">User: ' . esc_html($user->user_login) . ' password sent</p>';
@@ -202,7 +248,38 @@ class TeamAjaxHandler
             </div>
             <?php
         }
-        exit;
+        wp_die();
+    }
+
+    /**
+     * Permanently deletes a pure team subordinate account for site admins.
+     */
+    public function delete_user_account(): void
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized', '', ['response' => 403]);
+        }
+        if (!check_ajax_referer('emwtm_delete_user_account', '_nonce', false)) {
+            wp_die('Security check failed', '', ['response' => 403]);
+        }
+        if (
+            empty($_POST['confirm_deletion']) ||
+            sanitize_text_field(wp_unslash($_POST['confirm_deletion'])) !== '1'
+        ) {
+            wp_die('Please confirm permanent account deletion.', '', ['response' => 400]);
+        }
+
+        $user_id = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
+        $user = $user_id ? get_user_by('id', $user_id) : false;
+        if (!$user || !in_array('team_subordinate', (array) $user->roles, true) || in_array('team_leader', (array) $user->roles, true)) {
+            wp_die('Only pure team subordinate accounts can be permanently deleted.', '', ['response' => 400]);
+        }
+
+        if (!wp_delete_user($user_id)) {
+            wp_die('Could not delete the user account.', '', ['response' => 500]);
+        }
+
+        wp_die('User account permanently deleted.');
     }
 
     /**
@@ -407,35 +484,38 @@ class TeamAjaxHandler
      * AJAX handler to get subordinates of a team leader.
      */
     public function ajax_get_subordinates() {
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(['message' => 'Unauthorized']);
-    }
-    $leader_id = isset($_POST['leader_id']) ? intval($_POST['leader_id']) : 0;
-    if (!$leader_id) {
-        wp_send_json_error(['message' => 'Invalid leader ID']);
-    }
-    global $wpdb;
-    $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
-    $subordinate_ids = $wpdb->get_col($wpdb->prepare("SELECT subordinate_id FROM $table WHERE leader_id = %d", $leader_id));
-    $teamSubordinates = [];
-    if (!empty($subordinate_ids)) {
-        $teamSubordinates = get_users([
-            'include' => $subordinate_ids,
-            'role__in' => ['team_subordinate']
-        ]);
-    }
-    ob_start();
-    if ($teamSubordinates) {
-        echo '<ul>';
-        foreach ($teamSubordinates as $sub) {
-            echo '<li>' . esc_html($sub->user_email) . ' - ' . esc_html($sub->display_name) . '</li>';
+        if (!check_ajax_referer('get_subordinates', '_nonce', false)) {
+            wp_send_json_error(['message' => 'Invalid nonce.'], 403);
         }
-        echo '</ul>';
-    } else {
-        echo '<span>No subordinates</span>';
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Unauthorized'], 403);
+        }
+        $leader_id = isset($_POST['leader_id']) ? intval($_POST['leader_id']) : 0;
+        if (!$leader_id) {
+            wp_send_json_error(['message' => 'Invalid leader ID']);
+        }
+        global $wpdb;
+        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        $subordinate_ids = $wpdb->get_col($wpdb->prepare("SELECT subordinate_id FROM $table WHERE leader_id = %d", $leader_id));
+        $teamSubordinates = [];
+        if (!empty($subordinate_ids)) {
+            $teamSubordinates = get_users([
+                'include' => $subordinate_ids,
+                'role__in' => ['team_subordinate']
+            ]);
+        }
+        ob_start();
+        if ($teamSubordinates) {
+            echo '<ul>';
+            foreach ($teamSubordinates as $sub) {
+                echo '<li>' . esc_html($sub->user_email) . ' - ' . esc_html($sub->display_name) . '</li>';
+            }
+            echo '</ul>';
+        } else {
+            echo '<span>No subordinates</span>';
+        }
+        $html = ob_get_clean();
+        wp_send_json_success(['html' => $html]);
     }
-    $html = ob_get_clean();
-    wp_send_json_success(['html' => $html]);
-}
 
 }

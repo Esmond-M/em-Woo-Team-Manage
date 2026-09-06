@@ -29,9 +29,11 @@ class TeamManageCore
     {
         // Initialization hooks
         add_action('init', [$this, 'user_import_inits']);
+        add_action('delete_user', [$this, 'cleanup_user_relationships']);
 
         // Admin menu
         add_action('admin_menu', [$this, 'user_import_register_submenu_page']);
+        add_action('admin_menu', [$this, 'remove_unauthorized_team_menus'], 999);
         add_action('admin_init', [$this, 'register_plugin_settings']);
 
         // WooCommerce hook
@@ -45,6 +47,7 @@ class TeamManageCore
         add_action('wp_ajax_edit_subordinate', [$this->ajax, 'handle_edit_subordinate']);
         add_action('admin_post_edit_subordinate', [$this->ajax, 'handle_edit_subordinate']);
         add_action('wp_ajax_get_subordinates', [$this->ajax, 'ajax_get_subordinates']);
+        add_action('wp_ajax_emwtm_delete_user_account', [$this->ajax, 'delete_user_account']);
         $this->importer = new TeamUserImporter();
         add_action('wp_ajax_user_import_submission', [$this->importer, 'user_import_submission']);
         add_action('wp_ajax_add_single_subordinate', [$this->ajax, 'add_single_subordinate']);
@@ -95,6 +98,42 @@ class TeamManageCore
                 add_filter('woocommerce_disable_admin_bar', '__return_false');
             }
         }
+    }
+
+    /**
+     * Removes relationship rows when a WordPress user is deleted.
+     */
+    public function cleanup_user_relationships(int $user_id): void
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
+        $wpdb->delete($table, ['leader_id' => $user_id], ['%d']);
+        $wpdb->delete($table, ['subordinate_id' => $user_id], ['%d']);
+    }
+
+    /**
+     * Removes the team-only role after the user's final team membership ends.
+     */
+    public static function restore_customer_role_after_team_removal(int $user_id): void
+    {
+        $user = new \WP_User($user_id);
+        if (!$user->exists() || !in_array('team_subordinate', (array) $user->roles, true)) {
+            return;
+        }
+
+        $user->remove_role('team_subordinate');
+        if (empty($user->roles) && get_role('customer')) {
+            $user->add_role('customer');
+        }
+    }
+
+    /**
+     * Returns whether the current user can access team leader workflows.
+     */
+    public static function can_manage_team_pages(): bool
+    {
+        return current_user_can('team_leader') || current_user_can('manage_options');
     }
 
     /**
@@ -181,6 +220,20 @@ class TeamManageCore
     }
 
     /**
+     * Hides team leader workflow menus from users who cannot manage teams.
+     */
+    public function remove_unauthorized_team_menus(): void
+    {
+        if (self::can_manage_team_pages()) {
+            return;
+        }
+
+        remove_menu_page('user-import-controls');
+        remove_submenu_page('user-import-controls', 'user-import-controls');
+        remove_submenu_page('user-import-controls', 'team-leader-admin');
+    }
+
+    /**
     * Registers the custom WooCommerce My Account endpoint.
     */
     public function register_myaccount_endpoint() {
@@ -208,7 +261,7 @@ class TeamManageCore
     */
     public function load_myaccount_styles() {
         global $wp_query;
-        if (!is_account_page() || !isset($wp_query->query_vars['team-manage'])) {
+        if (!function_exists('is_account_page') || !is_account_page() || !isset($wp_query->query_vars['team-manage'])) {
             return;
         }
         wp_enqueue_style(

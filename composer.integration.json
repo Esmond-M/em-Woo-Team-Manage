@@ -1,0 +1,12 @@
+{
+    "name": "esmond-m/em-woo-team-manage-integration-tests",
+    "description": "Isolated WordPress integration test dependencies for EM WooTeamManage",
+    "license": "GPL-2.0-or-later",
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "yoast/phpunit-polyfills": "^2.0"
+    },
+    "config": {
+        "vendor-dir": "vendor-integration"
+    }
+}

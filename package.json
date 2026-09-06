@@ -13,10 +13,11 @@
         "/admin",
         "/includes",
         "/templates",
-        "/page-templates",
-        "em-Woo-Team-Manage.php"
+        "em-Woo-Team-Manage.php",
+        "readme.md"
     ],
     "devDependencies": {
+        "@wordpress/env": "10.39.0",
         "@wordpress/scripts": "^31.6.0",
         "terser": "^5.44.0"
     },
@@ -30,6 +31,11 @@
         "format": "wp-scripts format",
         "packages-update": "wp-scripts packages-update",
         "plugin-zip": "wp-scripts plugin-zip && move *.zip build\\",
+        "env:start": "wp-env start",
+        "env:stop": "wp-env stop",
+        "env:destroy": "wp-env destroy",
+        "test:integration:install": "wp-env run tests-cli --env-cwd=wp-content/plugins/em-Woo-Team-Manage sh -lc \"COMPOSER=composer.integration.json composer install --no-interaction --no-progress\"",
+        "test:integration": "wp-env run tests-cli --env-cwd=wp-content/plugins/em-Woo-Team-Manage php vendor-integration/bin/phpunit -c phpunit.integration.xml",
         "start": "wp-scripts start",
         "watch:siteadmin": "sass --watch admin/assets/sass/site-admin-team-leader.scss admin/assets/css/site-admin-team-leader.css --no-source-map",
         "watch:admin": "sass --watch admin/assets/sass/team-leader-admin.scss admin/assets/css/team-leader-admin.css --no-source-map",

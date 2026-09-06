@@ -54,6 +54,7 @@ final class emWooTeamManageInit {
         add_action( 'init', [ $this, 'i18n' ] );        
         add_action( 'plugins_loaded', [ $this, 'init_class' ] );
         add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_team_table' ] );
+        add_action( 'deactivate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_deactivate' ] );
     }
 
     /**
@@ -83,6 +84,28 @@ final class emWooTeamManageInit {
         $table_name = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
         $charset_collate = $wpdb->get_charset_collate();
 
+        $existing_table = $wpdb->get_var($wpdb->prepare(
+            'SHOW TABLES LIKE %s',
+            $wpdb->esc_like($table_name)
+        ));
+        if (!empty($existing_table)) {
+            $duplicate_groups = $wpdb->get_results(
+                "SELECT leader_id, subordinate_id, MIN(id) AS retained_id
+                 FROM {$table_name}
+                 GROUP BY leader_id, subordinate_id
+                 HAVING COUNT(*) > 1"
+            );
+            foreach ($duplicate_groups as $duplicate_group) {
+                $wpdb->query($wpdb->prepare(
+                    "DELETE FROM {$table_name}
+                     WHERE leader_id = %d AND subordinate_id = %d AND id <> %d",
+                    (int) $duplicate_group->leader_id,
+                    (int) $duplicate_group->subordinate_id,
+                    (int) $duplicate_group->retained_id
+                ));
+            }
+        }
+
         $sql = "CREATE TABLE $table_name (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             leader_id bigint(20) unsigned NOT NULL,
@@ -90,11 +113,19 @@ final class emWooTeamManageInit {
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
             KEY leader_id (leader_id),
-            KEY subordinate_id (subordinate_id)
+            KEY subordinate_id (subordinate_id),
+            UNIQUE KEY leader_subordinate (leader_id, subordinate_id)
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
+    }
+
+    /**
+     * Flushes plugin rewrite rules without deleting plugin data.
+     */
+    public function emwtm_deactivate(): void {
+        flush_rewrite_rules();
     }
 
     /**

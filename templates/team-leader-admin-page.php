@@ -2,6 +2,10 @@
 /**
  * Team Leader Admin Page
  */
+if (!emWooTeamManage\init_plugin\Classes\TeamManageCore::can_manage_team_pages()) {
+    return;
+}
+
 global $wpdb;
 $table = $wpdb->prefix . 'emwtm_team_leaders_subordinates';
 $is_admin = current_user_can('manage_options');
@@ -72,13 +76,13 @@ $number_of_users = count($teamSubordinates);
                 <table>
                     <tr>
                         <th>Number of Subordinates</th>
-                        <th>Action <span title="Delete removes user. Resend sends password reset email." style="cursor:help;">&#9432;</span></th>
+                        <th>Action <span title="Remove takes the user off this team. Resend sends a password reset email." style="cursor:help;">&#9432;</span></th>
                     </tr>
                     <tr>
                         <td><span><?php echo esc_html( $number_of_users ); ?></span></td>
                         <td>
                             <select name="teamLeaderSelectOption" form="team-leader-form">
-                                <option value="delete">Delete</option>
+                                <option value="delete">Remove from Team</option>
                                 <option value="resend">Send Password Reset Link</option>
                             </select>
                         </td>
@@ -98,6 +102,9 @@ $number_of_users = count($teamSubordinates);
                             <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
                             <td>
                                 <button type="button" class="edit-subordinate-btn" data-user-id="<?php echo esc_attr( $user->ID ); ?>" data-user-email="<?php echo esc_attr( $user->user_email ); ?>" data-user-name="<?php echo esc_attr( $user->display_name ); ?>">Edit</button>
+                                <?php if ($is_admin && in_array('team_subordinate', (array) $user->roles, true) && !in_array('team_leader', (array) $user->roles, true)): ?>
+                                    <button type="button" class="button-link-delete emwtm-delete-user-btn" data-user-id="<?php echo esc_attr($user->ID); ?>">Permanently Delete Account</button>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -106,6 +113,7 @@ $number_of_users = count($teamSubordinates);
             <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
             <input type="hidden" name="action" value="team_Leader_Form_Submission" />
             <input type="hidden" name="leaderID" value="<?php echo esc_attr($teamLeaderID); ?>" />
+            <label><input type="checkbox" name="confirm_removal" value="1" /> Confirm removing selected users from this team</label>
             <input type="submit" value="Submit" class="button button-primary">
         </form>
     </div>
