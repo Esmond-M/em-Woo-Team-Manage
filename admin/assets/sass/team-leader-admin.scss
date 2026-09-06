@@ -217,8 +217,18 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
   }
 }
 
-// ─── Edit button ──────────────────────────────────────────────────────────────
-.edit-subordinate-btn {
+// ─── Inline subordinate editing ───────────────────────────────────────────────
+.subordinate-row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.edit-subordinate-btn,
+.save-subordinate-btn,
+.cancel-subordinate-edit-btn {
   background: none;
   border: 1px solid $border;
   border-radius: 4px;
@@ -231,6 +241,51 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
   &:hover {
     background: $info-bg;
     border-color: $primary;
+  }
+}
+
+.save-subordinate-btn.button.button-primary {
+  background: $primary;
+  border-color: $primary;
+  color: #fff;
+
+  &:hover,
+  &:focus {
+    background: $primary-dark;
+    border-color: $primary-dark;
+  }
+}
+
+.subordinate-edit-field {
+  width: 100%;
+  max-width: 280px;
+  border: 1px solid $border;
+  border-radius: 4px;
+  padding: 6px 9px;
+  font-size: 0.92rem;
+  color: $text-dark;
+  background: $bg-card;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: $primary;
+    outline: 2px solid rgba(34,113,177,0.15);
+    outline-offset: 1px;
+  }
+}
+
+.subordinate-row.is-editing td {
+  background: $info-bg !important;
+}
+
+.subordinate-edit-message {
+  display: block;
+  color: $text-mid;
+  font-size: 0.82rem;
+  margin-top: 4px;
+
+  &.is-error {
+    color: $error-text;
   }
 }
 
@@ -295,75 +350,6 @@ p.newpost-error, .newpost-error {
   &:hover { background: $primary-dark; }
 }
 
-// ─── Edit modal ───────────────────────────────────────────────────────────────
-#editSubordinateModal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.46);
-  z-index: 100000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  form#editSubordinateForm {
-    background: $bg-card;
-    border-radius: 8px;
-    padding: 28px 32px;
-    box-shadow: $shadow-md;
-    min-width: 320px;
-    max-width: 460px;
-    width: 100%;
-
-    label {
-      display: block;
-      font-weight: 600;
-      color: $text-dark;
-      margin: 14px 0 4px;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    input[type=email],
-    input[type=text] {
-      width: 100%;
-      border: 1px solid $border;
-      border-radius: 4px;
-      padding: 7px 10px;
-      font-size: 0.95rem;
-      box-sizing: border-box;
-      &:focus { border-color: $primary; outline: 2px solid rgba(34,113,177,0.15); }
-    }
-
-    input[type=submit] {
-      background: $primary;
-      border: none;
-      color: #fff;
-      padding: 8px 20px;
-      font-size: 0.9rem;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 18px;
-      margin-right: 8px;
-      transition: background 0.2s;
-      &:hover { background: $primary-dark; }
-    }
-
-    #closeEditModal {
-      background: $bg-light;
-      border: 1px solid $border;
-      color: $text-mid;
-      padding: 7px 18px;
-      font-size: 0.9rem;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 18px;
-      transition: background 0.15s;
-      &:hover { background: #e4e6e8; }
-    }
-  }
-}
-
 // ─── Misc ─────────────────────────────────────────────────────────────────────
 .site-admin-msg  { font-size: 1rem; color: $error; font-weight: 600; }
 .emulation-title { font-size: 1.5rem; text-align: center; color: $primary; }
@@ -397,9 +383,6 @@ p.newpost-error, .newpost-error {
   .subordinate-container table,
   #team-leader-form table { font-size: 13px; }
 
-  #editSubordinateModal form#editSubordinateForm {
-    min-width: 280px;
-    padding: 18px 14px;
-  }
+  .subordinate-edit-field { max-width: none; }
 }
 

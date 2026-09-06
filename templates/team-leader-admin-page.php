@@ -88,7 +88,7 @@ $number_of_users = count($teamSubordinates);
                         </td>
                     </tr>
                 </table>
-                <table>
+                <table id="team-subordinates-table" data-leader-id="<?php echo esc_attr( $teamLeaderID ); ?>" data-edit-nonce="<?php echo esc_attr( wp_create_nonce( 'edit_subordinate_action' ) ); ?>">
                     <tr>
                         <th>Subordinate Email</th>
                         <th>Subordinate Name</th>
@@ -96,12 +96,23 @@ $number_of_users = count($teamSubordinates);
                         <th>Edit</th>
                     </tr>
                     <?php foreach ( $teamSubordinates as $user ) : ?>
-                        <tr>
-                            <td><span><?php echo esc_html( $user->user_email ); ?></span></td>
-                            <td><span><?php echo esc_html( $user->display_name ); ?></span></td>
+                        <tr class="subordinate-row" data-user-id="<?php echo esc_attr( $user->ID ); ?>">
+                            <td>
+                                <span class="subordinate-value subordinate-email-value"><?php echo esc_html( $user->user_email ); ?></span>
+                                <input class="subordinate-edit-field subordinate-email-input" type="email" value="<?php echo esc_attr( $user->user_email ); ?>" required disabled hidden />
+                            </td>
+                            <td>
+                                <span class="subordinate-value subordinate-name-value"><?php echo esc_html( $user->display_name ); ?></span>
+                                <input class="subordinate-edit-field subordinate-name-input" type="text" value="<?php echo esc_attr( $user->display_name ); ?>" required disabled hidden />
+                            </td>
                             <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
                             <td>
-                                <button type="button" class="edit-subordinate-btn" data-user-id="<?php echo esc_attr( $user->ID ); ?>" data-user-email="<?php echo esc_attr( $user->user_email ); ?>" data-user-name="<?php echo esc_attr( $user->display_name ); ?>">Edit</button>
+                                <div class="subordinate-row-actions">
+                                    <button type="button" class="edit-subordinate-btn">Edit</button>
+                                    <button type="button" class="save-subordinate-btn button button-primary" hidden>Save</button>
+                                    <button type="button" class="cancel-subordinate-edit-btn button" hidden>Cancel</button>
+                                </div>
+                                <span class="subordinate-edit-message" role="status" hidden></span>
                                 <?php if ($is_admin && in_array('team_subordinate', (array) $user->roles, true) && !in_array('team_leader', (array) $user->roles, true)): ?>
                                     <button type="button" class="button-link-delete emwtm-delete-user-btn" data-user-id="<?php echo esc_attr($user->ID); ?>">Permanently Delete Account</button>
                                 <?php endif; ?>
@@ -115,21 +126,6 @@ $number_of_users = count($teamSubordinates);
             <input type="hidden" name="leaderID" value="<?php echo esc_attr($teamLeaderID); ?>" />
             <label><input type="checkbox" name="confirm_removal" value="1" /> Confirm removing selected users from this team</label>
             <input type="submit" value="Submit" class="button button-primary">
-        </form>
-    </div>
-    <!-- Modal for editing subordinate -->
-    <div id="editSubordinateModal" style="display:none;">
-        <form id="editSubordinateForm" method="POST" >
-            <input type="hidden" name="edit_user_id" id="edit_user_id" value="" />
-            <input type="hidden" name="leaderID" value="<?php echo esc_attr( $teamLeaderID ); ?>" />
-            <label for="edit_user_email">Email:</label>
-            <input type="email" name="edit_user_email" id="edit_user_email" value="" required />
-            <label for="edit_user_name">Name:</label>
-            <input type="text" name="edit_user_name" id="edit_user_name" value="" required />
-            <?php wp_nonce_field( 'edit_subordinate_action', 'edit_subordinate_nonce' ); ?>
-            <input type="hidden" name="action" value="edit_subordinate" />
-            <input type="submit" value="Save" class="button button-primary">
-            <button type="button" id="closeEditModal" class="button">Cancel</button>
         </form>
     </div>
     <?php

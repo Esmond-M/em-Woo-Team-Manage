@@ -45,62 +45,105 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // Handles modal open/close for editing subordinate profiles
-    document.querySelectorAll('.edit-subordinate-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            document.getElementById('edit_user_id').value = btn.getAttribute('data-user-id');
-            document.getElementById('edit_user_email').value = btn.getAttribute('data-user-email');
-            document.getElementById('edit_user_name').value = btn.getAttribute('data-user-name');
-            document.getElementById('editSubordinateModal').style.display = 'block';
-        });
-    });
-    var closeBtn = document.getElementById('closeEditModal');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            document.getElementById('editSubordinateModal').style.display = 'none';
-        });
+    function setSubordinateEditMessage($row, message, isError) {
+        var $message = $row.find('.subordinate-edit-message');
+        $message.text(message).prop('hidden', message === '').toggleClass('is-error', isError);
     }
 
-    // Trigger AJAX handler on modal form submit
-    $('#editSubordinateForm').submit(function(event) {
-        event.preventDefault();
-        var $form = $(this);
-        $form.find("input[type='submit']").prop("disabled", true);
-        $form.append('<div class="user-import-ajax-loader"></div>');
-        var formData = $form.serialize();
+    function resetSubordinateRowFields($row) {
+        $row.find('.subordinate-email-input').val($row.find('.subordinate-email-value').text());
+        $row.find('.subordinate-name-input').val($row.find('.subordinate-name-value').text());
+    }
+
+    function setSubordinateRowEditing($row, isEditing) {
+        $row.toggleClass('is-editing', isEditing);
+        $row.find('.subordinate-value').prop('hidden', isEditing);
+        $row.find('.subordinate-edit-field').prop('hidden', !isEditing).prop('disabled', !isEditing);
+        $row.find('.edit-subordinate-btn').prop('hidden', isEditing);
+        $row.find('.save-subordinate-btn, .cancel-subordinate-edit-btn').prop('hidden', !isEditing);
+        setSubordinateEditMessage($row, '', false);
+
+        if (isEditing) {
+            $row.find('.subordinate-email-input').trigger('focus').trigger('select');
+        }
+    }
+
+    $(document).on('click', '.edit-subordinate-btn', function() {
+        var $row = $(this).closest('.subordinate-row');
+        resetSubordinateRowFields($row);
+        setSubordinateRowEditing($row, true);
+    });
+
+    $(document).on('click', '.cancel-subordinate-edit-btn', function() {
+        var $row = $(this).closest('.subordinate-row');
+        resetSubordinateRowFields($row);
+        setSubordinateRowEditing($row, false);
+    });
+
+    $(document).on('keydown', '.subordinate-edit-field', function(event) {
+        var $row = $(this).closest('.subordinate-row');
+
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            $row.find('.save-subordinate-btn').trigger('click');
+        }
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            $row.find('.cancel-subordinate-edit-btn').trigger('click');
+        }
+    });
+
+    $(document).on('click', '.save-subordinate-btn', function() {
+        var $row = $(this).closest('.subordinate-row');
+        var $table = $('#team-subordinates-table');
+        var emailInput = $row.find('.subordinate-email-input').get(0);
+        var nameInput = $row.find('.subordinate-name-input').get(0);
+
+        if ((emailInput && !emailInput.reportValidity()) || (nameInput && !nameInput.reportValidity())) {
+            return;
+        }
+
+        $row.find('.save-subordinate-btn, .cancel-subordinate-edit-btn').prop('disabled', true);
+        setSubordinateEditMessage($row, 'Saving...', false);
+
         $.ajax({
-            type: "POST",
-            url: handle_edit_subordinate.ajaxurl, // Make sure this is localized in your PHP
-            data: formData,
-            dataType: "json",
+            type: 'POST',
+            url: handle_edit_subordinate.ajaxurl,
+            data: {
+                action: 'edit_subordinate',
+                edit_user_id: $row.data('user-id'),
+                leaderID: $table.data('leader-id'),
+                edit_subordinate_nonce: $table.data('edit-nonce'),
+                edit_user_email: $row.find('.subordinate-email-input').val(),
+                edit_user_name: $row.find('.subordinate-name-input').val()
+            },
+            dataType: 'json',
             success: function(response) {
-                $(".user-import-ajax-loader").remove();
                 if (response.success) {
-                    window.location.reload();
+                    $row.find('.subordinate-email-value').text($row.find('.subordinate-email-input').val());
+                    $row.find('.subordinate-name-value').text($row.find('.subordinate-name-input').val());
+                    setSubordinateRowEditing($row, false);
                 } else {
-                    // Defensive: check if response.data exists
-                    var msg = "Error updating user";
+                    var msg = 'Error updating user';
                     if (response.data && response.data.message) {
                         msg = response.data.message;
                     }
-                    alert(msg);
-                    $form.find("input[type='submit']").prop("disabled", false);
+                    setSubordinateEditMessage($row, msg, true);
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                $(".user-import-ajax-loader").remove();
-                let message = "AJAX error: " + textStatus;
-                // Try to get server response text
+                var message = 'AJAX error: ' + textStatus;
                 if (jqXHR.responseJSON && jqXHR.responseJSON.data && jqXHR.responseJSON.data.message) {
-                    message += "\nServer message: " + jqXHR.responseJSON.data.message;
+                    message += ': ' + jqXHR.responseJSON.data.message;
                 } else if (jqXHR.responseText) {
-                    message += "\nResponse: " + jqXHR.responseText;
+                    message += ': ' + jqXHR.responseText.replace(/<[^>]*>/g, '').trim();
                 }
-                message += "\nError thrown: " + errorThrown;
-                alert(message);
-                $form.find("input[type='submit']").prop("disabled", false);
-                // Optionally log full jqXHR for debugging
-                console.log("Full jqXHR:", jqXHR);
+                setSubordinateEditMessage($row, message, true);
+                console.log('Subordinate edit failed:', errorThrown, jqXHR);
+            },
+            complete: function() {
+                $row.find('.save-subordinate-btn, .cancel-subordinate-edit-btn').prop('disabled', false);
             }
         });
     });
