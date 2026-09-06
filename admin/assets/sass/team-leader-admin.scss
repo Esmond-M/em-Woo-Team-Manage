@@ -1,6 +1,8 @@
 // ─── Design tokens ────────────────────────────────────────────────────────────
 $primary:      #2271b1;
 $primary-dark: #135e96;
+$primary-deep: #123d5a;
+$accent:       #0f766e;
 $success:      #46b450;
 $success-bg:   #edfaee;
 $success-text: #2e7d32;
@@ -13,10 +15,12 @@ $border:       #c3c4c7;
 $border-light: #e5e7eb;
 $bg-light:     #f6f7f7;
 $bg-card:      #ffffff;
+$bg-warm:      #fbfaf7;
 $info-bg:      #eef4fb;
 $info-border:  #b8d0ea;
 $shadow-sm:    0 1px 4px rgba(0,0,0,0.08);
 $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
+$shadow-lg:    0 12px 28px rgba(18,61,90,0.13);
 
 // ─── Spinner ──────────────────────────────────────────────────────────────────
 @keyframes spin {
@@ -41,15 +45,88 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
 
 // ─── Page wrapper ─────────────────────────────────────────────────────────────
 .subordinate-container {
-  max-width: 960px;
-  margin: 28px 0;
+  max-width: 1120px;
+  margin: 28px 20px 28px 0;
 
-  > h2 {
-    font-size: 1.5rem;
-    color: $primary;
-    font-weight: 600;
-    margin: 0 0 16px 0;
+  .team-page-hero {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 24px;
+    color: #fff;
+    background: linear-gradient(135deg, $primary-deep 0%, $primary 58%, $accent 100%);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 18px;
+    box-shadow: $shadow-lg;
   }
+
+  .team-page-kicker {
+    display: inline-block;
+    color: rgba(255,255,255,0.76);
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    color: #fff;
+    font-size: 1.7rem;
+    font-weight: 650;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .team-page-hero p {
+    color: rgba(255,255,255,0.82);
+    font-size: 0.96rem;
+    margin: 10px 0 0;
+    max-width: 560px;
+  }
+
+  .team-stat-card {
+    align-self: center;
+    min-width: 150px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.24);
+    border-radius: 8px;
+    padding: 16px 18px;
+    text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+
+  .team-stat-value {
+    display: block;
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .team-stat-label {
+    display: block;
+    color: rgba(255,255,255,0.78);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 7px;
+  }
+}
+
+.team-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: $bg-warm;
+  border: 1px solid $border-light;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
 }
 
 // ─── Admin leader-selector bar ────────────────────────────────────────────────
@@ -61,8 +138,7 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
   background: $info-bg;
   border: 1px solid $info-border;
   border-radius: 6px;
-  padding: 10px 16px;
-  margin-bottom: 20px;
+  padding: 8px 12px;
   max-width: none;
   box-shadow: none;
 
@@ -112,22 +188,25 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
 // ─── Export button ────────────────────────────────────────────────────────────
 #export-team-csv-form {
   display: inline-block;
-  margin-bottom: 12px;
+  margin: 0;
 
   button {
-    background: $bg-light;
-    border: 1px solid $border;
-    border-radius: 5px;
-    padding: 7px 16px;
-    font-size: 0.88rem;
+    background: $bg-card;
+    border: 1px solid $border-light;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
-    color: $text-dark;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    color: $primary-dark;
+    box-shadow: $shadow-sm;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, color 0.15s;
 
     &:hover {
-      background: $info-bg;
       border-color: $primary;
-      color: $primary;
+      color: $primary-deep;
+      box-shadow: 0 6px 16px rgba(18,61,90,0.12);
+      transform: translateY(-1px);
     }
   }
 }
@@ -136,9 +215,9 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
 #team-leader-form {
   background: $bg-card;
   border: 1px solid $border-light;
-  border-radius: 8px;
-  box-shadow: $shadow-sm;
-  padding: 20px 24px;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(29,35,39,0.07);
+  padding: 22px;
 
   fieldset {
     border: none;
@@ -147,11 +226,54 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
   }
 
   legend {
-    font-size: 1rem;
+    font-size: 1.08rem;
     font-weight: 600;
-    color: $primary;
-    margin-bottom: 12px;
+    color: $text-dark;
+    margin-bottom: 14px;
     padding: 0;
+  }
+
+  > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: $text-mid;
+    margin-top: 4px;
+  }
+}
+
+.team-bulk-action-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(180deg, #fff 0%, $bg-warm 100%);
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  .team-panel-label {
+    display: block;
+    color: $text-mid;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  select {
+    min-width: 240px;
+    border-color: $border;
+    border-radius: 6px;
+    color: $text-dark;
+  }
+
+  p {
+    color: $text-mid;
+    font-size: 0.86rem;
+    margin: 8px 0 0;
   }
 }
 
@@ -164,25 +286,27 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
   border-spacing: 0;
   width: 100%;
   background: $bg-card;
-  border-radius: 6px;
+  border: 1px solid $border-light;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: $shadow-sm;
+  box-shadow: none;
   margin-bottom: 16px;
 
   th {
-    background: $primary;
-    color: #fff;
-    font-weight: 600;
+    background: #f8fafc;
+    color: $text-mid;
+    font-weight: 700;
     font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 11px 14px;
+    letter-spacing: 0.06em;
+    padding: 12px 14px;
     text-align: left;
     border: none;
+    border-bottom: 1px solid $border-light;
   }
 
   td {
-    padding: 10px 14px;
+    padding: 12px 14px;
     vertical-align: middle;
     color: $text-dark;
     border: none;
@@ -190,8 +314,18 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
   }
 
   tr:last-child td { border-bottom: none; }
-  tr:nth-child(even) td { background: $bg-light; }
-  tr:hover td { background: $info-bg; }
+  tr:nth-child(even) td { background: #fbfcfd; }
+  tr:hover td { background: #f4f9fc; }
+
+  .team-select-cell {
+    text-align: center;
+    width: 82px;
+  }
+
+  .team-row-action-cell {
+    min-width: 250px;
+    width: 30%;
+  }
 
   select {
     border: 1px solid $border;
@@ -217,37 +351,162 @@ $shadow-md:    0 2px 10px rgba(0,0,0,0.11);
   }
 }
 
-// ─── Edit button ──────────────────────────────────────────────────────────────
-.edit-subordinate-btn {
-  background: none;
+.team-subordinates-table {
+  table-layout: fixed;
+
+  th:nth-child(1),
+  th:nth-child(2) { width: 31%; }
+
+  th:nth-child(3) { width: 82px; }
+}
+
+// ─── Inline subordinate editing ───────────────────────────────────────────────
+.subordinate-row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.edit-subordinate-btn,
+.save-subordinate-btn,
+.cancel-subordinate-edit-btn {
+  min-height: 32px;
+  background: $bg-card;
   border: 1px solid $border;
-  border-radius: 4px;
-  padding: 4px 12px;
+  border-radius: 6px;
+  padding: 5px 13px;
   font-size: 0.83rem;
+  font-weight: 600;
   color: $primary;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  box-shadow: 0 1px 2px rgba(29,35,39,0.04);
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 
   &:hover {
     background: $info-bg;
     border-color: $primary;
+    box-shadow: 0 3px 8px rgba(18,61,90,0.08);
+  }
+}
+
+.edit-subordinate-btn[hidden],
+.save-subordinate-btn[hidden],
+.cancel-subordinate-edit-btn[hidden],
+.subordinate-edit-field[hidden],
+.subordinate-edit-message[hidden],
+.subordinate-value[hidden] {
+  display: none !important;
+}
+
+.save-subordinate-btn.button.button-primary {
+  background: $primary;
+  border-color: $primary;
+  color: #fff;
+
+  &:hover,
+  &:focus {
+    background: $primary-dark;
+    border-color: $primary-dark;
+  }
+}
+
+.cancel-subordinate-edit-btn.button {
+  color: $text-mid;
+}
+
+.emwtm-delete-user-btn.button-link-delete {
+  color: $error-text;
+  border: 1px solid rgba(220,50,50,0.28);
+  border-radius: 6px;
+  padding: 5px 10px;
+  min-height: 30px;
+  text-decoration: none;
+  background: #fff;
+
+  &:hover,
+  &:focus {
+    color: #8a1111;
+    border-color: rgba(220,50,50,0.48);
+    background: $error-bg;
+  }
+}
+
+.subordinate-edit-field {
+  width: 100%;
+  max-width: 280px;
+  border: 1px solid $border;
+  border-radius: 4px;
+  padding: 6px 9px;
+  font-size: 0.92rem;
+  color: $text-dark;
+  background: $bg-card;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: $primary;
+    outline: 2px solid rgba(34,113,177,0.15);
+    outline-offset: 1px;
+  }
+}
+
+.subordinate-row.is-editing td {
+  background: $info-bg !important;
+}
+
+.subordinate-edit-message {
+  display: block;
+  color: $text-mid;
+  font-size: 0.82rem;
+  margin-top: 4px;
+
+  &.is-error {
+    color: $error-text;
   }
 }
 
 // ─── Form submit ──────────────────────────────────────────────────────────────
+.team-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: #fbfcfd;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 4px;
+}
+
+.team-confirm-removal {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: $text-mid;
+  font-size: 0.9rem;
+}
+
 #team-leader-form input[type=submit] {
   background: $primary;
   border: none;
   color: #fff;
-  padding: 9px 24px;
+  padding: 9px 26px;
+  min-height: 38px;
   font-size: 0.92rem;
   font-weight: 600;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  margin-top: 14px;
-  box-shadow: $shadow-sm;
-  transition: background 0.2s;
-  &:hover { background: $primary-dark; }
+  margin-top: 0;
+  box-shadow: 0 6px 14px rgba(34,113,177,0.18);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+
+  &:hover {
+    background: $primary-dark;
+    box-shadow: 0 8px 18px rgba(19,94,150,0.24);
+    transform: translateY(-1px);
+  }
 }
 
 // ─── Action result ────────────────────────────────────────────────────────────
@@ -295,75 +554,6 @@ p.newpost-error, .newpost-error {
   &:hover { background: $primary-dark; }
 }
 
-// ─── Edit modal ───────────────────────────────────────────────────────────────
-#editSubordinateModal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.46);
-  z-index: 100000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  form#editSubordinateForm {
-    background: $bg-card;
-    border-radius: 8px;
-    padding: 28px 32px;
-    box-shadow: $shadow-md;
-    min-width: 320px;
-    max-width: 460px;
-    width: 100%;
-
-    label {
-      display: block;
-      font-weight: 600;
-      color: $text-dark;
-      margin: 14px 0 4px;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    input[type=email],
-    input[type=text] {
-      width: 100%;
-      border: 1px solid $border;
-      border-radius: 4px;
-      padding: 7px 10px;
-      font-size: 0.95rem;
-      box-sizing: border-box;
-      &:focus { border-color: $primary; outline: 2px solid rgba(34,113,177,0.15); }
-    }
-
-    input[type=submit] {
-      background: $primary;
-      border: none;
-      color: #fff;
-      padding: 8px 20px;
-      font-size: 0.9rem;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 18px;
-      margin-right: 8px;
-      transition: background 0.2s;
-      &:hover { background: $primary-dark; }
-    }
-
-    #closeEditModal {
-      background: $bg-light;
-      border: 1px solid $border;
-      color: $text-mid;
-      padding: 7px 18px;
-      font-size: 0.9rem;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 18px;
-      transition: background 0.15s;
-      &:hover { background: #e4e6e8; }
-    }
-  }
-}
-
 // ─── Misc ─────────────────────────────────────────────────────────────────────
 .site-admin-msg  { font-size: 1rem; color: $error; font-weight: 600; }
 .emulation-title { font-size: 1.5rem; text-align: center; color: $primary; }
@@ -397,9 +587,16 @@ p.newpost-error, .newpost-error {
   .subordinate-container table,
   #team-leader-form table { font-size: 13px; }
 
-  #editSubordinateModal form#editSubordinateForm {
-    min-width: 280px;
-    padding: 18px 14px;
+  .team-subordinates-table { table-layout: auto; }
+
+  .subordinate-container table .team-row-action-cell,
+  #team-leader-form table .team-row-action-cell {
+    min-width: 190px;
+    width: auto;
   }
+
+  .team-form-footer { align-items: flex-start; }
+
+  .subordinate-edit-field { max-width: none; }
 }
 

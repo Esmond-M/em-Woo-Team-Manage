@@ -41,13 +41,23 @@ if (!empty($subordinate_ids)) {
 $number_of_users = count($teamSubordinates);
 ?>
     <div class="subordinate-container">
-        <h2>Manage Your Subordinates</h2>
-        <?php if ($is_admin): ?>
-        <div class="emulation-form" style="margin-bottom:20px;padding:12px;background:#f8f8f8;border:1px solid #ddd;">
-            <form method="GET" action="">
+        <div class="team-page-hero">
+            <div>
+                <span class="team-page-kicker">Team Management</span>
+                <h2>Manage Your Subordinates</h2>
+                <p>Review team members, update details, and handle account actions from one admin view.</p>
+            </div>
+            <div class="team-stat-card" aria-label="Number of subordinates">
+                <span class="team-stat-value"><?php echo esc_html( $number_of_users ); ?></span>
+                <span class="team-stat-label">Subordinates</span>
+            </div>
+        </div>
+        <div class="team-toolbar">
+            <?php if ($is_admin): ?>
+            <form class="emulation-form" method="GET" action="">
                 <input type="hidden" name="page" value="<?php echo esc_attr(isset($_GET['page']) ? sanitize_key($_GET['page']) : ''); ?>" />
                 <label for="admin-leader-select"><strong>Managing Team Leader:</strong></label>
-                <select id="admin-leader-select" name="leader_id" onchange="this.form.submit()" style="margin-left:8px;">
+                <select id="admin-leader-select" name="leader_id" onchange="this.form.submit()">
                     <?php foreach ($all_leaders as $l): ?>
                         <option value="<?php echo esc_attr($l->ID); ?>" <?php selected($l->ID, $active_leader_id); ?>>
                             <?php echo esc_html($l->display_name . ' (' . $l->user_email . ')'); ?>
@@ -55,40 +65,28 @@ $number_of_users = count($teamSubordinates);
                     <?php endforeach; ?>
                 </select>
             </form>
+            <?php endif; ?>
+            <form id="export-team-csv-form" method="POST" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>">
+                <input type="hidden" name="action" value="export_team_csv" />
+                <input type="hidden" name="_export_nonce" value="<?php echo esc_attr(wp_create_nonce('export_team_csv')); ?>" />
+                <input type="hidden" name="leaderID" value="<?php echo esc_attr($teamLeaderID); ?>" />
+                <button type="submit" class="button">Export Team CSV</button>
+            </form>
         </div>
-        <?php endif; ?>
-        <ol class="leader-steps">
-            <li>Review your list of subordinates below.</li>
-            <li>Select one or more users to delete or send a password reset.</li>
-            <li>Choose an action and click <strong>Submit</strong>.</li>
-        </ol>
-
-        <!-- Export button -->
-        <form id="export-team-csv-form" method="POST" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" style="display:inline-block;margin-bottom:16px;">
-            <input type="hidden" name="action" value="export_team_csv" />
-            <input type="hidden" name="_export_nonce" value="<?php echo esc_attr(wp_create_nonce('export_team_csv')); ?>" />
-            <input type="hidden" name="leaderID" value="<?php echo esc_attr($teamLeaderID); ?>" />
-            <button type="submit" class="button">⬇ Export Team as CSV</button>
-        </form>
         <form id="team-leader-form" method="POST" action="">
             <fieldset>
                 <legend>Subordinate Actions</legend>
-                <table>
-                    <tr>
-                        <th>Number of Subordinates</th>
-                        <th>Action <span title="Remove takes the user off this team. Resend sends a password reset email." style="cursor:help;">&#9432;</span></th>
-                    </tr>
-                    <tr>
-                        <td><span><?php echo esc_html( $number_of_users ); ?></span></td>
-                        <td>
-                            <select name="teamLeaderSelectOption" form="team-leader-form">
-                                <option value="delete">Remove from Team</option>
-                                <option value="resend">Send Password Reset Link</option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
-                <table>
+                <div class="team-bulk-action-panel">
+                    <div>
+                        <span class="team-panel-label">Bulk Action</span>
+                        <select name="teamLeaderSelectOption" form="team-leader-form" aria-describedby="team-bulk-action-help">
+                            <option value="delete">Remove from Team</option>
+                            <option value="resend">Send Password Reset Link</option>
+                        </select>
+                        <p id="team-bulk-action-help">Select team members below, choose an action, then submit.</p>
+                    </div>
+                </div>
+                <table id="team-subordinates-table" class="team-subordinates-table" data-leader-id="<?php echo esc_attr( $teamLeaderID ); ?>" data-edit-nonce="<?php echo esc_attr( wp_create_nonce( 'edit_subordinate_action' ) ); ?>">
                     <tr>
                         <th>Subordinate Email</th>
                         <th>Subordinate Name</th>
@@ -96,12 +94,23 @@ $number_of_users = count($teamSubordinates);
                         <th>Edit</th>
                     </tr>
                     <?php foreach ( $teamSubordinates as $user ) : ?>
-                        <tr>
-                            <td><span><?php echo esc_html( $user->user_email ); ?></span></td>
-                            <td><span><?php echo esc_html( $user->display_name ); ?></span></td>
-                            <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
+                        <tr class="subordinate-row" data-user-id="<?php echo esc_attr( $user->ID ); ?>">
                             <td>
-                                <button type="button" class="edit-subordinate-btn" data-user-id="<?php echo esc_attr( $user->ID ); ?>" data-user-email="<?php echo esc_attr( $user->user_email ); ?>" data-user-name="<?php echo esc_attr( $user->display_name ); ?>">Edit</button>
+                                <span class="subordinate-value subordinate-email-value"><?php echo esc_html( $user->user_email ); ?></span>
+                                <input class="subordinate-edit-field subordinate-email-input" type="email" value="<?php echo esc_attr( $user->user_email ); ?>" required disabled hidden />
+                            </td>
+                            <td>
+                                <span class="subordinate-value subordinate-name-value"><?php echo esc_html( $user->display_name ); ?></span>
+                                <input class="subordinate-edit-field subordinate-name-input" type="text" value="<?php echo esc_attr( $user->display_name ); ?>" required disabled hidden />
+                            </td>
+                            <td class="team-select-cell"><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
+                            <td class="team-row-action-cell">
+                                <div class="subordinate-row-actions">
+                                    <button type="button" class="edit-subordinate-btn">Edit</button>
+                                    <button type="button" class="save-subordinate-btn button button-primary" hidden>Save</button>
+                                    <button type="button" class="cancel-subordinate-edit-btn button" hidden>Cancel</button>
+                                </div>
+                                <span class="subordinate-edit-message" role="status" hidden></span>
                                 <?php if ($is_admin && in_array('team_subordinate', (array) $user->roles, true) && !in_array('team_leader', (array) $user->roles, true)): ?>
                                     <button type="button" class="button-link-delete emwtm-delete-user-btn" data-user-id="<?php echo esc_attr($user->ID); ?>">Permanently Delete Account</button>
                                 <?php endif; ?>
@@ -113,23 +122,10 @@ $number_of_users = count($teamSubordinates);
             <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
             <input type="hidden" name="action" value="team_Leader_Form_Submission" />
             <input type="hidden" name="leaderID" value="<?php echo esc_attr($teamLeaderID); ?>" />
-            <label><input type="checkbox" name="confirm_removal" value="1" /> Confirm removing selected users from this team</label>
-            <input type="submit" value="Submit" class="button button-primary">
-        </form>
-    </div>
-    <!-- Modal for editing subordinate -->
-    <div id="editSubordinateModal" style="display:none;">
-        <form id="editSubordinateForm" method="POST" >
-            <input type="hidden" name="edit_user_id" id="edit_user_id" value="" />
-            <input type="hidden" name="leaderID" value="<?php echo esc_attr( $teamLeaderID ); ?>" />
-            <label for="edit_user_email">Email:</label>
-            <input type="email" name="edit_user_email" id="edit_user_email" value="" required />
-            <label for="edit_user_name">Name:</label>
-            <input type="text" name="edit_user_name" id="edit_user_name" value="" required />
-            <?php wp_nonce_field( 'edit_subordinate_action', 'edit_subordinate_nonce' ); ?>
-            <input type="hidden" name="action" value="edit_subordinate" />
-            <input type="submit" value="Save" class="button button-primary">
-            <button type="button" id="closeEditModal" class="button">Cancel</button>
+            <div class="team-form-footer">
+                <label class="team-confirm-removal"><input type="checkbox" name="confirm_removal" value="1" /> Confirm removing selected users from this team</label>
+                <input type="submit" value="Submit" class="button button-primary">
+            </div>
         </form>
     </div>
     <?php
