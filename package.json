@@ -1,13 +1,30 @@
 {
     "name": "em-woo-team-manage",
     "version": "0.1.0",
-    "description": "This plugin adds a team management page for WooCommerce customers to import other users and manage those users.",
-    "author": "Esmond Mccain",
+    "description": "WordPress plugin for WooCommerce team management, allowing team leaders to import and manage subordinate users.",
+    "author": {
+        "name": "Esmond McCain",
+        "email": "esmondmccain@gmail.com",
+        "url": "https://esmondmccain.com"
+    },
     "license": "GPL-2.0-or-later",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Esmond-M/em-Woo-Team-Manage.git"
+    },
+    "homepage": "https://github.com/Esmond-M/em-Woo-Team-Manage#readme",
+    "bugs": {
+        "url": "https://github.com/Esmond-M/em-Woo-Team-Manage/issues"
+    },
     "keywords": [
-        "WordPress",
-        "Plugin",
-        "WooCommmerce"
+        "wordpress",
+        "wordpress-plugin",
+        "woocommerce",
+        "team-management",
+        "team-roles",
+        "team-leader",
+        "subordinates",
+        "customer-management"
     ],
     "files": [
         "/admin",
