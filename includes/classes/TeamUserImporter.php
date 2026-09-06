@@ -146,17 +146,24 @@ class TeamUserImporter
 
         // Load required WordPress files
         require_once(ABSPATH . 'wp-admin/includes/file.php');
-        ?>
-        <div class="user-upload-results-contain">
-        <?php
-        // Validate file upload
-        if (empty($_FILES['csvUpload']) || $_FILES['csvUpload']['error'] !== UPLOAD_ERR_OK) {
+
+        // Validate file upload before emitting any page markup.
+        if (
+            empty($_FILES['csvUpload']) ||
+            $_FILES['csvUpload']['error'] !== UPLOAD_ERR_OK ||
+            empty($_FILES['csvUpload']['tmp_name']) ||
+            !is_uploaded_file($_FILES['csvUpload']['tmp_name'])
+        ) {
             wp_die('<p style="color:red;">File does not exist or upload error.</p>');
         }
         $file_size = (int) $_FILES['csvUpload']['size'];
         if ($file_size > 5242880) {
             wp_die('<p>File too large. File must be less than 5 megabytes.</p>');
         }
+
+        ?>
+        <div class="user-upload-results-contain">
+        <?php
 
         // Move to a private temp file — never touches the media library
         $tmp_file = wp_tempnam('emwtm_csv_');

@@ -85,4 +85,49 @@ class CsvRowImportTest extends WP_UnitTestCase
             $other_leader_id
         )));
     }
+
+    public function test_user_import_submission_rejects_non_uploaded_csv_files(): void
+    {
+        $leader_id = self::factory()->user->create(['role' => 'team_leader']);
+        $this->user_ids = [$leader_id];
+        wp_set_current_user($leader_id);
+        add_filter('pre_wp_mail', '__return_true');
+        if (!defined('DOING_AJAX')) {
+            define('DOING_AJAX', true);
+        }
+        add_filter('wp_die_ajax_handler', static function () {
+            return static function ($message = '', $title = '', $args = []) {
+                throw new WPDieException((string) $message);
+            };
+        });
+
+        $tmp_file = wp_tempnam('emwtm_csv_');
+        file_put_contents($tmp_file, "email,first_name,last_name\nreject-file@example.com,Reject,File\n");
+        $_POST = [
+            '_import_nonce' => wp_create_nonce('user_import_submission'),
+        ];
+        $_FILES = [
+            'csvUpload' => [
+                'name' => 'subordinates.csv',
+                'type' => 'text/csv',
+                'tmp_name' => $tmp_file,
+                'error' => UPLOAD_ERR_OK,
+                'size' => filesize($tmp_file),
+            ],
+        ];
+
+        $caught = null;
+        ob_start();
+        try {
+            (new TeamUserImporter())->user_import_submission();
+        } catch (WPDieException $exception) {
+            $caught = $exception;
+        }
+        ob_get_clean();
+
+        $this->assertNotNull($caught);
+        $this->assertStringContainsString('File does not exist or upload error', $caught->getMessage());
+        $this->assertFalse(get_user_by('email', 'reject-file@example.com'));
+        @unlink($tmp_file);
+    }
 }
