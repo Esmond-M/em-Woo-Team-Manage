@@ -86,7 +86,7 @@ $number_of_users = count($teamSubordinates);
                         <p id="team-bulk-action-help">Select team members below, choose an action, then submit.</p>
                     </div>
                 </div>
-                <table id="team-subordinates-table" data-leader-id="<?php echo esc_attr( $teamLeaderID ); ?>" data-edit-nonce="<?php echo esc_attr( wp_create_nonce( 'edit_subordinate_action' ) ); ?>">
+                <table id="team-subordinates-table" class="team-subordinates-table" data-leader-id="<?php echo esc_attr( $teamLeaderID ); ?>" data-edit-nonce="<?php echo esc_attr( wp_create_nonce( 'edit_subordinate_action' ) ); ?>">
                     <tr>
                         <th>Subordinate Email</th>
                         <th>Subordinate Name</th>
@@ -103,8 +103,8 @@ $number_of_users = count($teamSubordinates);
                                 <span class="subordinate-value subordinate-name-value"><?php echo esc_html( $user->display_name ); ?></span>
                                 <input class="subordinate-edit-field subordinate-name-input" type="text" value="<?php echo esc_attr( $user->display_name ); ?>" required disabled hidden />
                             </td>
-                            <td><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
-                            <td>
+                            <td class="team-select-cell"><input type="checkbox" name="userID[]" value="<?php echo esc_attr( $user->ID ); ?>" /></td>
+                            <td class="team-row-action-cell">
                                 <div class="subordinate-row-actions">
                                     <button type="button" class="edit-subordinate-btn">Edit</button>
                                     <button type="button" class="save-subordinate-btn button button-primary" hidden>Save</button>
@@ -122,8 +122,10 @@ $number_of_users = count($teamSubordinates);
             <?php wp_nonce_field( 'team_Leader_Form_Submission', 'team_Leader_Form_Submission_nonce_field' ); ?>
             <input type="hidden" name="action" value="team_Leader_Form_Submission" />
             <input type="hidden" name="leaderID" value="<?php echo esc_attr($teamLeaderID); ?>" />
-            <label><input type="checkbox" name="confirm_removal" value="1" /> Confirm removing selected users from this team</label>
-            <input type="submit" value="Submit" class="button button-primary">
+            <div class="team-form-footer">
+                <label class="team-confirm-removal"><input type="checkbox" name="confirm_removal" value="1" /> Confirm removing selected users from this team</label>
+                <input type="submit" value="Submit" class="button button-primary">
+            </div>
         </form>
     </div>
     <?php

@@ -317,6 +317,16 @@ $shadow-lg:    0 12px 28px rgba(18,61,90,0.13);
   tr:nth-child(even) td { background: #fbfcfd; }
   tr:hover td { background: #f4f9fc; }
 
+  .team-select-cell {
+    text-align: center;
+    width: 82px;
+  }
+
+  .team-row-action-cell {
+    min-width: 250px;
+    width: 30%;
+  }
+
   select {
     border: 1px solid $border;
     border-radius: 4px;
@@ -341,31 +351,53 @@ $shadow-lg:    0 12px 28px rgba(18,61,90,0.13);
   }
 }
 
+.team-subordinates-table {
+  table-layout: fixed;
+
+  th:nth-child(1),
+  th:nth-child(2) { width: 31%; }
+
+  th:nth-child(3) { width: 82px; }
+}
+
 // ─── Inline subordinate editing ───────────────────────────────────────────────
 .subordinate-row-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .edit-subordinate-btn,
 .save-subordinate-btn,
 .cancel-subordinate-edit-btn {
-  background: none;
+  min-height: 32px;
+  background: $bg-card;
   border: 1px solid $border;
-  border-radius: 4px;
-  padding: 4px 12px;
+  border-radius: 6px;
+  padding: 5px 13px;
   font-size: 0.83rem;
+  font-weight: 600;
   color: $primary;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  box-shadow: 0 1px 2px rgba(29,35,39,0.04);
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 
   &:hover {
     background: $info-bg;
     border-color: $primary;
+    box-shadow: 0 3px 8px rgba(18,61,90,0.08);
   }
+}
+
+.edit-subordinate-btn[hidden],
+.save-subordinate-btn[hidden],
+.cancel-subordinate-edit-btn[hidden],
+.subordinate-edit-field[hidden],
+.subordinate-edit-message[hidden],
+.subordinate-value[hidden] {
+  display: none !important;
 }
 
 .save-subordinate-btn.button.button-primary {
@@ -377,6 +409,27 @@ $shadow-lg:    0 12px 28px rgba(18,61,90,0.13);
   &:focus {
     background: $primary-dark;
     border-color: $primary-dark;
+  }
+}
+
+.cancel-subordinate-edit-btn.button {
+  color: $text-mid;
+}
+
+.emwtm-delete-user-btn.button-link-delete {
+  color: $error-text;
+  border: 1px solid rgba(220,50,50,0.28);
+  border-radius: 6px;
+  padding: 5px 10px;
+  min-height: 30px;
+  text-decoration: none;
+  background: #fff;
+
+  &:hover,
+  &:focus {
+    color: #8a1111;
+    border-color: rgba(220,50,50,0.48);
+    background: $error-bg;
   }
 }
 
@@ -414,19 +467,46 @@ $shadow-lg:    0 12px 28px rgba(18,61,90,0.13);
 }
 
 // ─── Form submit ──────────────────────────────────────────────────────────────
+.team-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: #fbfcfd;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 4px;
+}
+
+.team-confirm-removal {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: $text-mid;
+  font-size: 0.9rem;
+}
+
 #team-leader-form input[type=submit] {
   background: $primary;
   border: none;
   color: #fff;
-  padding: 9px 24px;
+  padding: 9px 26px;
+  min-height: 38px;
   font-size: 0.92rem;
   font-weight: 600;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  margin-top: 14px;
-  box-shadow: $shadow-sm;
-  transition: background 0.2s;
-  &:hover { background: $primary-dark; }
+  margin-top: 0;
+  box-shadow: 0 6px 14px rgba(34,113,177,0.18);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+
+  &:hover {
+    background: $primary-dark;
+    box-shadow: 0 8px 18px rgba(19,94,150,0.24);
+    transform: translateY(-1px);
+  }
 }
 
 // ─── Action result ────────────────────────────────────────────────────────────
@@ -506,6 +586,16 @@ p.newpost-error, .newpost-error {
 
   .subordinate-container table,
   #team-leader-form table { font-size: 13px; }
+
+  .team-subordinates-table { table-layout: auto; }
+
+  .subordinate-container table .team-row-action-cell,
+  #team-leader-form table .team-row-action-cell {
+    min-width: 190px;
+    width: auto;
+  }
+
+  .team-form-footer { align-items: flex-start; }
 
   .subordinate-edit-field { max-width: none; }
 }
