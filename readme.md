@@ -142,5 +142,7 @@ em-Woo-Team-Manage/
 
 Team workflows currently authorize team leaders with the `team_leader` role name as a capability. A future compatibility-conscious refactor should introduce a dedicated capability such as `emwtm_manage_team` while preserving access for existing team leader accounts.
 
+`TeamManageCore::user_import_inits()` bypasses WooCommerce's `woocommerce_prevent_admin_access` and `woocommerce_disable_admin_bar` filters so team leaders can reach wp-admin and keep the toolbar. This works today but has no test coverage. Add an integration test asserting both filters resolve to `false` for a `team_leader` user and remain unaffected for `team_subordinate`/`customer` users.
+
 For issues, suggestions, or contributions, please use the [GitHub Issues](https://github.com/Esmond-M/em-Woo-Team-Manage/issues) page.
 
