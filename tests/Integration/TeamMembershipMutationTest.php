@@ -136,4 +136,38 @@ class TeamMembershipMutationTest extends WP_UnitTestCase
             'search_columns' => ['user_email'],
         ])));
     }
+
+    public function test_admin_cannot_add_a_subordinate_to_an_invalid_leader_id(): void
+    {
+        $admin_id = self::factory()->user->create(['role' => 'administrator']);
+        $non_leader_id = self::factory()->user->create(['role' => 'customer']);
+        wp_set_current_user($admin_id);
+        add_filter('pre_wp_mail', '__return_true');
+        if (!defined('DOING_AJAX')) {
+            define('DOING_AJAX', true);
+        }
+        add_filter('wp_die_ajax_handler', static function () {
+            return static function ($message = '', $title = '', $args = []): void {
+                throw new WPDieException((string) $message);
+            };
+        });
+
+        $_POST = [
+            '_single_subordinate_nonce' => wp_create_nonce('add_single_subordinate'),
+            'single_first_name' => 'Invalid',
+            'single_last_name' => 'Leader',
+            'single_email' => 'invalid-leader@example.com',
+            'teamLeaderID' => (string) $non_leader_id,
+        ];
+
+        ob_start();
+        try {
+            (new TeamAjaxHandler())->add_single_subordinate();
+        } catch (WPDieException $exception) {
+        }
+        $output = (string) ob_get_clean();
+
+        $this->assertStringContainsString('Invalid team leader selected', $output);
+        $this->assertFalse(get_user_by('email', 'invalid-leader@example.com'));
+    }
 }

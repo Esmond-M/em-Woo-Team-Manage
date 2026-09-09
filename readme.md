@@ -138,5 +138,9 @@ em-Woo-Team-Manage/
 
 ## Support & Development
 
+### Future Hardening
+
+Team workflows currently authorize team leaders with the `team_leader` role name as a capability. A future compatibility-conscious refactor should introduce a dedicated capability such as `emwtm_manage_team` while preserving access for existing team leader accounts.
+
 For issues, suggestions, or contributions, please use the [GitHub Issues](https://github.com/Esmond-M/em-Woo-Team-Manage/issues) page.
 

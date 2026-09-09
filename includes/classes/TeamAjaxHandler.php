@@ -14,6 +14,14 @@ require_once __DIR__ . '/TeamUserImporter.php';
 class TeamAjaxHandler
 {
     /**
+     * Prefix spreadsheet formula-like CSV cells so they remain text values.
+     */
+    public static function sanitize_csv_cell(string $value): string
+    {
+        return preg_match('/^[=+\-@]/', $value) ? "'" . $value : $value;
+    }
+
+    /**
      * Sends a plain-text notification email to a subordinate.
      *
      * @param int    $user_id  WP user ID of the subordinate.
@@ -378,9 +386,9 @@ class TeamAjaxHandler
         fputcsv($out, ['email_address', 'first_name', 'last_name']);
         foreach ($rows as $user) {
             fputcsv($out, [
-                $user->user_email,
-                $user->first_name,
-                $user->last_name,
+                self::sanitize_csv_cell($user->user_email),
+                self::sanitize_csv_cell($user->first_name),
+                self::sanitize_csv_cell($user->last_name),
             ]);
         }
         fclose($out);
@@ -414,6 +422,12 @@ class TeamAjaxHandler
         // Authorise: team leaders can only add to themselves
         if (current_user_can('team_leader') && !current_user_can('manage_options')) {
             $leader_id = get_current_user_id();
+        } elseif (current_user_can('manage_options')) {
+            $posted_leader = get_user_by('id', $leader_id);
+            if (!$posted_leader || !in_array('team_leader', (array) $posted_leader->roles, true)) {
+                echo '<p class="newpost-error">Invalid team leader selected.</p>';
+                wp_die();
+            }
         }
 
         global $wpdb;
@@ -447,10 +461,20 @@ class TeamAjaxHandler
             wp_die();
         }
 
+        $relationship_created = $wpdb->insert(
+            $table,
+            ['leader_id' => $leader_id, 'subordinate_id' => $user_id],
+            ['%d', '%d']
+        );
+        if ($relationship_created === false) {
+            wp_delete_user($user_id);
+            echo '<p class="newpost-error">Could not add the subordinate to the team.</p>';
+            wp_die();
+        }
+
         add_user_meta($user_id, 'teamID', $leader_id);
         wp_new_user_notification($user_id, null, 'both');
         $this->send_team_notification($user_id, 'added', $leader_id);
-        $wpdb->insert($table, ['leader_id' => $leader_id, 'subordinate_id' => $user_id]);
 
         echo '<p class="newpost-success">' . esc_html($first_name . ' ' . $last_name) . ' (' . esc_html($email) . ') added successfully.</p>';
         wp_die();

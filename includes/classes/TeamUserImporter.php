@@ -111,10 +111,23 @@ class TeamUserImporter
             ];
         }
 
+        $relationship_created = $wpdb->insert(
+            $table,
+            ['leader_id' => $leader_id, 'subordinate_id' => (int) $user_id],
+            ['%d', '%d']
+        );
+        if ($relationship_created === false) {
+            wp_delete_user((int) $user_id);
+            return [
+                'success' => false,
+                'message' => 'Could not add the user to the team.',
+                'user_id' => 0,
+            ];
+        }
+
         add_user_meta($user_id, 'teamID', $leader_id);
         wp_new_user_notification($user_id, null, 'both');
         $this->send_team_added_notification((int) $user_id, $leader_id);
-        $wpdb->insert($table, ['leader_id' => $leader_id, 'subordinate_id' => (int) $user_id], ['%d', '%d']);
 
         return ['success' => true, 'message' => $first_name . ' ' . $last_name, 'user_id' => (int) $user_id];
     }
