@@ -58,6 +58,8 @@ class TeamManageCore
         $this->seeder = new TeamDemoSeeder();
         add_action('wp_ajax_emwtm_seed_demo',  [$this->seeder, 'ajax_seed']);
         add_action('wp_ajax_emwtm_clear_demo', [$this->seeder, 'ajax_clear']);
+        add_action('wp_ajax_emwtm_create_demo_product', [$this->seeder, 'ajax_create_demo_product']);
+        add_action('wp_ajax_emwtm_remove_demo_product', [$this->seeder, 'ajax_remove_demo_product']);
 
         // WooCommerce My Account tab
         add_action('init', [$this, 'register_myaccount_endpoint']);

@@ -15,6 +15,10 @@ class TeamDemoSeeder
     const MAX_LEADERS      = 2;
     const MAX_SUBORDINATES = 50;
 
+    /** Post-meta key that marks the WooCommerce product used for live demo checkouts. */
+    const DEMO_PRODUCT_META_KEY = 'emwtm_is_demo_product';
+    const DEMO_PRODUCT_SKU      = 'emwtm-demo-team-leader';
+
     // -------------------------------------------------------------------------
     // Status helpers
     // -------------------------------------------------------------------------
@@ -168,6 +172,7 @@ class TeamDemoSeeder
 
     /**
      * Deletes every demo user and removes their rows from the relationships table.
+     * Also removes the demo WooCommerce product, if one was created.
      *
      * @return int Number of WP users deleted.
      */
@@ -191,7 +196,113 @@ class TeamDemoSeeder
             }
         }
 
+        $this->remove_demo_product();
+
         return $deleted;
+    }
+
+    // -------------------------------------------------------------------------
+    // Demo product (live purchase → Team Leader provisioning walkthrough)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the demo product's post ID, or 0 if it doesn't exist.
+     */
+    public function get_demo_product_id(): int
+    {
+        $ids = get_posts([
+            'post_type'      => 'product',
+            'meta_key'       => self::DEMO_PRODUCT_META_KEY,
+            'meta_value'     => '1',
+            'post_status'    => 'any',
+            'fields'         => 'ids',
+            'posts_per_page' => 1,
+        ]);
+
+        return !empty($ids) ? (int) $ids[0] : 0;
+    }
+
+    /**
+     * Returns the current demo product state for the admin UI.
+     *
+     * @return array{product_id:int, checkout_url:string}
+     */
+    public function get_product_status(): array
+    {
+        $product_id = $this->get_demo_product_id();
+
+        return [
+            'product_id'   => $product_id,
+            'checkout_url' => $product_id ? (string) get_permalink($product_id) : '',
+        ];
+    }
+
+    /**
+     * Creates a $0 virtual WooCommerce product for exercising the real
+     * purchase → Team Leader provisioning flow. Idempotent.
+     *
+     * @return array{success:bool, product_id:int, checkout_url:string, message:string}
+     */
+    public function create_demo_product(): array
+    {
+        if (!class_exists('WC_Product_Simple')) {
+            return [
+                'success'      => false,
+                'product_id'   => 0,
+                'checkout_url' => '',
+                'message'      => 'WooCommerce must be active to create the demo product.',
+            ];
+        }
+
+        $existing_id = $this->get_demo_product_id();
+        if ($existing_id) {
+            return [
+                'success'      => true,
+                'product_id'   => $existing_id,
+                'checkout_url' => (string) get_permalink($existing_id),
+                'message'      => 'Demo product already exists.',
+            ];
+        }
+
+        $product = new \WC_Product_Simple();
+        $product->set_name('Team Leader Demo Purchase');
+        $product->set_regular_price('0');
+        $product->set_price('0');
+        $product->set_virtual(true);
+        $product->set_catalog_visibility('hidden');
+        $product->set_sku(self::DEMO_PRODUCT_SKU);
+        $product->set_status('publish');
+        $product_id = $product->save();
+
+        update_post_meta($product_id, self::DEMO_PRODUCT_META_KEY, '1');
+
+        return [
+            'success'      => true,
+            'product_id'   => $product_id,
+            'checkout_url' => (string) get_permalink($product_id),
+            'message'      => 'Demo product created.',
+        ];
+    }
+
+    /**
+     * Permanently removes the demo product, if one exists.
+     */
+    public function remove_demo_product(): bool
+    {
+        $product_id = $this->get_demo_product_id();
+        if (!$product_id) {
+            return false;
+        }
+
+        if (function_exists('wc_get_product')) {
+            $product = wc_get_product($product_id);
+            if ($product) {
+                $product->delete(true);
+                return true;
+            }
+        }
+
+        return (bool) wp_delete_post($product_id, true);
     }
 
     // -------------------------------------------------------------------------
@@ -234,5 +345,44 @@ class TeamDemoSeeder
         $deleted = $this->clear();
 
         wp_send_json_success(['deleted' => $deleted, 'status' => $this->get_status()]);
+    }
+
+    /**
+     * AJAX: create the $0 demo product for live checkout testing.
+     * Expects POST: _nonce.
+     */
+    public function ajax_create_demo_product(): void
+    {
+        if (!check_ajax_referer('emwtm_demo_product', '_nonce', false)) {
+            wp_send_json_error(['message' => 'Invalid nonce.'], 403);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions.'], 403);
+        }
+
+        $result = $this->create_demo_product();
+        if (!$result['success']) {
+            wp_send_json_error(['message' => $result['message']], 400);
+        }
+
+        wp_send_json_success($result);
+    }
+
+    /**
+     * AJAX: remove the demo product.
+     * Expects POST: _nonce.
+     */
+    public function ajax_remove_demo_product(): void
+    {
+        if (!check_ajax_referer('emwtm_demo_product', '_nonce', false)) {
+            wp_send_json_error(['message' => 'Invalid nonce.'], 403);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions.'], 403);
+        }
+
+        $removed = $this->remove_demo_product();
+
+        wp_send_json_success(['removed' => $removed, 'status' => $this->get_product_status()]);
     }
 }
