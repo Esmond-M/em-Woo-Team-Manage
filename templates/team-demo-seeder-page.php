@@ -8,9 +8,12 @@ if ( ! current_user_can( 'manage_options' ) ) {
 
 use emWooTeamManage\init_plugin\Classes\TeamDemoSeeder;
 
-$seeder        = new TeamDemoSeeder();
-$status        = $seeder->get_status();
-$has_demo_data = ( $status['leaders'] + $status['subordinates'] ) > 0;
+$seeder         = new TeamDemoSeeder();
+$status         = $seeder->get_status();
+$product_status = $seeder->get_product_status();
+$has_demo_data  = ( $status['leaders'] + $status['subordinates'] ) > 0;
+$has_demo_product = $product_status['product_id'] > 0;
+$woocommerce_active = class_exists( 'WC_Product_Simple' );
 ?>
 <div class="wrap">
     <h1>Demo Data Seeder</h1>
@@ -86,6 +89,33 @@ $has_demo_data = ( $status['leaders'] + $status['subordinates'] ) > 0;
         </button>
         <div id="emwtm-clear-result" style="display:none;margin-top:12px;"></div>
     </div>
+
+    <!-- ── Demo Product (live purchase walkthrough) ───────────────────────── -->
+    <div class="card" style="max-width:600px;margin-top:16px;padding:16px 20px;">
+        <h2 style="margin-top:4px;">Demo Product (Live Purchase Walkthrough)</h2>
+        <p>
+            Creates a hidden, <strong>$0 virtual WooCommerce product</strong> so you can complete
+            a real guest checkout and watch the <code>woocommerce_thankyou</code> hook create an
+            actual Team Leader account — the same flow a paying customer would go through.
+        </p>
+        <?php if ( ! $woocommerce_active ) : ?>
+            <p class="description" style="color:#a00;">WooCommerce must be active to create the demo product.</p>
+        <?php endif; ?>
+        <p>
+            Product status:
+            <strong id="emwtm-product-status"><?php echo $has_demo_product ? 'Created' : 'Not created'; ?></strong>
+            <span id="emwtm-product-link-wrap" style="<?php echo $has_demo_product ? '' : 'display:none;'; ?>">
+                &mdash; <a id="emwtm-product-link" href="<?php echo esc_url( $product_status['checkout_url'] ); ?>" target="_blank" rel="noopener noreferrer">View / Purchase</a>
+            </span>
+        </p>
+        <button type="button" class="button button-primary" id="emwtm-create-product-btn" <?php echo ( ! $woocommerce_active || $has_demo_product ) ? 'disabled' : ''; ?>>
+            &#9654;&nbsp;Create Demo Product
+        </button>
+        <button type="button" class="button button-secondary" id="emwtm-remove-product-btn" <?php echo ! $has_demo_product ? 'disabled' : ''; ?>>
+            🗑&nbsp;Remove Demo Product
+        </button>
+        <div id="emwtm-product-result" style="display:none;margin-top:12px;"></div>
+    </div>
 </div>
 
 <script>
@@ -93,6 +123,7 @@ $has_demo_data = ( $status['leaders'] + $status['subordinates'] ) > 0;
     var ajaxurl    = <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>;
     var seedNonce  = <?php echo wp_json_encode( wp_create_nonce( 'emwtm_demo_seed' ) ); ?>;
     var clearNonce = <?php echo wp_json_encode( wp_create_nonce( 'emwtm_demo_clear' ) ); ?>;
+    var productNonce = <?php echo wp_json_encode( wp_create_nonce( 'emwtm_demo_product' ) ); ?>;
 
     function showMsg(selector, html, isError) {
         $(selector)
@@ -160,6 +191,66 @@ $has_demo_data = ( $status['leaders'] + $status['subordinates'] ) > 0;
         }).fail(function () {
             $btn.prop('disabled', false).html('🗑&nbsp;Clear Demo Data');
             showMsg('#emwtm-clear-result', 'Request failed. Please try again.', true);
+        });
+    });
+
+    function updateProductUI(status) {
+        if (!status) return;
+        var hasProduct = !!status.product_id;
+        $('#emwtm-product-status').text(hasProduct ? 'Created' : 'Not created');
+        $('#emwtm-create-product-btn').prop('disabled', hasProduct);
+        $('#emwtm-remove-product-btn').prop('disabled', !hasProduct);
+        if (hasProduct) {
+            $('#emwtm-product-link').attr('href', status.checkout_url);
+            $('#emwtm-product-link-wrap').show();
+        } else {
+            $('#emwtm-product-link-wrap').hide();
+        }
+    }
+
+    $('#emwtm-create-product-btn').on('click', function () {
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('Creating…');
+        $('#emwtm-product-result').hide();
+
+        $.post(ajaxurl, {
+            action: 'emwtm_create_demo_product',
+            _nonce: productNonce,
+        }, function (res) {
+            $btn.html('&#9654;&nbsp;Create Demo Product');
+            if (res.success) {
+                showMsg('#emwtm-product-result', res.data.message, false);
+                updateProductUI(res.data);
+            } else {
+                $btn.prop('disabled', false);
+                showMsg('#emwtm-product-result', res.data.message || 'An error occurred.', true);
+            }
+        }).fail(function () {
+            $btn.prop('disabled', false).html('&#9654;&nbsp;Create Demo Product');
+            showMsg('#emwtm-product-result', 'Request failed. Please try again.', true);
+        });
+    });
+
+    $('#emwtm-remove-product-btn').on('click', function () {
+        if (!confirm('Remove the demo product? This cannot be undone.')) return;
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('Removing…');
+        $('#emwtm-product-result').hide();
+
+        $.post(ajaxurl, {
+            action: 'emwtm_remove_demo_product',
+            _nonce: productNonce,
+        }, function (res) {
+            $btn.html('🗑&nbsp;Remove Demo Product');
+            if (res.success) {
+                showMsg('#emwtm-product-result', 'Demo product removed.', false);
+                updateProductUI(res.data.status);
+            } else {
+                showMsg('#emwtm-product-result', res.data.message || 'An error occurred.', true);
+            }
+        }).fail(function () {
+            $btn.prop('disabled', false).html('🗑&nbsp;Remove Demo Product');
+            showMsg('#emwtm-product-result', 'Request failed. Please try again.', true);
         });
     });
 }(jQuery));
