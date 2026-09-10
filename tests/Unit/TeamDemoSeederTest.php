@@ -145,4 +145,75 @@ class TeamDemoSeederTest extends TestCase
         $this->assertSame(['message' => 'Insufficient permissions.'], $args[0]);
         $this->assertSame(403, $args[1]);
     }
+
+    // ── ajax_create_demo_product ─────────────────────────────────────────────
+
+    #[Test]
+    public function ajax_create_demo_product_rejects_invalid_nonce(): void
+    {
+        Functions\when('check_ajax_referer')->justReturn(false);
+
+        $args = $this->runAndCaptureJsonError(
+            fn() => (new TeamDemoSeeder())->ajax_create_demo_product()
+        );
+
+        $this->assertSame(['message' => 'Invalid nonce.'], $args[0]);
+        $this->assertSame(403, $args[1]);
+    }
+
+    #[Test]
+    public function ajax_create_demo_product_rejects_user_without_manage_options_capability(): void
+    {
+        Functions\when('check_ajax_referer')->justReturn(1);
+        Functions\when('current_user_can')->justReturn(false);
+
+        $args = $this->runAndCaptureJsonError(
+            fn() => (new TeamDemoSeeder())->ajax_create_demo_product()
+        );
+
+        $this->assertSame(['message' => 'Insufficient permissions.'], $args[0]);
+        $this->assertSame(403, $args[1]);
+    }
+
+    // ── ajax_remove_demo_product ──────────────────────────────────────────────
+
+    #[Test]
+    public function ajax_remove_demo_product_rejects_invalid_nonce(): void
+    {
+        Functions\when('check_ajax_referer')->justReturn(false);
+
+        $args = $this->runAndCaptureJsonError(
+            fn() => (new TeamDemoSeeder())->ajax_remove_demo_product()
+        );
+
+        $this->assertSame(['message' => 'Invalid nonce.'], $args[0]);
+        $this->assertSame(403, $args[1]);
+    }
+
+    #[Test]
+    public function ajax_remove_demo_product_rejects_user_without_manage_options_capability(): void
+    {
+        Functions\when('check_ajax_referer')->justReturn(1);
+        Functions\when('current_user_can')->justReturn(false);
+
+        $args = $this->runAndCaptureJsonError(
+            fn() => (new TeamDemoSeeder())->ajax_remove_demo_product()
+        );
+
+        $this->assertSame(['message' => 'Insufficient permissions.'], $args[0]);
+        $this->assertSame(403, $args[1]);
+    }
+
+    // ── create_demo_product ───────────────────────────────────────────────────
+
+    #[Test]
+    public function create_demo_product_fails_gracefully_when_woocommerce_is_inactive(): void
+    {
+        // WC_Product_Simple genuinely doesn't exist in this WordPress-free unit environment.
+        $result = (new TeamDemoSeeder())->create_demo_product();
+
+        $this->assertFalse($result['success']);
+        $this->assertSame(0, $result['product_id']);
+        $this->assertStringContainsString('WooCommerce must be active', $result['message']);
+    }
 }
