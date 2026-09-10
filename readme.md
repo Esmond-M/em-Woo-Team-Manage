@@ -37,6 +37,12 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
 ### Custom Roles
 - Registers two custom WordPress roles: `team_leader` and `team_subordinate`
 
+### Demo Mode
+Available under **Team Manage > Demo Data** (`manage_options` only):
+- **Seed Demo Data** — instantly creates up to 2 demo team leaders (`demo.leader.1@example.com`, `demo.leader.2@example.com`) with a configurable number of demo subordinates each (`demo.sub.1.001@example.com` … `demo.sub.2.050@example.com`). Idempotent — running it again skips accounts that already exist.
+- **Demo Product (Live Purchase Walkthrough)** — creates a hidden, $0 virtual WooCommerce product. Add it to the cart and complete a guest checkout to see the real `woocommerce_thankyou` flow create an actual Team Leader account, exactly as a paying customer would experience it. Requires WooCommerce to be active.
+- **Clear Demo Data** — permanently deletes all demo users, their team relationships, and the demo product in one action. Safe to run on a live store; only accounts/products tagged as demo data are affected.
+
 ### Admin Pages (under "Team Manage" menu)
 | Page | Slug | Access |
 |------|------|--------|
@@ -44,6 +50,7 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
 | View Subordinates | `team-leader-admin` | Team leaders and site administrators |
 | Site Admin View | `site-admin-team-leader-admin` | `manage_options` only |
 | Settings | `emwtm-settings` | `manage_options` only |
+| Demo Data | `emwtm-demo-seeder` | `manage_options` only |
 
 ---
 
@@ -71,6 +78,14 @@ Deactivating the plugin flushes its rewrite rules but preserves team relationshi
 - Log in to wp-admin and navigate to **Team Manage > Add Subordinates** to import users via CSV or add them one at a time.
 - Navigate to **Team Manage > View Subordinates** to see your team roster, edit member details, remove members from the team, or export to CSV.
 - In the WooCommerce **My Account** area, find the **My Team** tab for a quick view of your team.
+
+### Trying It Out (Demo Mode)
+No real WooCommerce sales needed to evaluate the plugin:
+
+1. Go to **Team Manage > Demo Data**.
+2. Click **Seed Demo Data** for an instant team roster to explore the admin pages, or click **Create Demo Product** to generate a $0 WooCommerce product.
+3. To see the real provisioning flow, open the demo product's checkout link, complete a guest checkout, and land on the WooCommerce thank-you page — a Team Leader account is created automatically, just as it would be for a real customer.
+4. When finished, click **Clear Demo Data** to remove all demo users, relationships, and the demo product in one step.
 
 ### CSV Import Format
 The first row must be the header:
@@ -127,7 +142,8 @@ em-Woo-Team-Manage/
 ├── templates/
 │   ├── team-leader-admin-page.php          # View/manage subordinates
 │   ├── team-leader-user-import-page.php    # CSV + single-add import
-│   └── site-admin-team-leader-page.php     # Site admin overview
+│   ├── site-admin-team-leader-page.php     # Site admin overview
+│   └── team-demo-seeder-page.php           # Demo data seeder + demo product
 └── admin/assets/
     ├── css/                        # Compiled CSS
     ├── sass/                       # SCSS source files
