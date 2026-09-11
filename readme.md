@@ -37,6 +37,14 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
 ### Custom Roles
 - Registers two custom WordPress roles: `team_leader` and `team_subordinate`
 
+### Team Content Access
+When a team leader buys a downloadable WooCommerce product, every current subordinate on their team gets access to the same files — no separate purchase required.
+- Access is tracked in an internal grants table (`emwtm_team_content_grants`), separate from WooCommerce's own download permissions table
+- Subordinates added to a team after the purchase are granted access automatically
+- Access is revoked immediately when the order is refunded/cancelled/failed, the subordinate is removed from that team, or either the leader's or subordinate's account is deleted
+- A subordinate who belongs to more than one team keeps the access granted by their other team leader(s) when removed from just one team
+- Other code can check access without depending on WooCommerce directly via the `emwtm_user_has_team_access` filter
+
 ### Demo Mode
 Available under **Team Manage > Demo Data** (`manage_options` only):
 - **Seed Demo Data** — instantly creates up to 2 demo team leaders (`demo.leader.1@example.com`, `demo.leader.2@example.com`) with a configurable number of demo subordinates each (`demo.sub.1.001@example.com` … `demo.sub.2.050@example.com`). Idempotent — running it again skips accounts that already exist.
@@ -128,6 +136,17 @@ npm run env:stop
 
 The environment pins WordPress and WooCommerce versions in `.wp-env.json`. Use `npm run env:destroy` to remove its containers and disposable volumes.
 
+### Linting
+
+PHPCS with a WordPress Coding Standards ruleset is available, tuned to this project's existing style (spaces, short array syntax) so it flags real issues instead of formatting preferences:
+
+```bash
+composer run lint
+composer run lint:fix
+```
+
+The ruleset lives in `phpcs.xml.dist`.
+
 ---
 
 ## File Structure
@@ -138,7 +157,10 @@ em-Woo-Team-Manage/
 ├── includes/classes/
 │   ├── TeamManageCore.php          # Role registration, menu/hooks setup
 │   ├── TeamAjaxHandler.php         # AJAX handlers, asset enqueue
-│   └── TeamUserImporter.php        # CSV import logic
+│   ├── TeamUserImporter.php        # CSV import logic
+│   ├── TeamDemoSeeder.php          # Demo data + demo product seeding
+│   ├── TeamContentAccess.php       # Team content access ledger
+│   └── TeamContentAccessSync.php   # Syncs ledger to WooCommerce download permissions
 ├── templates/
 │   ├── team-leader-admin-page.php          # View/manage subordinates
 │   ├── team-leader-user-import-page.php    # CSV + single-add import
