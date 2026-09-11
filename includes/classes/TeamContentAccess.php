@@ -129,6 +129,25 @@ class TeamContentAccess
     }
 
     /**
+     * Returns every active grant row for an order, so an adapter can work out
+     * which real permissions to remove before the order's grants are revoked.
+     *
+     * @return array<int, array{id:int, leader_id:int, product_id:int, subordinate_id:int}>
+     */
+    public function get_active_grants_for_order(int $order_id): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT id, leader_id, product_id, subordinate_id FROM {$table} WHERE order_id = %d AND revoked_at IS NULL",
+            $order_id
+        ), ARRAY_A);
+
+        return $rows ?: [];
+    }
+
+    /**
      * Filter callback for `emwtm_user_has_team_access`, letting any code ask
      * whether a user has access to a product through their team leader.
      */

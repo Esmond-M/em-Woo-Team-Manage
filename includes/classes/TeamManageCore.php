@@ -17,6 +17,7 @@ require_once __DIR__ . '/TeamAjaxHandler.php';
 require_once __DIR__ . '/TeamUserImporter.php';
 require_once __DIR__ . '/TeamDemoSeeder.php';
 require_once __DIR__ . '/TeamContentAccess.php';
+require_once __DIR__ . '/TeamContentAccessSync.php';
 
 class TeamManageCore
 {
@@ -27,6 +28,7 @@ class TeamManageCore
     private $importer;
     private $seeder;
     private $content_access;
+    private $content_access_sync;
     public function __construct()
     {
         // Initialization hooks
@@ -66,6 +68,11 @@ class TeamManageCore
         // Team content access ledger — lets any code ask "emwtm_user_has_team_access"
         $this->content_access = new TeamContentAccess();
         add_filter('emwtm_user_has_team_access', [$this->content_access, 'filter_user_has_team_access'], 10, 3);
+
+        // Syncs the ledger to real WooCommerce downloadable-product permissions
+        $this->content_access_sync = new TeamContentAccessSync($this->content_access);
+        add_action('woocommerce_order_status_changed', [$this->content_access_sync, 'handle_order_status_changed'], 10, 3);
+        add_action('emwtm_subordinate_added', [$this->content_access_sync, 'grant_subordinate'], 10, 2);
 
         // WooCommerce My Account tab
         add_action('init', [$this, 'register_myaccount_endpoint']);
