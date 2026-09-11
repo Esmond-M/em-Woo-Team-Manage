@@ -54,6 +54,7 @@ final class emWooTeamManageInit {
         add_action( 'init', [ $this, 'i18n' ] );        
         add_action( 'plugins_loaded', [ $this, 'init_class' ] );
         add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_team_table' ] );
+        add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_content_grants_table' ] );
         add_action( 'deactivate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_deactivate' ] );
     }
 
@@ -115,6 +116,36 @@ final class emWooTeamManageInit {
             KEY leader_id (leader_id),
             KEY subordinate_id (subordinate_id),
             UNIQUE KEY leader_subordinate (leader_id, subordinate_id)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+    }
+
+    /**
+     * Creates the team content access grants table.
+     * Tracks which subordinates have access to a product because their
+     * team leader purchased it, independently of WooCommerce's own
+     * download-permission records.
+     */
+    public function emwtm_create_content_grants_table() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'emwtm_team_content_grants';
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            leader_id bigint(20) unsigned NOT NULL,
+            order_id bigint(20) unsigned NOT NULL,
+            product_id bigint(20) unsigned NOT NULL,
+            subordinate_id bigint(20) unsigned NOT NULL,
+            granted_at datetime DEFAULT CURRENT_TIMESTAMP,
+            revoked_at datetime DEFAULT NULL,
+            PRIMARY KEY  (id),
+            KEY leader_id (leader_id),
+            KEY order_id (order_id),
+            KEY product_id (product_id),
+            KEY subordinate_id (subordinate_id)
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');

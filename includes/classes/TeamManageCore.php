@@ -16,6 +16,7 @@ namespace emWooTeamManage\init_plugin\Classes;
 require_once __DIR__ . '/TeamAjaxHandler.php';
 require_once __DIR__ . '/TeamUserImporter.php';
 require_once __DIR__ . '/TeamDemoSeeder.php';
+require_once __DIR__ . '/TeamContentAccess.php';
 
 class TeamManageCore
 {
@@ -25,6 +26,7 @@ class TeamManageCore
     private $ajax;
     private $importer;
     private $seeder;
+    private $content_access;
     public function __construct()
     {
         // Initialization hooks
@@ -60,6 +62,10 @@ class TeamManageCore
         add_action('wp_ajax_emwtm_clear_demo', [$this->seeder, 'ajax_clear']);
         add_action('wp_ajax_emwtm_create_demo_product', [$this->seeder, 'ajax_create_demo_product']);
         add_action('wp_ajax_emwtm_remove_demo_product', [$this->seeder, 'ajax_remove_demo_product']);
+
+        // Team content access ledger — lets any code ask "emwtm_user_has_team_access"
+        $this->content_access = new TeamContentAccess();
+        add_filter('emwtm_user_has_team_access', [$this->content_access, 'filter_user_has_team_access'], 10, 3);
 
         // WooCommerce My Account tab
         add_action('init', [$this, 'register_myaccount_endpoint']);
