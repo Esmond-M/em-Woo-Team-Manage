@@ -9,6 +9,17 @@ class TeamContentAccessTest extends WP_UnitTestCase
 {
     private array $user_ids = [];
     private array $product_ids = [];
+    private array $download_file_paths = [];
+    private $previous_approved_directories_mode;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // This plugin's downloads aren't the concern of WooCommerce's approved-
+        // directories feature; disable it so test fixtures aren't rejected.
+        $this->previous_approved_directories_mode = get_option('wc_downloads_approved_directories_mode');
+        update_option('wc_downloads_approved_directories_mode', 'disabled');
+    }
 
     private function relationshipTable(): string
     {
@@ -30,10 +41,17 @@ class TeamContentAccessTest extends WP_UnitTestCase
 
     private function makeDownloadableProduct(): WC_Product_Simple
     {
+        // A real file inside the uploads directory is required — WooCommerce's
+        // approved-directories feature only trusts wp-content/uploads by default.
+        $upload_dir = wp_upload_dir();
+        $file_path  = $upload_dir['basedir'] . '/emwtm-test-download-' . uniqid('', true) . '.txt';
+        file_put_contents($file_path, 'test download content');
+        $this->download_file_paths[] = $file_path;
+
         $download = new WC_Product_Download();
-        $download->set_id(md5('team-ebook-file-' . uniqid('', true)));
+        $download->set_id(md5($file_path));
         $download->set_name('Team eBook PDF');
-        $download->set_file('http://example.com/team-ebook.pdf');
+        $download->set_file($file_path);
 
         $product = new WC_Product_Simple();
         $product->set_name('Team eBook');
@@ -71,9 +89,15 @@ class TeamContentAccessTest extends WP_UnitTestCase
                 $product->delete(true);
             }
         }
+        foreach ($this->download_file_paths as $file_path) {
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
+        }
         global $wpdb;
         $wpdb->query("DELETE FROM {$this->relationshipTable()}");
         $wpdb->query("DELETE FROM {$wpdb->prefix}emwtm_team_content_grants");
+        update_option('wc_downloads_approved_directories_mode', $this->previous_approved_directories_mode);
         parent::tearDown();
     }
 
