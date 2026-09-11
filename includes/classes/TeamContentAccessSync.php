@@ -114,6 +114,40 @@ class TeamContentAccessSync
     }
 
     /**
+     * Revokes access granted to a subordinate through one specific team.
+     * Bound to `emwtm_subordinate_removed_from_team` — the subordinate's
+     * account, and any other team memberships they hold, are untouched.
+     */
+    public function revoke_subordinate(int $leader_id, int $subordinate_id): void
+    {
+        $grants = $this->ledger->get_active_grants_for_leader_and_subordinate($leader_id, $subordinate_id);
+
+        foreach ($grants as $grant) {
+            $this->remove_wc_permissions((int) $grant['order_id'], (int) $grant['product_id'], $subordinate_id);
+        }
+
+        $this->ledger->revoke_by_subordinate($leader_id, $subordinate_id);
+    }
+
+    /**
+     * Revokes every grant tied to a user account, whether that user was the
+     * subordinate receiving access or the leader whose purchase granted it.
+     * Bound to WordPress's `delete_user` action.
+     */
+    public function revoke_all_for_user(int $user_id): void
+    {
+        foreach ($this->ledger->get_active_grants_for_subordinate($user_id) as $grant) {
+            $this->remove_wc_permissions((int) $grant['order_id'], (int) $grant['product_id'], $user_id);
+        }
+        $this->ledger->revoke_all_by_subordinate($user_id);
+
+        foreach ($this->ledger->get_active_grants_for_leader($user_id) as $grant) {
+            $this->remove_wc_permissions((int) $grant['order_id'], (int) $grant['product_id'], (int) $grant['subordinate_id']);
+        }
+        $this->ledger->revoke_by_leader($user_id);
+    }
+
+    /**
      * Returns [product_id => subordinate_id] arrays as [product, item] pairs
      * for every downloadable line item on an order.
      *

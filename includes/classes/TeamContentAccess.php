@@ -94,6 +94,42 @@ class TeamContentAccess
     }
 
     /**
+     * Marks every active grant for a subordinate as revoked, regardless of
+     * which leader granted it. Used when the subordinate's account is deleted.
+     *
+     * @return int Number of grants revoked.
+     */
+    public function revoke_all_by_subordinate(int $subordinate_id): int
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        return (int) $wpdb->query($wpdb->prepare(
+            "UPDATE {$table} SET revoked_at = %s WHERE subordinate_id = %d AND revoked_at IS NULL",
+            current_time('mysql'),
+            $subordinate_id
+        ));
+    }
+
+    /**
+     * Marks every active grant made by a leader as revoked. Used when the
+     * leader's own account is deleted, so their purchase no longer grants access.
+     *
+     * @return int Number of grants revoked.
+     */
+    public function revoke_by_leader(int $leader_id): int
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        return (int) $wpdb->query($wpdb->prepare(
+            "UPDATE {$table} SET revoked_at = %s WHERE leader_id = %d AND revoked_at IS NULL",
+            current_time('mysql'),
+            $leader_id
+        ));
+    }
+
+    /**
      * Whether a user currently has team-granted access to a product.
      */
     public function has_access(int $user_id, int $product_id): bool
@@ -142,6 +178,45 @@ class TeamContentAccess
         $rows = $wpdb->get_results($wpdb->prepare(
             "SELECT id, leader_id, product_id, subordinate_id FROM {$table} WHERE order_id = %d AND revoked_at IS NULL",
             $order_id
+        ), ARRAY_A);
+
+        return $rows ?: [];
+    }
+
+    /**
+     * Returns every active grant row for one leader/subordinate relationship,
+     * so an adapter can revoke only the access tied to that team.
+     *
+     * @return array<int, array{id:int, order_id:int, product_id:int}>
+     */
+    public function get_active_grants_for_leader_and_subordinate(int $leader_id, int $subordinate_id): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT id, order_id, product_id FROM {$table} WHERE leader_id = %d AND subordinate_id = %d AND revoked_at IS NULL",
+            $leader_id,
+            $subordinate_id
+        ), ARRAY_A);
+
+        return $rows ?: [];
+    }
+
+    /**
+     * Returns every active grant row for a subordinate, across all leaders.
+     * Used when the subordinate's account is deleted entirely.
+     *
+     * @return array<int, array{id:int, order_id:int, product_id:int}>
+     */
+    public function get_active_grants_for_subordinate(int $subordinate_id): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT id, order_id, product_id FROM {$table} WHERE subordinate_id = %d AND revoked_at IS NULL",
+            $subordinate_id
         ), ARRAY_A);
 
         return $rows ?: [];

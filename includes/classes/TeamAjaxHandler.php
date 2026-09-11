@@ -224,6 +224,7 @@ class TeamAjaxHandler
                         echo '<p class="newpost-error">Could not remove User ID ' . esc_html($id) . ' from the team.</p>';
                         continue;
                     }
+                    do_action('emwtm_subordinate_removed_from_team', $current_leader_id, $id);
                     $remaining_teams = (int) $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(*) FROM $table WHERE subordinate_id = %d",
                         $id

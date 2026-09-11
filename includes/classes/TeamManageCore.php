@@ -73,6 +73,8 @@ class TeamManageCore
         $this->content_access_sync = new TeamContentAccessSync($this->content_access);
         add_action('woocommerce_order_status_changed', [$this->content_access_sync, 'handle_order_status_changed'], 10, 3);
         add_action('emwtm_subordinate_added', [$this->content_access_sync, 'grant_subordinate'], 10, 2);
+        add_action('emwtm_subordinate_removed_from_team', [$this->content_access_sync, 'revoke_subordinate'], 10, 2);
+        add_action('delete_user', [$this->content_access_sync, 'revoke_all_for_user']);
 
         // WooCommerce My Account tab
         add_action('init', [$this, 'register_myaccount_endpoint']);

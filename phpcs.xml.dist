@@ -37,6 +37,7 @@
         <exclude name="WordPress.NamingConventions.ValidVariableName"/>
         <exclude name="NormalizedArrays.Arrays.CommaAfterLast"/>
         <exclude name="Universal.Operators.DisallowStandalonePostIncrementDecrement"/>
+        <exclude name="WordPress.WhiteSpace.CastStructureSpacing"/>
 
         <!-- Custom relationship/grants tables have no object-cache API; direct queries are expected -->
         <exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/>
