@@ -32,6 +32,7 @@ namespace emWooTeamManage\init_plugin;
  */
 
 define('EMWTM_VERSION', '0.1.0');
+define('EMWTM_DB_VERSION', '2');
 define('EMWTM_PLUGIN_FILE', __FILE__);
 
 defined('ABSPATH') or die();
@@ -53,6 +54,7 @@ final class emWooTeamManageInit {
     public function __construct() {
         add_action( 'init', [ $this, 'i18n' ] );        
         add_action( 'plugins_loaded', [ $this, 'init_class' ] );
+        add_action( 'plugins_loaded', [ $this, 'emwtm_maybe_upgrade_tables' ] );
         add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_team_table' ] );
         add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_content_grants_table' ] );
         add_action( 'deactivate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_deactivate' ] );
@@ -124,9 +126,9 @@ final class emWooTeamManageInit {
 
     /**
      * Creates the team content access grants table.
-     * Tracks which subordinates have access to a product because their
-     * team leader purchased it, independently of WooCommerce's own
-     * download-permission records.
+     * Tracks which users have access to a product because their team leader
+     * purchased it or an administrator assigned it, independently of
+     * WooCommerce's own download-permission records.
      */
     public function emwtm_create_content_grants_table() {
         global $wpdb;
@@ -139,6 +141,7 @@ final class emWooTeamManageInit {
             order_id bigint(20) unsigned NOT NULL,
             product_id bigint(20) unsigned NOT NULL,
             subordinate_id bigint(20) unsigned NOT NULL,
+            source varchar(20) NOT NULL DEFAULT 'purchase',
             granted_at datetime DEFAULT CURRENT_TIMESTAMP,
             revoked_at datetime DEFAULT NULL,
             PRIMARY KEY  (id),
@@ -150,6 +153,19 @@ final class emWooTeamManageInit {
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
+    }
+
+    /**
+     * Applies table schema changes to installs that were activated before the
+     * current EMWTM_DB_VERSION, without requiring deactivation/reactivation.
+     */
+    public function emwtm_maybe_upgrade_tables(): void {
+        if ( get_option( 'emwtm_db_version' ) === EMWTM_DB_VERSION ) {
+            return;
+        }
+
+        $this->emwtm_create_content_grants_table();
+        update_option( 'emwtm_db_version', EMWTM_DB_VERSION );
     }
 
     /**

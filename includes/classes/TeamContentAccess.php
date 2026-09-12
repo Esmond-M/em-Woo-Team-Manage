@@ -13,6 +13,12 @@ namespace emWooTeamManage\init_plugin\Classes;
 
 class TeamContentAccess
 {
+    /** Grant created by a team leader's own WooCommerce purchase. */
+    const SOURCE_PURCHASE = 'purchase';
+
+    /** Grant created by an administrator assigning a product to a team. */
+    const SOURCE_ASSIGNMENT = 'assignment';
+
     /**
      * Returns the ledger table name.
      */
@@ -23,10 +29,10 @@ class TeamContentAccess
     }
 
     /**
-     * Records that a subordinate has access to a product via a leader's order.
+     * Records that a user has access to a product via a leader's order.
      * Idempotent — returns the existing grant ID if one is already active.
      */
-    public function grant(int $leader_id, int $order_id, int $product_id, int $subordinate_id): int
+    public function grant(int $leader_id, int $order_id, int $product_id, int $subordinate_id, string $source = self::SOURCE_PURCHASE): int
     {
         global $wpdb;
         $table = $this->table();
@@ -50,9 +56,10 @@ class TeamContentAccess
                 'order_id'       => $order_id,
                 'product_id'     => $product_id,
                 'subordinate_id' => $subordinate_id,
+                'source'         => $source,
                 'granted_at'     => current_time('mysql'),
             ],
-            ['%d', '%d', '%d', '%d', '%s']
+            ['%d', '%d', '%d', '%d', '%s', '%s']
         );
 
         return (int) $wpdb->insert_id;
@@ -229,5 +236,109 @@ class TeamContentAccess
     public function filter_user_has_team_access(bool $has_access, int $user_id, int $product_id): bool
     {
         return $has_access || $this->has_access($user_id, $product_id);
+    }
+
+    /**
+     * Returns the distinct products a leader's team currently has access to,
+     * with how many users hold each grant. Powers the admin and leader views.
+     *
+     * @return array<int, array{product_id:int, order_id:int, source:string, user_count:int, granted_at:string}>
+     */
+    public function get_team_products(int $leader_id): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT product_id, MIN(order_id) AS order_id, MIN(source) AS source,
+                    COUNT(DISTINCT subordinate_id) AS user_count, MIN(granted_at) AS granted_at
+             FROM {$table}
+             WHERE leader_id = %d AND revoked_at IS NULL
+             GROUP BY product_id",
+            $leader_id
+        ), ARRAY_A);
+
+        return $rows ?: [];
+    }
+
+    /**
+     * Returns the user IDs holding an active grant for one leader/product pair.
+     *
+     * @return int[]
+     */
+    public function get_users_with_product(int $leader_id, int $product_id): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        return array_map('intval', (array) $wpdb->get_col($wpdb->prepare(
+            "SELECT DISTINCT subordinate_id FROM {$table}
+             WHERE leader_id = %d AND product_id = %d AND revoked_at IS NULL",
+            $leader_id,
+            $product_id
+        )));
+    }
+
+    /**
+     * Returns every active grant grouped by leader and product, for the
+     * site-wide admin assignments table.
+     *
+     * @return array<int, array{leader_id:int, product_id:int, order_id:int, source:string, user_count:int, granted_at:string}>
+     */
+    public function get_all_team_products(): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        $rows = $wpdb->get_results(
+            "SELECT leader_id, product_id, MIN(order_id) AS order_id, MIN(source) AS source,
+                    COUNT(DISTINCT subordinate_id) AS user_count, MIN(granted_at) AS granted_at
+             FROM {$table}
+             WHERE revoked_at IS NULL
+             GROUP BY leader_id, product_id
+             ORDER BY leader_id ASC, granted_at DESC",
+            ARRAY_A
+        );
+
+        return $rows ?: [];
+    }
+
+    /**
+     * Marks active grants for one leader/product pair as revoked.
+     *
+     * @return int Number of grants revoked.
+     */
+    public function revoke_by_leader_and_product(int $leader_id, int $product_id): int
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        return (int) $wpdb->query($wpdb->prepare(
+            "UPDATE {$table} SET revoked_at = %s
+             WHERE leader_id = %d AND product_id = %d AND revoked_at IS NULL",
+            current_time('mysql'),
+            $leader_id,
+            $product_id
+        ));
+    }
+
+    /**
+     * Returns the active grant rows for one leader/product pair.
+     *
+     * @return array<int, array{id:int, order_id:int, subordinate_id:int}>
+     */
+    public function get_active_grants_for_leader_and_product(int $leader_id, int $product_id): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT id, order_id, subordinate_id FROM {$table}
+             WHERE leader_id = %d AND product_id = %d AND revoked_at IS NULL",
+            $leader_id,
+            $product_id
+        ), ARRAY_A);
+
+        return $rows ?: [];
     }
 }
