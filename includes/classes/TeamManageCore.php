@@ -18,6 +18,7 @@ require_once __DIR__ . '/TeamUserImporter.php';
 require_once __DIR__ . '/TeamDemoSeeder.php';
 require_once __DIR__ . '/TeamContentAccess.php';
 require_once __DIR__ . '/TeamContentAccessSync.php';
+require_once __DIR__ . '/TeamContentAssignment.php';
 
 class TeamManageCore
 {
@@ -29,6 +30,7 @@ class TeamManageCore
     private $seeder;
     private $content_access;
     private $content_access_sync;
+    private $content_assignment;
     public function __construct()
     {
         // Initialization hooks
@@ -75,6 +77,12 @@ class TeamManageCore
         add_action('emwtm_subordinate_added', [$this->content_access_sync, 'grant_subordinate'], 10, 2);
         add_action('emwtm_subordinate_removed_from_team', [$this->content_access_sync, 'revoke_subordinate'], 10, 2);
         add_action('delete_user', [$this->content_access_sync, 'revoke_all_for_user']);
+
+        // Admin-driven content assignment (no purchase required)
+        $this->content_assignment = new TeamContentAssignment($this->content_access, $this->content_access_sync);
+        add_action('wp_ajax_emwtm_assign_content', [$this->content_assignment, 'ajax_assign']);
+        add_action('wp_ajax_emwtm_unassign_content', [$this->content_assignment, 'ajax_unassign']);
+        add_filter('woocommerce_order_list_table_prepare_items_query_args', [$this->content_assignment, 'filter_hide_assignment_orders']);
 
         // WooCommerce My Account tab
         add_action('init', [$this, 'register_myaccount_endpoint']);
@@ -173,6 +181,24 @@ class TeamManageCore
         $submenus = [
             [
                 'parent_slug' => 'user-import-controls',
+                'page_title'  => 'Team Leaders',
+                'menu_title'  => 'Team Leaders',
+                'capability'  => 'manage_options',
+                'menu_slug'   => 'site-admin-team-leader-admin',
+                'template'    => 'site-admin-team-leader-page.php',
+                'position'    => 1
+            ],
+            [
+                'parent_slug' => 'user-import-controls',
+                'page_title'  => 'View Subordinates',
+                'menu_title'  => 'View Subordinates',
+                'capability'  => 'read',
+                'menu_slug'   => 'team-leader-admin',
+                'template'    => 'team-leader-admin-page.php',
+                'position'    => 2
+            ],
+            [
+                'parent_slug' => 'user-import-controls',
                 'page_title'  => 'Add Subordinates',
                 'menu_title'  => 'Add Subordinates',
                 'capability'  => 'read',
@@ -182,21 +208,12 @@ class TeamManageCore
             ],
             [
                 'parent_slug' => 'user-import-controls',
-                'page_title'  => 'View Subordinates',
-                'menu_title'  => 'View Subordinates',
-                'capability'  => 'read',
-                'menu_slug'   => 'team-leader-admin',
-                'template'    => 'team-leader-admin-page.php',
-                'position'    => 1
-            ],
-            [
-                'parent_slug' => 'user-import-controls',
-                'page_title'  => 'Site Admin View',
-                'menu_title'  => 'Site Admin View',
+                'page_title'  => 'Content Access',
+                'menu_title'  => 'Content Access',
                 'capability'  => 'manage_options',
-                'menu_slug'   => 'site-admin-team-leader-admin',
-                'template'    => 'site-admin-team-leader-page.php',
-                'position'    => 2
+                'menu_slug'   => 'emwtm-content-access',
+                'template'    => 'team-content-access-page.php',
+                'position'    => 4
             ],
             [
                 'parent_slug' => 'user-import-controls',
@@ -206,7 +223,7 @@ class TeamManageCore
                 'menu_slug'   => 'emwtm-settings',
                 'template'    => null,
                 'callback'    => [$this, 'render_settings_page'],
-                'position'    => 4
+                'position'    => 5
             ],
             [
                 'parent_slug' => 'user-import-controls',
@@ -215,7 +232,7 @@ class TeamManageCore
                 'capability'  => 'manage_options',
                 'menu_slug'   => 'emwtm-demo-seeder',
                 'template'    => 'team-demo-seeder-page.php',
-                'position'    => 5
+                'position'    => 6
             ],
         ];
 
@@ -326,6 +343,24 @@ class TeamManageCore
                 $val = (int) get_option('emwtm_max_subordinates', 200);
                 echo '<input type="number" name="emwtm_max_subordinates" value="' . esc_attr($val) . '" min="1" max="5000" class="small-text" />';
                 echo '<p class="description">Maximum number of subordinates a single team leader can have (default: 200).</p>';
+            },
+            'emwtm-settings',
+            'emwtm_main'
+        );
+
+        register_setting('emwtm_settings_group', 'emwtm_hide_assignment_orders', [
+            'type'              => 'boolean',
+            'sanitize_callback' => function($val) { return !empty($val) ? 1 : 0; },
+            'default'           => 0,
+        ]);
+        add_settings_field(
+            'emwtm_hide_assignment_orders',
+            'Hide Assignment Orders',
+            function() {
+                $val = (int) get_option('emwtm_hide_assignment_orders', 0);
+                echo '<label><input type="checkbox" name="emwtm_hide_assignment_orders" value="1" ' . checked($val, 1, false) . ' /> ';
+                echo 'Hide the $0 orders generated by content assignments from the WooCommerce Orders list.</label>';
+                echo '<p class="description">Assigning content creates a hidden $0 order so download links work. Enable this to keep those orders out of WooCommerce &gt; Orders.</p>';
             },
             'emwtm-settings',
             'emwtm_main'

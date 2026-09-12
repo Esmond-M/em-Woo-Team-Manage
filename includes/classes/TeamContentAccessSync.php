@@ -45,7 +45,9 @@ class TeamContentAccessSync
 
     /**
      * Grants every current subordinate of the order's team leader access to
-     * the order's downloadable products.
+     * the order's downloadable products. The leader receives a ledger record
+     * too; WooCommerce grants their actual download permissions natively as
+     * the order's customer.
      */
     public function grant_order(int $order_id): void
     {
@@ -63,14 +65,17 @@ class TeamContentAccessSync
             return;
         }
 
+        $source = $order->get_meta(TeamContentAssignment::ORDER_META_KEY) === '1'
+            ? TeamContentAccess::SOURCE_ASSIGNMENT
+            : TeamContentAccess::SOURCE_PURCHASE;
+
         $subordinate_ids = $this->get_subordinate_ids($leader_id);
-        if (empty($subordinate_ids)) {
-            return;
-        }
 
         foreach ($this->get_downloadable_items($order) as [$product]) {
+            $this->ledger->grant($leader_id, $order->get_id(), $product->get_id(), $leader_id, $source);
+
             foreach ($subordinate_ids as $subordinate_id) {
-                $this->grant_one($order, $product, $leader_id, (int) $subordinate_id);
+                $this->grant_one($order, $product, $leader_id, (int) $subordinate_id, $source);
             }
         }
     }
@@ -186,9 +191,9 @@ class TeamContentAccessSync
      * Records a ledger grant and, if not already present, a real WooCommerce
      * download permission for one subordinate/product pair.
      */
-    private function grant_one(\WC_Order $order, \WC_Product $product, int $leader_id, int $subordinate_id): void
+    private function grant_one(\WC_Order $order, \WC_Product $product, int $leader_id, int $subordinate_id, string $source = TeamContentAccess::SOURCE_PURCHASE): void
     {
-        $grant_id = $this->ledger->grant($leader_id, $order->get_id(), $product->get_id(), $subordinate_id);
+        $grant_id = $this->ledger->grant($leader_id, $order->get_id(), $product->get_id(), $subordinate_id, $source);
         if (!$grant_id) {
             return;
         }
@@ -222,6 +227,19 @@ class TeamContentAccessSync
             $permission->set_access_granted(time());
             $permission->set_download_count(0);
             $permission->save();
+        }
+    }
+
+    /**
+     * Removes the WooCommerce download permissions behind a set of grants for
+     * one leader/product pair. Used when an assignment is withdrawn.
+     *
+     * @param array<int, array{order_id:int, subordinate_id:int}> $grants
+     */
+    public function remove_product_permissions(int $leader_id, int $product_id, array $grants): void
+    {
+        foreach ($grants as $grant) {
+            $this->remove_wc_permissions((int) $grant['order_id'], $product_id, (int) $grant['subordinate_id']);
         }
     }
 
