@@ -18,6 +18,8 @@ class TeamDemoSeeder
     /** Post-meta key that marks the WooCommerce product used for live demo checkouts. */
     const DEMO_PRODUCT_META_KEY = 'emwtm_is_demo_product';
     const DEMO_PRODUCT_SKU      = 'emwtm-demo-team-leader';
+    const DEMO_DOWNLOAD_DIR     = 'emwtm-demo-content';
+    const DEMO_DOWNLOAD_FILE    = 'team-demo-ebook.txt';
 
     // -------------------------------------------------------------------------
     // Status helpers
@@ -272,6 +274,18 @@ class TeamDemoSeeder
         $product->set_catalog_visibility('hidden');
         $product->set_sku(self::DEMO_PRODUCT_SKU);
         $product->set_status('publish');
+
+        $download_file = $this->ensure_demo_download_file();
+        if ($download_file !== '') {
+            $download = new \WC_Product_Download();
+            $download->set_id(md5($download_file));
+            $download->set_name('Team Demo eBook');
+            $download->set_file($download_file);
+
+            $product->set_downloadable(true);
+            $product->set_downloads([$download]);
+        }
+
         $product_id = $product->save();
 
         update_post_meta($product_id, self::DEMO_PRODUCT_META_KEY, '1');
@@ -280,15 +294,76 @@ class TeamDemoSeeder
             'success'      => true,
             'product_id'   => $product_id,
             'checkout_url' => (string) get_permalink($product_id),
-            'message'      => 'Demo product created.',
+            'message'      => $download_file !== ''
+                ? 'Demo product created with downloadable content.'
+                : 'Demo product created, but the demo download file could not be written.',
         ];
     }
 
     /**
-     * Permanently removes the demo product, if one exists.
+     * Writes the demo download file into uploads and makes sure WooCommerce
+     * will accept it. Returns the file path, or an empty string on failure.
+     */
+    private function ensure_demo_download_file(): string
+    {
+        $upload_dir = wp_upload_dir();
+        if (!empty($upload_dir['error'])) {
+            return '';
+        }
+
+        $directory = trailingslashit($upload_dir['basedir']) . self::DEMO_DOWNLOAD_DIR;
+        if (!wp_mkdir_p($directory)) {
+            return '';
+        }
+
+        $file_path = trailingslashit($directory) . self::DEMO_DOWNLOAD_FILE;
+        if (!file_exists($file_path)) {
+            $contents = "EM Woo Team Manage — Demo Content\n\n"
+                . "This file stands in for the real downloadable product a team leader would buy.\n"
+                . "Every subordinate on the leader's team can download it without buying it separately.\n";
+            if (file_put_contents($file_path, $contents) === false) {
+                return '';
+            }
+        }
+
+        $directory_url = trailingslashit($upload_dir['baseurl']) . self::DEMO_DOWNLOAD_DIR;
+        $this->approve_download_directory($directory_url);
+
+        return $file_path;
+    }
+
+    /**
+     * Registers a directory with WooCommerce's approved download directories,
+     * which otherwise rejects programmatically added download files.
+     */
+    private function approve_download_directory(string $directory_url): void
+    {
+        if (!function_exists('wc_get_container')) {
+            return;
+        }
+
+        $register_class = '\Automattic\WooCommerce\Internal\ProductDownloads\ApprovedDirectories\Register';
+        if (!class_exists($register_class)) {
+            return;
+        }
+
+        try {
+            $register = wc_get_container()->get($register_class);
+            if (!$register->approved_directory_exists($directory_url)) {
+                $register->add_approved_directory($directory_url);
+            }
+        } catch (\Exception $e) {
+            // Approved directories are unavailable; the product is still created.
+        }
+    }
+
+    /**
+     * Permanently removes the demo product and its download file, if present.
      */
     public function remove_demo_product(): bool
     {
+        $this->remove_demo_download_file();
+
         $product_id = $this->get_demo_product_id();
         if (!$product_id) {
             return false;
@@ -303,6 +378,27 @@ class TeamDemoSeeder
         }
 
         return (bool) wp_delete_post($product_id, true);
+    }
+
+    /**
+     * Deletes the demo download file and its directory.
+     */
+    private function remove_demo_download_file(): void
+    {
+        $upload_dir = wp_upload_dir();
+        if (!empty($upload_dir['error'])) {
+            return;
+        }
+
+        $directory = trailingslashit($upload_dir['basedir']) . self::DEMO_DOWNLOAD_DIR;
+        $file_path = trailingslashit($directory) . self::DEMO_DOWNLOAD_FILE;
+
+        if (file_exists($file_path)) {
+            unlink($file_path);
+        }
+        if (is_dir($directory)) {
+            @rmdir($directory);
+        }
     }
 
     // -------------------------------------------------------------------------
