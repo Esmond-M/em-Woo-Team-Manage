@@ -39,6 +39,21 @@ if (!empty($subordinate_ids)) {
     ]);
 }
 $number_of_users = count($teamSubordinates);
+
+$team_products = [];
+$own_downloads = [];
+if (class_exists('emWooTeamManage\init_plugin\Classes\TeamContentAccess')) {
+    $content_ledger = new emWooTeamManage\init_plugin\Classes\TeamContentAccess();
+    $team_products  = $content_ledger->get_team_products($teamLeaderID);
+
+    // Download links are personal to the logged-in user, so only show them
+    // when the leader is viewing their own team.
+    if (get_current_user_id() === (int) $teamLeaderID && function_exists('wc_get_customer_available_downloads')) {
+        foreach (wc_get_customer_available_downloads($teamLeaderID) as $download) {
+            $own_downloads[(int) $download['product_id']][] = $download;
+        }
+    }
+}
 ?>
     <div class="subordinate-container">
         <div class="team-page-hero">
@@ -52,6 +67,54 @@ $number_of_users = count($teamSubordinates);
                 <span class="team-stat-label">Subordinates</span>
             </div>
         </div>
+
+        <div class="team-content-access">
+            <h3>Team Content</h3>
+            <?php if (empty($team_products)) : ?>
+                <p class="description">This team doesn't have access to any downloadable content yet.</p>
+            <?php else : ?>
+                <p class="description">Content available to this team. Everyone on the team can download these from their own account.</p>
+                <table class="team-content-table">
+                    <thead>
+                        <tr>
+                            <th>Content</th>
+                            <th>Source</th>
+                            <th>Team Members With Access</th>
+                            <th>Download</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($team_products as $team_product) : ?>
+                            <?php
+                            $product_id   = (int) $team_product['product_id'];
+                            $product      = function_exists('wc_get_product') ? wc_get_product($product_id) : null;
+                            $is_assigned  = $team_product['source'] === emWooTeamManage\init_plugin\Classes\TeamContentAccess::SOURCE_ASSIGNMENT;
+                            $access_count = (int) $team_product['user_count'];
+                            ?>
+                            <tr>
+                                <td><?php echo esc_html($product ? $product->get_name() : 'Product #' . $product_id); ?></td>
+                                <td><?php echo $is_assigned ? 'Provided by site admin' : 'Purchased'; ?></td>
+                                <td><?php echo esc_html($access_count); ?></td>
+                                <td>
+                                    <?php if (!empty($own_downloads[$product_id])) : ?>
+                                        <?php foreach ($own_downloads[$product_id] as $download) : ?>
+                                            <a class="team-content-download" href="<?php echo esc_url($download['download_url']); ?>">
+                                                <?php echo esc_html($download['download_name']); ?>
+                                            </a><br />
+                                        <?php endforeach; ?>
+                                    <?php elseif (get_current_user_id() === (int) $teamLeaderID) : ?>
+                                        <span class="description">No download link available.</span>
+                                    <?php else : ?>
+                                        <span class="description">&mdash;</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
         <div class="team-toolbar">
             <?php if ($is_admin): ?>
             <form class="emulation-form" method="GET" action="">

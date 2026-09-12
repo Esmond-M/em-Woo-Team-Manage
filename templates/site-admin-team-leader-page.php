@@ -55,6 +55,7 @@
                         <td><span class="sub-count<?php echo $subCount ? ' has-sub' : ' no-sub'; ?>"><?php echo esc_html($subCount); ?></span></td>
                         <td class="admin-action-links">
                             <a href="<?php echo esc_url(admin_url('admin.php?page=team-leader-admin&leader_id=' . $teamLeader->ID)); ?>" class="admin-action-link manage">Manage Team</a>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=emwtm-content-access&leader_id=' . $teamLeader->ID)); ?>" class="admin-action-link assign">Assign Content</a>
                             <a href="<?php echo esc_url(get_edit_user_link($teamLeader->ID)); ?>" class="admin-action-link edit">Edit User</a>
                         </td>
                     </tr>

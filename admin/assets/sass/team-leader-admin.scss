@@ -570,7 +570,56 @@ p.newpost-error, .newpost-error {
   border-radius: 8px;
   box-shadow: $shadow-sm;
 }
+// ─── Team Content ────────────────────────────────────────────────────────────
+.team-content-access {
+  background: $bg-card;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  box-shadow: $shadow-sm;
 
+  h3 {
+    margin: 0 0 6px;
+    color: $text-dark;
+  }
+
+  .description {
+    color: $text-mid;
+    margin: 0 0 12px;
+  }
+}
+
+.team-content-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid $border-light;
+  }
+
+  th {
+    color: $text-mid;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+}
+
+.team-content-download {
+  color: $primary;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: $primary-dark;
+    text-decoration: underline;
+  }
+}
 // ─── Responsive ───────────────────────────────────────────────────────────────
 @media (max-width: 782px) {
   .subordinate-container { margin: 14px 0; }
