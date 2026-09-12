@@ -55,6 +55,8 @@ Site admins can give a team access to downloadable products without any purchase
 
 Team leaders see a **Team Content** panel on **View Subordinates** listing what their team can access, where it came from, how many members hold it, and a direct download link for each item.
 
+Subordinates get a **My Content** tab in the WooCommerce **My Account** area listing everything shared with them through their team, who shared it, and a direct download link for each file. The tab only appears once they actually have access to something.
+
 ### Demo Mode
 Available under **Team Manage > Demo Data** (`manage_options` only):
 - **Seed Demo Data** — instantly creates up to 2 demo team leaders (`demo.leader.1@example.com`, `demo.leader.2@example.com`) with a configurable number of demo subordinates each (`demo.sub.1.001@example.com` … `demo.sub.2.050@example.com`). Idempotent — running it again skips accounts that already exist.
@@ -98,6 +100,9 @@ Deactivating the plugin flushes its rewrite rules but preserves team relationshi
 - Log in to wp-admin and navigate to **Team Manage > Add Subordinates** to import users via CSV or add them one at a time.
 - Navigate to **Team Manage > View Subordinates** to see your team roster, edit member details, remove members from the team, or export to CSV. The **Team Content** panel there shows what your team can access, with direct download links.
 - In the WooCommerce **My Account** area, find the **My Team** tab for a quick view of your team.
+
+### For Subordinates
+- In the WooCommerce **My Account** area, open the **My Content** tab to see everything shared with you through your team, with direct download links. The tab appears automatically once your team has access to something.
 
 ### Trying It Out (Demo Mode)
 No real WooCommerce sales needed to evaluate the plugin:
@@ -179,6 +184,7 @@ em-Woo-Team-Manage/
 │   ├── team-leader-user-import-page.php    # CSV + single-add import
 │   ├── site-admin-team-leader-page.php     # Team leaders overview
 │   ├── team-content-access-page.php        # Admin content assignment
+│   ├── team-my-content-page.php            # Subordinate My Account content view
 │   └── team-demo-seeder-page.php           # Demo data seeder + demo product
 └── admin/assets/
     ├── css/                        # Compiled CSS
