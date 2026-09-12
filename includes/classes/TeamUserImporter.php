@@ -128,6 +128,7 @@ class TeamUserImporter
         add_user_meta($user_id, 'teamID', $leader_id);
         wp_new_user_notification($user_id, null, 'both');
         $this->send_team_added_notification((int) $user_id, $leader_id);
+        do_action('emwtm_subordinate_added', $leader_id, (int) $user_id);
 
         return ['success' => true, 'message' => $first_name . ' ' . $last_name, 'user_id' => (int) $user_id];
     }

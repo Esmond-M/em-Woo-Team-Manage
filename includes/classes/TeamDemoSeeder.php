@@ -15,6 +15,12 @@ class TeamDemoSeeder
     const MAX_LEADERS      = 2;
     const MAX_SUBORDINATES = 50;
 
+    /** Post-meta key that marks the WooCommerce product used for live demo checkouts. */
+    const DEMO_PRODUCT_META_KEY = 'emwtm_is_demo_product';
+    const DEMO_PRODUCT_SKU      = 'emwtm-demo-team-leader';
+    const DEMO_DOWNLOAD_DIR     = 'emwtm-demo-content';
+    const DEMO_DOWNLOAD_FILE    = 'team-demo-ebook.txt';
+
     // -------------------------------------------------------------------------
     // Status helpers
     // -------------------------------------------------------------------------
@@ -168,6 +174,7 @@ class TeamDemoSeeder
 
     /**
      * Deletes every demo user and removes their rows from the relationships table.
+     * Also removes the demo WooCommerce product, if one was created.
      *
      * @return int Number of WP users deleted.
      */
@@ -191,7 +198,210 @@ class TeamDemoSeeder
             }
         }
 
+        $this->remove_demo_product();
+
         return $deleted;
+    }
+
+    // -------------------------------------------------------------------------
+    // Demo product (live purchase → Team Leader provisioning walkthrough)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the demo product's post ID, or 0 if it doesn't exist.
+     */
+    public function get_demo_product_id(): int
+    {
+        $ids = get_posts([
+            'post_type'      => 'product',
+            'meta_key'       => self::DEMO_PRODUCT_META_KEY,
+            'meta_value'     => '1',
+            'post_status'    => 'any',
+            'fields'         => 'ids',
+            'posts_per_page' => 1,
+        ]);
+
+        return !empty($ids) ? (int) $ids[0] : 0;
+    }
+
+    /**
+     * Returns the current demo product state for the admin UI.
+     *
+     * @return array{product_id:int, checkout_url:string}
+     */
+    public function get_product_status(): array
+    {
+        $product_id = $this->get_demo_product_id();
+
+        return [
+            'product_id'   => $product_id,
+            'checkout_url' => $product_id ? (string) get_permalink($product_id) : '',
+        ];
+    }
+
+    /**
+     * Creates a $0 virtual WooCommerce product for exercising the real
+     * purchase → Team Leader provisioning flow. Idempotent.
+     *
+     * @return array{success:bool, product_id:int, checkout_url:string, message:string}
+     */
+    public function create_demo_product(): array
+    {
+        if (!class_exists('WC_Product_Simple')) {
+            return [
+                'success'      => false,
+                'product_id'   => 0,
+                'checkout_url' => '',
+                'message'      => 'WooCommerce must be active to create the demo product.',
+            ];
+        }
+
+        $existing_id = $this->get_demo_product_id();
+        if ($existing_id) {
+            return [
+                'success'      => true,
+                'product_id'   => $existing_id,
+                'checkout_url' => (string) get_permalink($existing_id),
+                'message'      => 'Demo product already exists.',
+            ];
+        }
+
+        $product = new \WC_Product_Simple();
+        $product->set_name('Team Leader Demo Purchase');
+        $product->set_regular_price('0');
+        $product->set_price('0');
+        $product->set_virtual(true);
+        $product->set_catalog_visibility('hidden');
+        $product->set_sku(self::DEMO_PRODUCT_SKU);
+        $product->set_status('publish');
+
+        $download_file = $this->ensure_demo_download_file();
+        if ($download_file !== '') {
+            $download = new \WC_Product_Download();
+            $download->set_id(md5($download_file));
+            $download->set_name('Team Demo eBook');
+            $download->set_file($download_file);
+
+            $product->set_downloadable(true);
+            $product->set_downloads([$download]);
+        }
+
+        $product_id = $product->save();
+
+        update_post_meta($product_id, self::DEMO_PRODUCT_META_KEY, '1');
+
+        return [
+            'success'      => true,
+            'product_id'   => $product_id,
+            'checkout_url' => (string) get_permalink($product_id),
+            'message'      => $download_file !== ''
+                ? 'Demo product created with downloadable content.'
+                : 'Demo product created, but the demo download file could not be written.',
+        ];
+    }
+
+    /**
+     * Writes the demo download file into uploads and makes sure WooCommerce
+     * will accept it. Returns the file URL, or an empty string on failure.
+     */
+    private function ensure_demo_download_file(): string
+    {
+        $upload_dir = wp_upload_dir();
+        if (!empty($upload_dir['error'])) {
+            return '';
+        }
+
+        $directory = trailingslashit($upload_dir['basedir']) . self::DEMO_DOWNLOAD_DIR;
+        if (!wp_mkdir_p($directory)) {
+            return '';
+        }
+
+        $file_path = trailingslashit($directory) . self::DEMO_DOWNLOAD_FILE;
+        if (!file_exists($file_path)) {
+            $contents = "EM Woo Team Manage — Demo Content\n\n"
+                . "This file stands in for the real downloadable product a team leader would buy.\n"
+                . "Every subordinate on the leader's team can download it without buying it separately.\n";
+            if (file_put_contents($file_path, $contents) === false) {
+                return '';
+            }
+        }
+
+        // WooCommerce matches downloads against approved directories by URL, so
+        // the file must be referenced the same way it is approved.
+        $directory_url = trailingslashit($upload_dir['baseurl']) . self::DEMO_DOWNLOAD_DIR;
+        $this->approve_download_directory($directory_url);
+
+        return trailingslashit($directory_url) . self::DEMO_DOWNLOAD_FILE;
+    }
+
+    /**
+     * Registers a directory with WooCommerce's approved download directories,
+     * which otherwise rejects programmatically added download files.
+     */
+    private function approve_download_directory(string $directory_url): void
+    {
+        if (!function_exists('wc_get_container')) {
+            return;
+        }
+
+        $register_class = '\Automattic\WooCommerce\Internal\ProductDownloads\ApprovedDirectories\Register';
+        if (!class_exists($register_class)) {
+            return;
+        }
+
+        try {
+            $register = wc_get_container()->get($register_class);
+            if (!$register->approved_directory_exists($directory_url)) {
+                $register->add_approved_directory($directory_url);
+            }
+        } catch (\Exception $e) {
+            // Approved directories are unavailable; the product is still created.
+            return;
+        }
+    }
+
+    /**
+     * Permanently removes the demo product and its download file, if present.
+     */
+    public function remove_demo_product(): bool
+    {
+        $this->remove_demo_download_file();
+
+        $product_id = $this->get_demo_product_id();
+        if (!$product_id) {
+            return false;
+        }
+
+        if (function_exists('wc_get_product')) {
+            $product = wc_get_product($product_id);
+            if ($product) {
+                $product->delete(true);
+                return true;
+            }
+        }
+
+        return (bool) wp_delete_post($product_id, true);
+    }
+
+    /**
+     * Deletes the demo download file and its directory.
+     */
+    private function remove_demo_download_file(): void
+    {
+        $upload_dir = wp_upload_dir();
+        if (!empty($upload_dir['error'])) {
+            return;
+        }
+
+        $directory = trailingslashit($upload_dir['basedir']) . self::DEMO_DOWNLOAD_DIR;
+        $file_path = trailingslashit($directory) . self::DEMO_DOWNLOAD_FILE;
+
+        if (file_exists($file_path)) {
+            wp_delete_file($file_path);
+        }
+        if (is_dir($directory) && count((array) scandir($directory)) <= 2) {
+            rmdir($directory);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -234,5 +444,44 @@ class TeamDemoSeeder
         $deleted = $this->clear();
 
         wp_send_json_success(['deleted' => $deleted, 'status' => $this->get_status()]);
+    }
+
+    /**
+     * AJAX: create the $0 demo product for live checkout testing.
+     * Expects POST: _nonce.
+     */
+    public function ajax_create_demo_product(): void
+    {
+        if (!check_ajax_referer('emwtm_demo_product', '_nonce', false)) {
+            wp_send_json_error(['message' => 'Invalid nonce.'], 403);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions.'], 403);
+        }
+
+        $result = $this->create_demo_product();
+        if (!$result['success']) {
+            wp_send_json_error(['message' => $result['message']], 400);
+        }
+
+        wp_send_json_success($result);
+    }
+
+    /**
+     * AJAX: remove the demo product.
+     * Expects POST: _nonce.
+     */
+    public function ajax_remove_demo_product(): void
+    {
+        if (!check_ajax_referer('emwtm_demo_product', '_nonce', false)) {
+            wp_send_json_error(['message' => 'Invalid nonce.'], 403);
+        }
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions.'], 403);
+        }
+
+        $removed = $this->remove_demo_product();
+
+        wp_send_json_success(['removed' => $removed, 'status' => $this->get_product_status()]);
     }
 }

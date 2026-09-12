@@ -32,6 +32,7 @@ namespace emWooTeamManage\init_plugin;
  */
 
 define('EMWTM_VERSION', '0.1.0');
+define('EMWTM_DB_VERSION', '3');
 define('EMWTM_PLUGIN_FILE', __FILE__);
 
 defined('ABSPATH') or die();
@@ -53,7 +54,9 @@ final class emWooTeamManageInit {
     public function __construct() {
         add_action( 'init', [ $this, 'i18n' ] );        
         add_action( 'plugins_loaded', [ $this, 'init_class' ] );
+        add_action( 'init', [ $this, 'emwtm_maybe_upgrade' ], 99 );
         add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_team_table' ] );
+        add_action( 'activate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_create_content_grants_table' ] );
         add_action( 'deactivate_' . plugin_basename( __FILE__ ), [ $this, 'emwtm_deactivate' ] );
     }
 
@@ -119,6 +122,52 @@ final class emWooTeamManageInit {
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
+    }
+
+    /**
+     * Creates the team content access grants table.
+     * Tracks which users have access to a product because their team leader
+     * purchased it or an administrator assigned it, independently of
+     * WooCommerce's own download-permission records.
+     */
+    public function emwtm_create_content_grants_table() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'emwtm_team_content_grants';
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            leader_id bigint(20) unsigned NOT NULL,
+            order_id bigint(20) unsigned NOT NULL,
+            product_id bigint(20) unsigned NOT NULL,
+            subordinate_id bigint(20) unsigned NOT NULL,
+            source varchar(20) NOT NULL DEFAULT 'purchase',
+            granted_at datetime DEFAULT CURRENT_TIMESTAMP,
+            revoked_at datetime DEFAULT NULL,
+            PRIMARY KEY  (id),
+            KEY leader_id (leader_id),
+            KEY order_id (order_id),
+            KEY product_id (product_id),
+            KEY subordinate_id (subordinate_id)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+    }
+
+    /**
+     * Applies schema and rewrite changes to installs that were activated before
+     * the current EMWTM_DB_VERSION, without requiring deactivation/reactivation.
+     * Runs late on init so newly registered endpoints exist before flushing.
+     */
+    public function emwtm_maybe_upgrade(): void {
+        if ( get_option( 'emwtm_db_version' ) === EMWTM_DB_VERSION ) {
+            return;
+        }
+
+        $this->emwtm_create_content_grants_table();
+        flush_rewrite_rules();
+        update_option( 'emwtm_db_version', EMWTM_DB_VERSION );
     }
 
     /**

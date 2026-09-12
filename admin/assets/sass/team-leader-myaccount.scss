@@ -350,7 +350,48 @@ $caret-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' wi
     }
   }
 }
+// ─── My Content ──────────────────────────────────────────────────────────────
+.emwtm-my-content {
+  color: $text-base;
 
+  p { color: $text-mid; }
+}
+
+.emwtm-my-content-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: $bg-card;
+  box-shadow: $shadow-sm;
+
+  th,
+  td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid $border-light;
+  }
+
+  th {
+    color: $text-dark;
+    background: $bg-light;
+  }
+}
+
+.emwtm-my-content-download {
+  color: $primary;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: $primary-dark;
+    text-decoration: underline;
+  }
+}
+
+.emwtm-my-content-pending {
+  color: $text-mid;
+  font-style: italic;
+}
 // ─── Responsive ───────────────────────────────────────────────────────────────
 @media (max-width: 640px) {
   .emwtm-myaccount {

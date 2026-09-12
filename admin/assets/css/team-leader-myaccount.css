@@ -297,6 +297,45 @@
   border-color: #aaa;
 }
 
+.emwtm-my-content {
+  color: #333;
+}
+.emwtm-my-content p {
+  color: #444;
+}
+
+.emwtm-my-content-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+.emwtm-my-content-table th,
+.emwtm-my-content-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.emwtm-my-content-table th {
+  color: #1d3557;
+  background: #f7faff;
+}
+
+.emwtm-my-content-download {
+  color: #3a86c8;
+  font-weight: 600;
+  text-decoration: none;
+}
+.emwtm-my-content-download:hover, .emwtm-my-content-download:focus {
+  color: #2e6ea6;
+  text-decoration: underline;
+}
+
+.emwtm-my-content-pending {
+  color: #444;
+  font-style: italic;
+}
+
 @media (max-width: 640px) {
   .emwtm-myaccount table {
     font-size: 0.8rem;

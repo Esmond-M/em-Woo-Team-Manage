@@ -224,6 +224,7 @@ class TeamAjaxHandler
                         echo '<p class="newpost-error">Could not remove User ID ' . esc_html($id) . ' from the team.</p>';
                         continue;
                     }
+                    do_action('emwtm_subordinate_removed_from_team', $current_leader_id, $id);
                     $remaining_teams = (int) $wpdb->get_var($wpdb->prepare(
                         "SELECT COUNT(*) FROM $table WHERE subordinate_id = %d",
                         $id
@@ -475,6 +476,7 @@ class TeamAjaxHandler
         add_user_meta($user_id, 'teamID', $leader_id);
         wp_new_user_notification($user_id, null, 'both');
         $this->send_team_notification($user_id, 'added', $leader_id);
+        do_action('emwtm_subordinate_added', $leader_id, (int) $user_id);
 
         echo '<p class="newpost-success">' . esc_html($first_name . ' ' . $last_name) . ' (' . esc_html($email) . ') added successfully.</p>';
         wp_die();

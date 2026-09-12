@@ -37,13 +37,41 @@ A WordPress plugin for WooCommerce that lets site admins and team leaders manage
 ### Custom Roles
 - Registers two custom WordPress roles: `team_leader` and `team_subordinate`
 
+### Team Content Access
+When a team leader buys a downloadable WooCommerce product, every current subordinate on their team gets access to the same files — no separate purchase required.
+- Access is tracked in an internal grants table (`emwtm_team_content_grants`), separate from WooCommerce's own download permissions table
+- Subordinates added to a team after the purchase are granted access automatically
+- Access is revoked immediately when the order is refunded/cancelled/failed, the subordinate is removed from that team, or either the leader's or subordinate's account is deleted
+- A subordinate who belongs to more than one team keeps the access granted by their other team leader(s) when removed from just one team
+- Other code can check access without depending on WooCommerce directly via the `emwtm_user_has_team_access` filter
+
+### Admin-Assigned Content
+Site admins can give a team access to downloadable products without any purchase, from **Team Manage > Content Access**:
+- Select a team leader and one or more downloadable products to assign
+- The whole team gets access immediately, and anyone added to the team later is granted access automatically
+- A table lists every active assignment site-wide, showing whether access came from a purchase or an admin assignment, and how many users hold it
+- **Remove Access** revokes the product for the entire team
+- Each assignment is backed by a hidden $0 WooCommerce order so download links and **My Account > Downloads** work the same as a real purchase. Enable **Hide Assignment Orders** in Settings to keep those orders out of WooCommerce > Orders.
+
+Team leaders see a **Team Content** panel on **View Subordinates** listing what their team can access, where it came from, how many members hold it, and a direct download link for each item.
+
+Subordinates get a **My Content** tab in the WooCommerce **My Account** area listing everything shared with them through their team, who shared it, and a direct download link for each file. The tab only appears once they actually have access to something.
+
+### Demo Mode
+Available under **Team Manage > Demo Data** (`manage_options` only):
+- **Seed Demo Data** — instantly creates up to 2 demo team leaders (`demo.leader.1@example.com`, `demo.leader.2@example.com`) with a configurable number of demo subordinates each (`demo.sub.1.001@example.com` … `demo.sub.2.050@example.com`). Idempotent — running it again skips accounts that already exist.
+- **Demo Product (Live Purchase Walkthrough)** — creates a hidden, $0 **downloadable** WooCommerce product with a real demo file. Add it to the cart and complete a guest checkout to see the real `woocommerce_thankyou` flow create an actual Team Leader account, then watch the team content access flow grant the file to their subordinates. Requires WooCommerce to be active.
+- **Clear Demo Data** — permanently deletes all demo users, their team relationships, the demo product, and its demo download file in one action. Safe to run on a live store; only accounts/products tagged as demo data are affected.
+
 ### Admin Pages (under "Team Manage" menu)
 | Page | Slug | Access |
 |------|------|--------|
-| Add Subordinates | `user-import-controls` | Team leaders and site administrators |
+| Team Leaders | `site-admin-team-leader-admin` | `manage_options` only |
 | View Subordinates | `team-leader-admin` | Team leaders and site administrators |
-| Site Admin View | `site-admin-team-leader-admin` | `manage_options` only |
+| Add Subordinates | `user-import-controls` | Team leaders and site administrators |
+| Content Access | `emwtm-content-access` | `manage_options` only |
 | Settings | `emwtm-settings` | `manage_options` only |
+| Demo Data | `emwtm-demo-seeder` | `manage_options` only |
 
 ---
 
@@ -63,14 +91,26 @@ Deactivating the plugin flushes its rewrite rules but preserves team relationshi
 ## Usage
 
 ### For Site Admins
-- Navigate to **Team Manage > Site Admin View** for an overview of all team leaders.
+- Navigate to **Team Manage > Team Leaders** for an overview of all team leaders, with quick links to manage a team or assign content to it.
 - Use **Team Manage > View Subordinates** and select a team leader from the dropdown to manage their roster, export their CSV, or remove/edit members.
 - Use **Team Manage > Add Subordinates** and select a team leader from the "Acting as Team Leader" bar to import a CSV or add a single user on their behalf.
+- Use **Team Manage > Content Access** to give a team downloadable products without a purchase, and to review or remove existing access.
 
 ### For Team Leaders
 - Log in to wp-admin and navigate to **Team Manage > Add Subordinates** to import users via CSV or add them one at a time.
-- Navigate to **Team Manage > View Subordinates** to see your team roster, edit member details, remove members from the team, or export to CSV.
+- Navigate to **Team Manage > View Subordinates** to see your team roster, edit member details, remove members from the team, or export to CSV. The **Team Content** panel there shows what your team can access, with direct download links.
 - In the WooCommerce **My Account** area, find the **My Team** tab for a quick view of your team.
+
+### For Subordinates
+- In the WooCommerce **My Account** area, open the **My Content** tab to see everything shared with you through your team, with direct download links. The tab appears automatically once your team has access to something.
+
+### Trying It Out (Demo Mode)
+No real WooCommerce sales needed to evaluate the plugin:
+
+1. Go to **Team Manage > Demo Data**.
+2. Click **Seed Demo Data** for an instant team roster to explore the admin pages, or click **Create Demo Product** to generate a $0 WooCommerce product.
+3. To see the real provisioning flow, open the demo product's checkout link, complete a guest checkout, and land on the WooCommerce thank-you page — a Team Leader account is created automatically, just as it would be for a real customer.
+4. When finished, click **Clear Demo Data** to remove all demo users, relationships, and the demo product in one step.
 
 ### CSV Import Format
 The first row must be the header:
@@ -113,6 +153,17 @@ npm run env:stop
 
 The environment pins WordPress and WooCommerce versions in `.wp-env.json`. Use `npm run env:destroy` to remove its containers and disposable volumes.
 
+### Linting
+
+PHPCS with a WordPress Coding Standards ruleset is available, tuned to this project's existing style (spaces, short array syntax) so it flags real issues instead of formatting preferences:
+
+```bash
+composer run lint
+composer run lint:fix
+```
+
+The ruleset lives in `phpcs.xml.dist`.
+
 ---
 
 ## File Structure
@@ -123,11 +174,18 @@ em-Woo-Team-Manage/
 ├── includes/classes/
 │   ├── TeamManageCore.php          # Role registration, menu/hooks setup
 │   ├── TeamAjaxHandler.php         # AJAX handlers, asset enqueue
-│   └── TeamUserImporter.php        # CSV import logic
+│   ├── TeamUserImporter.php        # CSV import logic
+│   ├── TeamDemoSeeder.php          # Demo data + demo product seeding
+│   ├── TeamContentAccess.php       # Team content access ledger
+│   ├── TeamContentAccessSync.php   # Syncs ledger to WooCommerce download permissions
+│   └── TeamContentAssignment.php   # Admin-assigned content, backed by hidden $0 orders
 ├── templates/
-│   ├── team-leader-admin-page.php          # View/manage subordinates
+│   ├── team-leader-admin-page.php          # View/manage subordinates + team content
 │   ├── team-leader-user-import-page.php    # CSV + single-add import
-│   └── site-admin-team-leader-page.php     # Site admin overview
+│   ├── site-admin-team-leader-page.php     # Team leaders overview
+│   ├── team-content-access-page.php        # Admin content assignment
+│   ├── team-my-content-page.php            # Subordinate My Account content view
+│   └── team-demo-seeder-page.php           # Demo data seeder + demo product
 └── admin/assets/
     ├── css/                        # Compiled CSS
     ├── sass/                       # SCSS source files
@@ -141,6 +199,8 @@ em-Woo-Team-Manage/
 ### Future Hardening
 
 Team workflows currently authorize team leaders with the `team_leader` role name as a capability. A future compatibility-conscious refactor should introduce a dedicated capability such as `emwtm_manage_team` while preserving access for existing team leader accounts.
+
+`TeamManageCore::user_import_inits()` bypasses WooCommerce's `woocommerce_prevent_admin_access` and `woocommerce_disable_admin_bar` filters so team leaders can reach wp-admin and keep the toolbar. This works today but has no test coverage. Add an integration test asserting both filters resolve to `false` for a `team_leader` user and remain unaffected for `team_subordinate`/`customer` users.
 
 For issues, suggestions, or contributions, please use the [GitHub Issues](https://github.com/Esmond-M/em-Woo-Team-Manage/issues) page.
 
