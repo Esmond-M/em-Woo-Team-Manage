@@ -302,7 +302,7 @@ class TeamDemoSeeder
 
     /**
      * Writes the demo download file into uploads and makes sure WooCommerce
-     * will accept it. Returns the file path, or an empty string on failure.
+     * will accept it. Returns the file URL, or an empty string on failure.
      */
     private function ensure_demo_download_file(): string
     {
@@ -326,10 +326,12 @@ class TeamDemoSeeder
             }
         }
 
+        // WooCommerce matches downloads against approved directories by URL, so
+        // the file must be referenced the same way it is approved.
         $directory_url = trailingslashit($upload_dir['baseurl']) . self::DEMO_DOWNLOAD_DIR;
         $this->approve_download_directory($directory_url);
 
-        return $file_path;
+        return trailingslashit($directory_url) . self::DEMO_DOWNLOAD_FILE;
     }
 
     /**
@@ -354,6 +356,7 @@ class TeamDemoSeeder
             }
         } catch (\Exception $e) {
             // Approved directories are unavailable; the product is still created.
+            return;
         }
     }
 
@@ -394,10 +397,10 @@ class TeamDemoSeeder
         $file_path = trailingslashit($directory) . self::DEMO_DOWNLOAD_FILE;
 
         if (file_exists($file_path)) {
-            unlink($file_path);
+            wp_delete_file($file_path);
         }
-        if (is_dir($directory)) {
-            @rmdir($directory);
+        if (is_dir($directory) && count((array) scandir($directory)) <= 2) {
+            rmdir($directory);
         }
     }
 
