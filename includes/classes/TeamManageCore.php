@@ -88,6 +88,7 @@ class TeamManageCore
         add_action('init', [$this, 'register_myaccount_endpoint']);
         add_filter('woocommerce_account_menu_items', [$this, 'add_myaccount_menu_item']);
         add_action('woocommerce_account_team-manage_endpoint', [$this, 'myaccount_team_manage_content']);
+        add_action('woocommerce_account_team-content_endpoint', [$this, 'myaccount_team_content']);
         add_filter('the_title', [$this, 'myaccount_endpoint_title']);
         add_action('wp_enqueue_scripts', [$this, 'load_myaccount_styles']);
         
@@ -177,8 +178,21 @@ class TeamManageCore
             2
         );
 
-        // Submenu pages configuration
+        // Submenu pages configuration.
+        // The entry whose menu_slug matches the parent slug must be registered
+        // first; otherwise add_submenu_page() injects a duplicate parent link.
+        // 'position' is an insertion index evaluated at registration time, so
+        // the two pages that display above Add Subordinates use 0 and 1.
         $submenus = [
+            [
+                'parent_slug' => 'user-import-controls',
+                'page_title'  => 'Add Subordinates',
+                'menu_title'  => 'Add Subordinates',
+                'capability'  => 'read',
+                'menu_slug'   => 'user-import-controls',
+                'template'    => 'team-leader-user-import-page.php',
+                'position'    => 0
+            ],
             [
                 'parent_slug' => 'user-import-controls',
                 'page_title'  => 'Team Leaders',
@@ -186,7 +200,7 @@ class TeamManageCore
                 'capability'  => 'manage_options',
                 'menu_slug'   => 'site-admin-team-leader-admin',
                 'template'    => 'site-admin-team-leader-page.php',
-                'position'    => 1
+                'position'    => 0
             ],
             [
                 'parent_slug' => 'user-import-controls',
@@ -195,16 +209,7 @@ class TeamManageCore
                 'capability'  => 'read',
                 'menu_slug'   => 'team-leader-admin',
                 'template'    => 'team-leader-admin-page.php',
-                'position'    => 2
-            ],
-            [
-                'parent_slug' => 'user-import-controls',
-                'page_title'  => 'Add Subordinates',
-                'menu_title'  => 'Add Subordinates',
-                'capability'  => 'read',
-                'menu_slug'   => 'user-import-controls',
-                'template'    => 'team-leader-user-import-page.php',
-                'position'    => 3
+                'position'    => 1
             ],
             [
                 'parent_slug' => 'user-import-controls',
@@ -272,6 +277,19 @@ class TeamManageCore
     */
     public function register_myaccount_endpoint() {
         add_rewrite_endpoint('team-manage', EP_ROOT | EP_PAGES);
+        add_rewrite_endpoint('team-content', EP_ROOT | EP_PAGES);
+    }
+
+    /**
+     * Whether the given user can currently access any team-granted content.
+     */
+    public static function user_has_team_content(int $user_id): bool
+    {
+        if (!$user_id) {
+            return false;
+        }
+
+        return !empty((new TeamContentAccess())->get_user_products($user_id));
     }
 
     /**
@@ -279,13 +297,22 @@ class TeamManageCore
     */
     public function add_myaccount_menu_item(array $items): array {
         $user = wp_get_current_user();
-        if (!in_array('team_leader', (array) $user->roles, true)) {
+        $is_leader = in_array('team_leader', (array) $user->roles, true);
+        $has_content = self::user_has_team_content((int) $user->ID);
+
+        if (!$is_leader && !$has_content) {
             return $items;
         }
+
         // Insert before logout
         $logout = $items['customer-logout'] ?? [];
         unset($items['customer-logout']);
-        $items['team-manage']    = __('My Team', 'emWooTeamManage');
+        if ($is_leader) {
+            $items['team-manage'] = __('My Team', 'emWooTeamManage');
+        }
+        if ($has_content) {
+            $items['team-content'] = __('My Content', 'emWooTeamManage');
+        }
         $items['customer-logout'] = $logout;
         return $items;
     }
@@ -295,7 +322,10 @@ class TeamManageCore
     */
     public function load_myaccount_styles() {
         global $wp_query;
-        if (!function_exists('is_account_page') || !is_account_page() || !isset($wp_query->query_vars['team-manage'])) {
+        if (!function_exists('is_account_page') || !is_account_page()) {
+            return;
+        }
+        if (!isset($wp_query->query_vars['team-manage']) && !isset($wp_query->query_vars['team-content'])) {
             return;
         }
         wp_enqueue_style(
@@ -316,12 +346,26 @@ class TeamManageCore
     }
 
     /**
+    * Renders the subordinate-facing team content endpoint.
+    */
+    public function myaccount_team_content() {
+        echo '<div class="emwtm-myaccount">';
+        $this->require_template('team-my-content-page.php');
+        echo '</div>';
+    }
+
+    /**
     * Sets the page title for the team-manage endpoint.
     */
     public function myaccount_endpoint_title(string $title): string {
         global $wp_query;
-        if (!is_null($wp_query) && isset($wp_query->query_vars['team-manage']) && in_the_loop()) {
+        if (is_null($wp_query) || !in_the_loop()) {
+            return $title;
+        }
+        if (isset($wp_query->query_vars['team-manage'])) {
             $title = __('My Team', 'emWooTeamManage');
+        } elseif (isset($wp_query->query_vars['team-content'])) {
+            $title = __('My Content', 'emWooTeamManage');
         }
         return $title;
     }

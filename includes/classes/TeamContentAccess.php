@@ -304,6 +304,30 @@ class TeamContentAccess
     }
 
     /**
+     * Returns the distinct products a single user can access through any team
+     * they belong to. Powers the My Account content view.
+     *
+     * @return array<int, array{product_id:int, order_id:int, leader_id:int, source:string, granted_at:string}>
+     */
+    public function get_user_products(int $user_id): array
+    {
+        global $wpdb;
+        $table = $this->table();
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT product_id, MIN(order_id) AS order_id, MIN(leader_id) AS leader_id,
+                    MIN(source) AS source, MIN(granted_at) AS granted_at
+             FROM {$table}
+             WHERE subordinate_id = %d AND revoked_at IS NULL
+             GROUP BY product_id
+             ORDER BY granted_at DESC",
+            $user_id
+        ), ARRAY_A);
+
+        return $rows ?: [];
+    }
+
+    /**
      * Marks active grants for one leader/product pair as revoked.
      *
      * @return int Number of grants revoked.
